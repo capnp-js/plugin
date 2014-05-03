@@ -2,17 +2,17 @@ capnp-js
 ========
 
 Yet another Capnproto implementation for Javascript.
-Handlebars templates provide a more literate codebase than C++ string manipulation.
+Dust templates provide a more literate codebase than C++ string manipulation.
 CommonJS modules with an eye toward Browserifying to UMD:
 ```
 [filename].capnp -> [filename].js
 struct [Name] {} \mapsto exports.[Name] = function (bytes) {...};
-struct [Name] { struct [Mame] {} } \mapsto exports.[Name].[Mame] = ...
+struct [Name] { struct [Subname] {} } \mapsto exports.[Name].[Subname] = ...
 ```
 
 I still need a strategy for stubbing out RPC methods.
 In C++, Capnproto can provide headers, leaving .cpp files for user construction.
-In Javascript, I guess I can stub our `require` calls for nonexisting files, but `js-doc` stub methods would be nice as a compiler option.
+In Javascript, I guess I can stub our `require` calls for nonexisting files, but `js-doc`ed stub methods would be nice as a compiler option.
 
 AMD Use Case
 ------------
@@ -44,7 +44,7 @@ Buffer Immutability
 -------------------
 Buffers are treated as immutable internally.
 All processing returns `Uint8Array` views of the source buffer if possible.
-Any byte-misaligned data gets aligned into a new buffer.
+The outlier, booleans, get interpreted to `true` or `false`.
 
 Types
 -----
