@@ -10,6 +10,10 @@ struct [Name] {} \mapsto exports.[Name] = function (bytes) {...};
 struct [Name] { struct [Mame] {} } \mapsto exports.[Name].[Mame] = ...
 ```
 
+I still need a strategy for stubbing out RPC methods.
+In C++, Capnproto can provide headers, leaving .cpp files for user construction.
+In Javascript, I guess I can stub our `require` calls for nonexisting files, but `js-doc` stub methods would be nice as a compiler option.
+
 AMD Use Case
 ------------
 ```
