@@ -6,7 +6,26 @@ Handlebars templates provide a more literate codebase than C++ string manipulati
 CommonJS modules with an eye toward Browserifying to UMD:
 ```
 [filename].capnp -> [filename].js
-struct [Name] \mapsto exports.[Name] = function (bytes) {...};
+struct [Name] {} \mapsto exports.[Name] = function (bytes) {...};
+struct [Name] { struct [Mame] {} } \mapsto exports.[Name].[Mame] = ...
+```
+
+AMD Use Case
+------------
+```
+define(['capnp-js/frame/multiplex', 'messages/types1', 'messages/types2'],
+       function (              mx,            types1,            types2) {
+    exports = {};
+    var types = types1.table();
+    var types.mixin(types2.table());
+
+    exports.deserialize = function (buffer) {
+        var header = mx.Header.unwire(buffer);
+        var Type = types[header.gid];
+
+        return new Type(header.packet(buffer));
+    };
+});
 ```
 
 32bit Words
