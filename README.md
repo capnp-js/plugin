@@ -6,7 +6,7 @@ Handlebars templates provide a more literate codebase than C++ string manipulati
 CommonJS modules with an eye toward Browserifying to UMD:
 ```
 [filename].capnp -> [filename].js
-struct [Name] \mapsto export.[Name] = function (bytes) {...};
+struct [Name] \mapsto exports.[Name] = function (bytes) {...};
 ```
 
 32bit Words
