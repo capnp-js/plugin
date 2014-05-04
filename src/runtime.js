@@ -1,5 +1,8 @@
 exports.List = function List(bytes) {};
 
+//exports.Text = ... derive from list and lazily convert, or convert immediately?
+//exports.Data = ...
+
 exports.Struct = function Struct(bytes) {};
 
 exports.InterSegment = function InterSegment(bytes) {};
