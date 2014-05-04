@@ -1,0 +1,11 @@
+{#structs}
+  exports.{displayName} = function {displayName}(bytes) {
+    {#field}
+      this.{name} = {>{slot.type.template} field={.} /};
+    {/field}
+  };
+
+  {displayName}.prototype.isComplete = function () {
+
+  }
+{/structs}

@@ -1,0 +1,1 @@
+!!(bytes[{@byteOffset slot=field.slot}] & {@boolMask bitDistance=field.slot.offset})

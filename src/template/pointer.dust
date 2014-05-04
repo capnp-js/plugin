@@ -1,0 +1,10 @@
+{!
+Could `require` this once in some other file for a single require in the
+generated code.  Both Browserify and Node will cache the value and return.  Once
+things stabilize some, the implementation could migrate that way, but for now I
+like the definition close to its use (pretty source wins out over pretty
+generated code for now).
+!}
+var rt = require('runtime');
+
+new pointer.{field.slot.type.runtimeDS}(bytes);
