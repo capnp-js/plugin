@@ -34,11 +34,11 @@ define(['capnp-js/frame/multiplex', 'messages/types1', 'messages/types2'],
 
 Javascript Array Buffers
 ------------------------
-Capnproto has 64bit words and pointer offsets of 29bit or 30bit.
-This yields 64*2^29 = 8*2^32 or 64*2^30 = 8*2^33 bits of memory.
-Taking the 8*2^32 as an upper limit on the size of Capnproto messages, then Javascript's `ArrayBuffer` indexed with 32bit integers are adequate to contain whatever comes this way.
-I don't expect browser to handle such messages, but it's theoretically capable.
-A `offset <<= 3` (practically, maybe `(offset>>>0) << 3`) converts a Capnproto offset to an ArrayBuffer offset.
+Capnproto has 64bit words and pointer offsets of 29bit plus a sign bit.
+This yields 64*2^29 = 8*2^32 bits of memory.
+I'm handling the sign bit externally to cover the same address space.
+Taking the 8*2^32 bits as the upper limit on the size of Capnproto messages, then Javascript's `ArrayBuffer` indexed with 32bit unsigned integers is adequate to contain whatever comes its way.
+I don't expect a browser to handle such messages, but it's theoretically capable.
 
 Buffer Immutability
 -------------------
