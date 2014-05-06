@@ -1,3 +1,0 @@
-new Uint8Array(bytes,
-               {@byteOffset capnpSlot=field.slot},
-               {@byteCount capnpType=field.slot.type})
