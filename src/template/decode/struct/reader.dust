@@ -1,0 +1,47 @@
+{#structs}
+/**
+ * @param {Uint8Array[]} segments - Message segments.
+ * @param {Uint32} segmentId - Index into `segments` for the segment containing
+ * the object's data section.
+ * @param {Uint32} datum - Byte offset into the segment to the word following
+ * the object's pointer (word aligment implies that this will be a multiple of
+ * 8).
+ */
+  exports.{displayName}Reader = function {displayName}Reader(segments, segmentId, datum) {
+    var segment = segments[segmentId];
+    var pointer = segment.subarray(datum-8); // Leave tail intact for nonpointer fields.
+
+    this.segments = segments;
+    // Security uses?:
+    //this.dataByteCount = {>struct/dataBytes p='pointer'};
+    //this.pointerByteCount = {>struct/pointerBytes p='pointer'};
+
+    // InterSegment cases:
+    // B=0 => DirectPointer
+    // B=1 => HopPointer
+
+    {#field}
+      // Bytes view with pointer at the zero position.
+      var fieldDatum = datum + {@byteOffset capnpSlot=slot});
+      {?slot.type.runtimeDS}
+        var rt = require('runtime');
+        this._{name} = segment[fieldDatum-8] & 0x0000000c == 2 ?
+          new rt.Far(segment, fieldDatum, rt.{slot.type.runtimeDS}, segments) :
+          new rt.{slot.type.runtimeDS}(segment, fieldDatum);
+
+        Object.defineProperty(this, '{name}', {
+          get : function () { return this._{name}.resolve(); },
+          set : function (value) { throw new Error('_{name}_ field is read-only.'); }
+        });
+      {:else}
+        Object.defineProperty(this, '{name}', {
+          get : function () { return {>{slot.type.template} field={.} segment='segment' datum='datum'}; }
+          set : function (value) { throw new Error('_{name}_ field is read-only.'); }
+//Builder: if (this._{name} === undefined) {
+//Builder:   this._{name} = {>defaultValue field={.} segment='segment' datum='datum'};
+//Builder: }
+        });
+      {/slot.type.runtimeDS}
+    {/field}
+  };
+{/structs}
