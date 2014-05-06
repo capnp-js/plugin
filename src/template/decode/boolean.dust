@@ -1,0 +1,1 @@
+!!({p}[{@byteOffset skip="8" capnpSlot=field.slot}] & {@boolMask bitDistance=field.slot.offset})
