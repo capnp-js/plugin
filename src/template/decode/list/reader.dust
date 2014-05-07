@@ -1,0 +1,37 @@
+exports.PrimitiveList = function PrimitiveList(decoder, bytes, begin, length) {
+    this.length = length;
+    this.get = function (index) {
+        return decoder(bytes, begin, index);
+    };
+};
+
+/**
+ * @param {Uint32} datum - Byte immediately following the list pointer of interest.
+ */
+exports.CompositeList = function CompositeList(Reader, segments, segment, datum) {
+    var pointer = segment.subarray(datum-8);
+
+    datum = {>list/offsetBytesIsNegative p='pointer'} ?
+        datum - {>list/offsetBytes p='pointer'} :
+        datum + {>list/offsetBytes p='pointer'};
+
+    var elementSize = require('list/elementSize');
+    if ({>list/sizeEnum p='pointer'} === elementSize.INLINE_COMPOSITE) {
+        var sPointer = segment.subarray(datum-8);
+        var elementSize = {>struct/dataBytes p='sPointer'} + {>struct/pointerBytes p='sPointer'};
+        this.length = {>struct/altCardinality};
+    } else {
+        var elementSize = elementSize({>list/sizeEnum p='pointer'});
+        this.length = {>list/cardinality p='pointer'};
+    }
+
+    this.get = function (index) {
+        return new Reader(segments,
+                          segment,
+                          datum + elementSize*index,
+                          true);
+    };
+};
+
+exports.Text = function Text() {};
+exports.Data = function Data() {};
