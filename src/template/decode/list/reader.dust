@@ -1,10 +1,3 @@
-exports.PrimitiveList = function PrimitiveList(decoder, bytes, begin, length) {
-    this.length = length;
-    this.get = function (index) {
-        return decoder(bytes, begin, index);
-    };
-};
-
 /**
  * @param {Uint32} datum - Byte immediately following the list pointer of interest.
  */
@@ -33,5 +26,27 @@ exports.CompositeList = function CompositeList(Reader, segments, segment, datum)
     };
 };
 
+exports.PrimitiveList = function PrimitiveList(decodeFn, bytes, begin, length) {
+    this.length = length;
+    this.get = function (index) {
+        return decodeFn(bytes, begin, index);
+    };
+};
+
 exports.Text = function Text() {};
 exports.Data = function Data() {};
+
+exports.AnyList = function AnyList(composite, primitive) {
+    this.composite = composite;
+    this.primitive = primitive;
+};
+
+AnyList.prototype.interpret = function AnyList(interpreter) {
+    if (interpreter instanceof Reader) {
+        var c = this.composite;
+        return new CompositeList(interpreter, c.segments, c.segment, c.datum);
+    } else {
+        var p = this.primitive;
+        return new PrimitiveList(interpreter, p.bytes, p.begin, p.length);
+    }
+};
