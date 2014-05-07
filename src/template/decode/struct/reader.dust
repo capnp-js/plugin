@@ -6,12 +6,17 @@
  * @param {Uint32} datum - Byte offset into the segment to the word following
  * the object's pointer (word aligment implies that this will be a multiple of
  * 8).
+ * @param {Boolean} [isPreoffset=false] - Use an offset of 0 for the object's pointer
+ * (handy for list constituents).
  */
-  exports.{displayName}Reader = function {displayName}Reader(segments, segmentId, datum) {
-    var segment = segments[segmentId];
+exports.{displayName}Reader = function {displayName}Reader(segments, segment, datum, isPreoffset) {
     var pointer = segment.subarray(datum-8); // Leave tail intact for nonpointer fields.
+    if (!isPreoffset) {
+        datum = {>list/offsetIsNegative} ?
+            datum - {>list/offsetBytes p='pointer'} :
+            datum + {>list/offsetBytes p='pointer'};
+    }
 
-    this.segments = segments;
     // Security uses?:
     //this.dataByteCount = {>struct/dataBytes p='pointer'};
     //this.pointerByteCount = {>struct/pointerBytes p='pointer'};
