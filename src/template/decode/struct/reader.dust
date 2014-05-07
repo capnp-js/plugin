@@ -1,3 +1,5 @@
+exports.Reader = function () {};
+
 {#structs}
 /**
  * @param {Uint8Array[]} segments - Message segments.
@@ -49,4 +51,6 @@ exports.{displayName}Reader = function {displayName}Reader(segments, segment, da
       {/slot.type.runtimeDS}
     {/field}
   };
+
+  {displayName}Reader.prototype = new Reader();
 {/structs}
