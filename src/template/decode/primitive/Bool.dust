@@ -1,1 +1,1 @@
-return !!(({segment})[{begin} + {@byteOffset type=type offset=offset/}] & {@boolMask bitDistance=offset/});
+(!!(({segment})[{begin} + {@byteOffset type=type offset=offset/}] & {@boolMask bitDistance=offset/}))
