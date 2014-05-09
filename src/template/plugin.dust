@@ -1,5 +1,4 @@
-/* Base Class for instanceof-based resolution(?). */
-var CodeRequest = function CodeRequest() {};
+var Reader = require('reader');
 
 var structs = {};
 
@@ -15,10 +14,22 @@ var structs = {};
         this.id = '{id}';
 
         {#fields}
+            /*
+             * Default value handling requires encoded representation of the
+             * default. Javascript bitwise operators convert to Int32, so the
+             * XOR should be performed by primitives templates before operating.
+             * This is blocked awaiting encoding facilities, e.g.
+             * ```
+             * var encode = require('encode/primitive');
+             * var __default{name} = encode.Uint8({defaultValue});
+             * ...
+             * return {>"primitive/{type}.dust" ... default="__default{name}"};
+             * ```
+             */
             Object.defineProperty(this, '{name}', {
                 get : function () {
                     {?isDatum}
-                        {>"primitive/{type}.dust" segment="segment" begin="dataSection"/}
+                        return {>"primitive/{type}.dust" segment="segment" begin="dataSection"/};
                     {:else}
                         {@select key=type}
                         {@eq value="List"} return new rt.List(sig); {/eq}
@@ -48,21 +59,30 @@ var structs = {};
     };
 
     /*
-     * Map a pointer to its object.  For `AnyPointer` loci, inspection of the
-     * pointer's A bits can dispatch here as needed.  Finally, a `List` will
-     * have to invoke the constructor directly, since `Struct` pointers in that
-     * case take on a different interpretation.
+     * Map a `Struct` pointer to a {name} reader.  For `AnyPointer` loci,
+     * inspection of the pointer's A bits can dispatch here as needed.  Finally,
+     * a `List` will have to invoke the constructor directly, since `Struct`
+     * pointers in that case take on a different interpretation.
+     * @param {Uint8Array[]} segments - All of the message segments.
      * @param {Uint8Array} segment - Segment of memory containing the pointer.
      * With type information available at compile time, this method can be
      * called blindly to generate a struct.
      * @param {Uint32} pointer - Byte offset into `segment` where the pointer
      * starts.
      */
-    structs['{id}'].deref = function (segment, pointer) {};
+    structs['{id}'].deref = function (segments, segment, pointer) {
+        var begin = {>"struct/begin" segment="segment" pointer="pointer"/}
+        var mid = begin + {>"struct/dataBytes" segment="segment" pointer="pointer"/};
+
+        return new (structs['{id}'])(segments, segment, begin, mid,
+            mid + {>"struct/pointerBytes" segment="segment" pointer="pointer"/});
+    };
 
     {?owner}
         structs['{owner}'].{name} = structs['{id}'];
     {:else}
         exports.{name} = structs['{id}'];
     {/owner}
+
+    structs['{id}'].prototype = new Reader();
 {/structs}
