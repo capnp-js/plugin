@@ -1,30 +1,35 @@
+exports.ListReader = function () {};
+
 /**
  * @param {Uint32} datum - Byte immediately following the list pointer of interest.
  */
 exports.CompositeList = function CompositeList(Reader, segments, segment, datum) {
     var pointer = segment.subarray(datum-8);
 
-    datum = {>list/offsetBytesIsNegative p='pointer'} ?
-        datum - {>list/offsetBytes p='pointer'} :
-        datum + {>list/offsetBytes p='pointer'};
+    datum = {>"list/offsetBytesIsNegative" p="pointer"/} ?
+        datum - {>"list/offsetBytes" p="pointer"/} :
+        datum + {>"list/offsetBytes" p="pointer"/};
 
     var elementSize = require('list/elementSize');
-    if ({>list/sizeEnum p='pointer'} === elementSize.INLINE_COMPOSITE) {
+    if ({>"list/sizeEnum" p="pointer"/} === elementSize.INLINE_COMPOSITE) {
         var sPointer = segment.subarray(datum-8);
-        var elementSize = {>struct/dataBytes p='sPointer'} + {>struct/pointerBytes p='sPointer'};
-        this.length = {>struct/altCardinality};
+        this.length = {>"struct/altCardinality"/};
     } else {
-        var elementSize = elementSize({>list/sizeEnum p='pointer'});
-        this.length = {>list/cardinality p='pointer'};
+        var sPointer = undefined;
+        var elementSize = elementSize({>"list/sizeEnum" p="pointer"/});
+        this.length = {>"list/cardinality" p="pointer"/};
     }
 
     this.get = function (index) {
-        return new Reader(segments,
-                          segment,
-                          datum + elementSize*index,
-                          true);
+        return new Reader.createMember(segments,
+                                       segment,
+                                       datum,
+                                       index,
+                                       sPointer);
     };
 };
+
+CompositeList.prototype = new ListReader();
 
 exports.PrimitiveList = function PrimitiveList(decodeFn, bytes, begin, length) {
     this.length = length;
@@ -33,20 +38,30 @@ exports.PrimitiveList = function PrimitiveList(decodeFn, bytes, begin, length) {
     };
 };
 
+PrimitiveList.prototype = new ListReader();
+
 exports.Text = function Text() {};
+Text.prototype = new ListReader();
+
 exports.Data = function Data() {};
+Data.prototype = new ListReader();
 
 exports.AnyList = function AnyList(composite, primitive) {
     this.composite = composite;
-    this.primitive = primitive;
+    this.primitive = primitive; // Local to segment
 };
 
 AnyList.prototype.interpret = function AnyList(interpreter) {
-    if (interpreter instanceof Reader) {
+    if (interpreter instanceof StructReader) {
         var c = this.composite;
         return new CompositeList(interpreter, c.segments, c.segment, c.datum);
-    } else {
+    } else if (interpreter instanceof ListReader) {
+        // AnyStruct bootstrap to simplify CompositeList?
+        var a;
+    }
         var p = this.primitive;
         return new PrimitiveList(interpreter, p.bytes, p.begin, p.length);
     }
 };
+
+AnyList.prototype = new ListReader();
