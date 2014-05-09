@@ -1,0 +1,2 @@
+((({segment})[{begin} + {@byteOffset type=type offset=offset/}] >>> 0)
+    + (({segment})[{begin} + {@byteOffset type=type offset=offset skip=1/}] << 8))
