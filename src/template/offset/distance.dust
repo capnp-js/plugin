@@ -1,1 +1,1 @@
-(lhs.byteOffset < rhs.byteOffset ? rhs.byteOffset-lhs.byteOffset : lhs.byteOffset - rhs.byteOffset)
+(lhs.byteOffset < rhs.byteOffset ? rhs.byteOffset - lhs.byteOffset : lhs.byteOffset - rhs.byteOffset)

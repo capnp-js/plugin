@@ -18,7 +18,7 @@ exports.List = function List(allocator, parentSegment, bytes) {
 // slot.[struct display name for lookup purposes] 
   function {displayName}Builder(allocator, parentSegment) {
 // TODO: struct/bytes returns (dataWordCount + pointerCount) * 8
-    this.segment = allocator.allocate({@struct/bytes struct={.}}, parentSegment);
+    this.segment = allocator.allocate({@struct.bytes struct=./}, parentSegment);
 // TODO: generalize struct/bytes to list/bytes, etc.
 // TODO: write zeros to data and pointer sections
 
@@ -28,11 +28,11 @@ exports.List = function List(allocator, parentSegment, bytes) {
 // TODO: struct/pointerDatum returns 8*dataWordCount + datum
         Object.defineProperty(this, '{name}', {
           get : function () {
-            if ({>pointer/isNull slot=slot segment='this.segment'}) {
+            if ({>"pointer/isNull" slot=slot segment="this.segment"/}) {
 // Struct case, this allocates the stack space for another object
 // List case, this allocates the heap space
 //  primitives case: encode list cardinality and byte size (allocator needs to know how many bytes to allocate too)
-              {?type.list} var child = rt.{type.runtimeDS}(allocator, this.segment, {@listBytes}); {/type.list}
+              {?type.list} var child = rt.{type.runtimeDS}(allocator, this.segment, {@listBytes/}); {/type.list}
 // List of what? Need to pass in constructors to parametrize the thing.
 // List stride?
 
@@ -45,11 +45,11 @@ exports.List = function List(allocator, parentSegment, bytes) {
 //   Can't know what builder construct.
 //   User must create the builder externally and directly attach it.
                 var id = allocator.id(child.segment);
-                return {>pointer/terminalFar target='child.segment' id='id'}; // byteOffset on target yields offset
+                return {>"pointer/terminalFar" target="child.segment" id="id"/}; // byteOffset on target yields offset
               } else { //struct/terminalFar or list/terminalFar...?
                 var 
               allocator.difference(child.segment, this.segment)
-                return {>pointer/local source='this.segment' target='child.segment'};
+                return {>"pointer/local" source="this.segment" target="child.segment"/};
               }
             }
           },
@@ -61,7 +61,7 @@ exports.List = function List(allocator, parentSegment, bytes) {
                 
               
 
-{@struct/pointerDatum words=dataWordCount datum='8'};
+{@struct.pointerDatum words=dataWordCount datum="8"/};
             return this._{name};
           },
           set : function (value) {
@@ -71,14 +71,14 @@ exports.List = function List(allocator, parentSegment, bytes) {
 
       {:else}
         {?slot.defaultValue}
-          {>struct/writeDefault slot=slot segment='this.segment' datum='8'};
+          {>"struct/writeDefault" slot=slot segment="this.segment" datum="8"/};
         {/slot.defaultValue}
 
         Object.defineProperty(this, '{name}', {
-          get : function () { return {>struct/read slot=slot segment='this.segment' datum='8'}; },
-          set : function (value) { {>struct/write slot=slot segment='this.segment' datum='8'}; }
+          get : function () { return {>"struct/read" slot=slot segment="this.segment" datum="8"/}; },
+          set : function (value) { {>"struct/write" slot=slot segment="this.segment" datum="8"/}; }
         });
-      {/type.runtimeDS}
+      {/type.isPointer}
     {/field.slot}
   };
 
@@ -87,9 +87,9 @@ exports.List = function List(allocator, parentSegment, bytes) {
 
     {displayName}Builder.psAllocation = function (pointerLength) {
       // @dataLengths populated by dataWordCount attribute of descendant structs
-      var allocator = new allocators.PointerSection({@dataLengths root={.}}, pointerLength);
+      var allocator = new allocators.PointerSection({@dataLengths root=./}, pointerLength);
 
       return new {displayName}Builder(allocator);
     };
   {/isRoot}
-{/structs]
+{/structs}
