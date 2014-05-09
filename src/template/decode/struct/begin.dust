@@ -1,0 +1,3 @@
+{>"struct/offsetBytesIsNegative" segment=segment pointer=pointer/} ?
+{pointer} + 8 - {>"struct/offsetBytes" segment=segment pointer=pointer/} : 
+{pointer} + 8 + {>"struct/offsetBytes" segment=segment pointer=pointer/}

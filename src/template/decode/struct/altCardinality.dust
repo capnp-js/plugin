@@ -1,1 +1,4 @@
-(({p}[0] >>> 2) + ({p}[1] << 6) + ({p}[2] << 14) + ({p}[3] << 22))
+(({segment}[{pointer} + 0] >>> 2) +
+ ({segment}[{pointer} + 1] <<  6) +
+ ({segment}[{pointer} + 2] << 14) +
+ ({segment}[{pointer} + 3] << 22))

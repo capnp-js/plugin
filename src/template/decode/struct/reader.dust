@@ -1,6 +1,39 @@
-exports.Reader = function () {};
+exports.StructReader = function () {};
 
 {#structs}
+exports.{displayName}Reader = function {displayName}Reader(segments, segment, dataDatum, pointerDatum) {
+
+};
+
+// datum at the beginning of containing list's data
+// pointer set => composite
+{displayName}Reader.createComposite = function (segments, segment, datum, index, pointer) {
+    if (pointer === undefined) {
+        // lookup size
+        var begin = index*8;
+        // Not allowed to remove fields, and a pointer fills 64 bits, so if any previous
+        return new {displayName}Reader(segments, segment, begin, begin+8;
+
+var size = pointer === undefined ? 8 : {>"struct/totalBytes" p="pointer" k="@asdf"/};
+    var begin = datum + index*size;
+    return new {displayName}Reader(segments, segment, begin, begin+{>"struct/dataBytes"/});
+};
+
+createSubcomposite = function (segments, segment, size, index) {
+    return new {displayName}Reader(segments, segment, size*index, sbegin+{>"struct/dataBytes"/});
+};
+
+// datum at point following the struct's pointer
+{displayName}Reader.createSingle = function (segments, segment, datum) {
+    var pointer = segment.subarray(datum-8);
+
+    datum = {>"list/offsetIsNegative"/} ?
+        datum - {>"struct/offsetBytes" p="pointer"/} :
+        datum + {>"struct/offsetBytes" p="pointer"/};
+
+    return new {displayName}Reader(segments, segment, datum, datum+{>"struct/dataBytes" p="pointer"/});
+}
+
 /**
  * @param {Uint8Array[]} segments - Message segments.
  * @param {Uint32} segmentId - Index into `segments` for the segment containing
@@ -8,28 +41,21 @@ exports.Reader = function () {};
  * @param {Uint32} datum - Byte offset into the segment to the word following
  * the object's pointer (word aligment implies that this will be a multiple of
  * 8).
- * @param {Boolean} [isPreoffset=false] - Use an offset of 0 for the object's pointer
- * (handy for list constituents).
+ * @param {Boolean} [isZeroOffset=false] - The pointer immediately precedes datumTreat `datum` as the object's data
+ * section instead of the description above (this is intended to handle list
+ * constituents).
  */
-exports.{displayName}Reader = function {displayName}Reader(segments, segment, datum, isPreoffset) {
-    var pointer = segment.subarray(datum-8); // Leave tail intact for nonpointer fields.
-    if (!isPreoffset) {
-        datum = {>list/offsetIsNegative} ?
-            datum - {>list/offsetBytes p='pointer'} :
-            datum + {>list/offsetBytes p='pointer'};
-    }
+exports.{displayName}Reader = function {displayName}Reader(segments, segment, datum, isZeroOffset) {
 
-    // Security uses?:
-    //this.dataByteCount = {>struct/dataBytes p='pointer'};
-    //this.pointerByteCount = {>struct/pointerBytes p='pointer'};
 
-    // InterSegment cases:
-    // B=0 => DirectPointer
-    // B=1 => HopPointer
+//Set default value
+//any pointer => peek for type
+//compile time pointer => dispatch on type....
+
 
     {#field}
       // Bytes view with pointer at the zero position.
-      var fieldDatum = datum + {@byteOffset capnpSlot=slot});
+      var fieldDatum = datum + {@byteOffset capnpSlot=slot/});
       {?slot.type.runtimeDS}
         var rt = require('runtime');
         this._{name} = segment[fieldDatum-8] & 0x0000000c == 2 ?
@@ -42,10 +68,10 @@ exports.{displayName}Reader = function {displayName}Reader(segments, segment, da
         });
       {:else}
         Object.defineProperty(this, '{name}', {
-          get : function () { return {>{slot.type.template} field={.} segment='segment' datum='datum'}; }
+          get : function () { return {>"{slot.type.template}" field=. segment="segment" datum="datum"/}; }
           set : function (value) { throw new Error('_{name}_ field is read-only.'); }
-//Builder: if (this._{name} === undefined) {
-//Builder:   this._{name} = {>defaultValue field={.} segment='segment' datum='datum'};
+//Builder: if (this._{name} === undefined) 
+//Builder:   this._{name} = {>defaultValue field=. segment="segment" datum="datum"/};
 //Builder: }
         });
       {/slot.type.runtimeDS}
