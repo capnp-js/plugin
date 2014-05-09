@@ -1,0 +1,41 @@
+{
+  "name": "capnp-js",
+  "version": "0.0.0",
+  "description": "Yet another Capnproto implementation for Javascript.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/popham/capnp-js.git"
+  },
+  "keywords": [
+    "capnproto"
+  ],
+  "author": "Tim Popham",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/popham/capnp-js/issues"
+  },
+  "homepage": "https://github.com/popham/capnp-js",
+  "devDependencies": {
+    "mocha": "^1.18.2",
+    "node-bitarray": "0.0.2",
+    "chance": "^0.5.6",
+    "bitstring": "^1.0.0",
+    "gulp-beautify": "^1.0.3"
+  },
+  "dependencies": {
+    "dustjs-linkedin": "^2.3.4",
+    "gulp": "^3.6.2",
+    "gulp-dust": "^0.2.0",
+    "gulp-concat": "^2.2.0",
+    "gulp-insert": "^0.3.0",
+    "streamqueue": "0.0.7",
+    "dustjs-helpers": "^1.2.0"
+  }
+}
