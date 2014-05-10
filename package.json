@@ -2,7 +2,7 @@
   "name": "capnp-js",
   "version": "0.0.0",
   "description": "Yet another Capnproto implementation for Javascript.",
-  "main": "src/index.js",
+  "main": "index",
   "directories": {
     "test": "test"
   },
@@ -27,16 +27,17 @@
     "node-bitarray": "0.0.2",
     "chance": "^0.5.6",
     "bitstring": "^1.0.0",
-    "gulp-beautify": "^1.0.3"
+    "gulp-jshint": "^1.5.5",
+    "gulp": "^3.6.2",
+    "gulp-concat": "^2.2.0",
+    "gulp-dust": "^0.2.0",
+    "gulp-insert": "^0.3.0",
+    "gulp-rename": "^1.2.0",
+    "streamqueue": "0.0.7"
   },
   "dependencies": {
     "dustjs-linkedin": "^2.3.4",
-    "gulp": "^3.6.2",
-    "gulp-dust": "^0.2.0",
-    "gulp-concat": "^2.2.0",
-    "gulp-insert": "^0.3.0",
-    "streamqueue": "0.0.7",
     "dustjs-helpers": "^1.2.0",
-    "gulp-rename": "^1.2.0"
+    "when": "^3.1.0"
   }
 }
