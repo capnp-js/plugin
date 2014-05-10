@@ -1,82 +1,97 @@
-exports.StructReader = function () {};
+/* Base class for all `Struct` readers. */
+var Struct = require('reader').Struct;
+
+/* Blob of module structs */
+var structs = {};
+
+/*
+ * Static methods resolve data and pointer sections from pointer input.
+ * For a list with C=5, peek at the head of the field list to determine whether
+ * `pointerSection` should be `begin` or `end`.
+ */
 
 {#structs}
-exports.{displayName}Reader = function {displayName}Reader(segments, segment, dataDatum, pointerDatum) {
+    /* Struct {name} */
+    structs['{id}'] = function (segments, segment, dataSection, pointerSection, end) {
+        this.id = '{id}';
 
-};
+        {#fields}
+            /*
+             * Default value handling requires encoded representation of the
+             * default. Javascript bitwise operators convert to Int32, so the
+             * XOR should be performed by primitives templates before operating.
+             * This is blocked awaiting encoding facilities, e.g.
+             * ```
+             * var encode = require('encode/primitive');
+             * var __default{name} = encode.Uint8({defaultValue});
+             * ...
+             * return {~lb}>"primitive/{type}.dust" ... default="__default{name}"/{~rb};
+             * ```
+             */
+            Object.defineProperty(this, '{name}', {
+                get : function () {
+                    {?isDatum}
+                        return {>"primitive/{type}" segment="segment" begin="dataSection"/};
+                    {:else}
+                        {@select key=type}
+                        {@eq value="List"} return new rt.List(sig); {/eq}
+                        {@eq value="Data"} return new rt.Data(sig); {/eq}
+                        {@eq value="Text"} return new rt.Text(sig); {/eq}
+                        {@eq value="AnyPointer"}
+                            switch ({@pointer.type segment="segment" p="pointerSection"/}) {
+                            case {@pointer.STRUCT /}:
+                                return new AnyStruct(sig1);
+                            case {@pointer.LIST /}:
+                                return new AnyList(sig2);
+                            /* Follow Far pointers and resolve to Struct or List. */
+                            }
+                            /*
+                             * AnyPointer resolves to an interface for
+                             * reinterpret casting (safety it up as much as
+                             * possible)--AnyType()(?).
+                             */
+                        {/eq}
+                        {@default} return new rt.{type}Reader(sig); {/default}
+                        {/select}
+                    {/isDatum}
+                },
+                set : function () { throw new Error('Readonly'); }
+            });
+        {/fields}
+    };
 
-// datum at the beginning of containing list's data
-// pointer set => composite
-{displayName}Reader.createComposite = function (segments, segment, datum, index, pointer) {
-    if (pointer === undefined) {
-        // lookup size
-        var begin = index*8;
-        // Not allowed to remove fields, and a pointer fills 64 bits, so if any previous
-        return new {displayName}Reader(segments, segment, begin, begin+8;
+    /*
+     * Map a `Struct` pointer to a {name} reader.  For `AnyPointer` loci,
+     * inspection of the pointer's A bits can dispatch here as needed.  Finally,
+     * a `List` will have to invoke the constructor directly, since `Struct`
+     * pointers in that case take on a different interpretation.
+     * @param {Uint8Array[]} segments - All of the message segments.
+     * @param {Uint8Array} segment - Segment of memory containing the pointer.
+     * With type information available at compile time, this method can be
+     * called blindly to generate a struct.
+     * @param {Uint32} pointer - Byte offset into `segment` where the pointer
+     * starts.
+     */
+    structs['{id}'].deref = function (segments, segment, pointer) {
+        var begin = {>"struct/begin" segment="segment" pointer="pointer"/};
+        var mid = begin + {>"struct/dataBytes" segment="segment" pointer="pointer"/};
 
-var size = pointer === undefined ? 8 : {>"struct/totalBytes" p="pointer" k="@asdf"/};
-    var begin = datum + index*size;
-    return new {displayName}Reader(segments, segment, begin, begin+{>"struct/dataBytes"/});
-};
+        return new (structs['{id}'])(segments, segment, begin, mid,
+            mid + {>"struct/pointerBytes" segment="segment" pointer="pointer"/});
+    };
+{/structs}
 
-createSubcomposite = function (segments, segment, size, index) {
-    return new {displayName}Reader(segments, segment, size*index, sbegin+{>"struct/dataBytes"/});
-};
+{#structs}
+    /*
+     * Expose child structs as static members on the owning struct.  Expose root
+     * structs as exports.
+     */
+    {?owner}
+        structs['{owner}'].{name} = structs['{id}'];
+    {:else}
+        exports.{name} = structs['{id}'];
+    {/owner}
 
-// datum at point following the struct's pointer
-{displayName}Reader.createSingle = function (segments, segment, datum) {
-    var pointer = segment.subarray(datum-8);
-
-    datum = {>"list/offsetIsNegative"/} ?
-        datum - {>"struct/offsetBytes" p="pointer"/} :
-        datum + {>"struct/offsetBytes" p="pointer"/};
-
-    return new {displayName}Reader(segments, segment, datum, datum+{>"struct/dataBytes" p="pointer"/});
-}
-
-/**
- * @param {Uint8Array[]} segments - Message segments.
- * @param {Uint32} segmentId - Index into `segments` for the segment containing
- * the object's data section.
- * @param {Uint32} datum - Byte offset into the segment to the word following
- * the object's pointer (word aligment implies that this will be a multiple of
- * 8).
- * @param {Boolean} [isZeroOffset=false] - The pointer immediately precedes datumTreat `datum` as the object's data
- * section instead of the description above (this is intended to handle list
- * constituents).
- */
-exports.{displayName}Reader = function {displayName}Reader(segments, segment, datum, isZeroOffset) {
-
-
-//Set default value
-//any pointer => peek for type
-//compile time pointer => dispatch on type....
-
-
-    {#field}
-      // Bytes view with pointer at the zero position.
-      var fieldDatum = datum + {@byteOffset capnpSlot=slot/});
-      {?slot.type.runtimeDS}
-        var rt = require('runtime');
-        this._{name} = segment[fieldDatum-8] & 0x0000000c == 2 ?
-          new rt.Far(segment, fieldDatum, rt.{slot.type.runtimeDS}, segments) :
-          new rt.{slot.type.runtimeDS}(segment, fieldDatum);
-
-        Object.defineProperty(this, '{name}', {
-          get : function () { return this._{name}.resolve(); },
-          set : function (value) { throw new Error('_{name}_ field is read-only.'); }
-        });
-      {:else}
-        Object.defineProperty(this, '{name}', {
-          get : function () { return {>"{slot.type.template}" field=. segment="segment" datum="datum"/}; }
-          set : function (value) { throw new Error('_{name}_ field is read-only.'); }
-//Builder: if (this._{name} === undefined) 
-//Builder:   this._{name} = {>defaultValue field=. segment="segment" datum="datum"/};
-//Builder: }
-        });
-      {/slot.type.runtimeDS}
-    {/field}
-  };
-
-  {displayName}Reader.prototype = new Reader();
+    /* Common base class for `instanceof` use */
+    structs['{id}'].prototype = new Struct();
 {/structs}

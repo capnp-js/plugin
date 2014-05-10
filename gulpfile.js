@@ -5,6 +5,7 @@ var render = require('gulp-dust-render');
 var concat = require('gulp-concat');
 var insert = require('gulp-insert');
 var beautify = require('gulp-beautify');
+var rename = require('gulp-rename');
 var sq = require('streamqueue');
 var fs = require('fs');
 
@@ -20,17 +21,18 @@ gulp.task('plugin', function() {
      * Create a runtime environment to interrogate CodeGeneratorRequests from
      * the compiler.
      */
-    var schema = require('./src/compile/schema');
+    var schema = require('src/compile/schema');
     var dust = require('dustjs-helpers');
-    require('./dist/decode');         // Add precompiled templates.
-    require('./src/compile/helpers'); // Add helpers to `dust` global.
+    require('dist/decode');     // Add precompiled templates.
+    require('compile/helpers'); // Add helpers to `dust` global.
 
     function name(file) { return 'plugin'; }
-    return gulp.src('src/template/plugin.dust')
+    return gulp.src('src/template/decode/struct/reader.dust')
         .pipe(compile(name))
         .pipe(render(name, schema))
         .pipe(beautify({ indentSize : 4 }))
-        .pipe(gulp.dest('dist'));
+        .pipe(rename('struct'))
+        .pipe(gulp.dest('plugin'));
 });
 
 gulp.task('encode', function () {
