@@ -8,4 +8,4 @@
     + (({segment})[{begin} + {@byteOffset type=type offset=offset skip=1/}] << 8)
     + (({segment})[{begin} + {@byteOffset type=type offset=offset skip=2/}] << 16)
     + (({segment})[{begin} + {@byteOffset type=type offset=offset skip=3/}] << 24)
-];
+]
