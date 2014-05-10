@@ -1,5 +1,5 @@
 /* Base class for all `Struct` readers. */
-var Struct = require('reader').Struct;
+var Struct = require('capnp-js').Struct;
 
 /* Blob of module structs */
 var structs = {};
