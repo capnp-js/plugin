@@ -1,60 +1,56 @@
 var gulp = require('gulp');
-var dust = require('dustjs-linkedin/lib/server');
+var sq = require('streamqueue');
+
 var compile = require('gulp-dust');
-var render = require('gulp-dust-render');
 var concat = require('gulp-concat');
 var insert = require('gulp-insert');
-var beautify = require('gulp-beautify');
+var jshint = require('gulp-jshint');
 var rename = require('gulp-rename');
-var sq = require('streamqueue');
-var fs = require('fs');
 
-dust.isDebug = true;
-dust.debugLevel = 'DEBUG';
-
-//gulp.task('code', function () {
-//    
-//});
-
-gulp.task('plugin', function() {
-    /*
-     * Create a runtime environment to interrogate CodeGeneratorRequests from
-     * the compiler.
-     */
-    var schema = require('src/compile/schema');
-    var dust = require('dustjs-helpers');
-    require('dist/decode');     // Add precompiled templates.
-    require('compile/helpers'); // Add helpers to `dust` global.
-
-    function name(file) { return 'plugin'; }
-    return gulp.src('src/template/decode/struct/reader.dust')
-        .pipe(compile(name))
-        .pipe(render(name, schema))
-        .pipe(beautify({ indentSize : 4 }))
-        .pipe(rename('struct'))
-        .pipe(gulp.dest('plugin'));
+gulp.task('watch', function () {
+    gulp.watch('./src/**/*.js', ['base']);
+    gulp.watch([
+        './src/template/decode/**/*.dust',
+        './src/template/helpers.js'
+    ], ['reader']);
+    gulp.watch([
+        './src/template/encode/**/*.dust',
+        './src/template/helpers.js'
+    ], ['builder']);
 });
 
-gulp.task('encode', function () {
-    // grep for "//" type comments and issue error
-    var stream = /*sq*/({ objectMode: true });
-    stream.queue(gulp.src('src/template/encode/**/*.dust'));
-    stream.queue(gulp.src('src/template/offset/*.dust', { base : 'src/template' }));
-    return stream.done()
-        .pipe(compile())
-        .pipe(concat('encode.js'))
-        .pipe(insert.prepend('exports.dust = require("dustjs-linkedin");var dust = exports.dust;'))
-        .pipe(gulp.dest('dist'));
+gulp.task('base', function () {
+    return gulp.src('./src/**/*.js')
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
 });
 
-gulp.task('decode', function () {
+gulp.task('reader', ['base'], function () {
     // grep for "//" type comments and issue error
     var stream = sq({ objectMode: true });
-    stream.queue(gulp.src('src/template/decode/**/*.dust'));
-    stream.queue(gulp.src('src/template/offset/*.dust', { base : 'src/template' }));
+    stream.queue(gulp.src('./src/template/decode/**/*.dust'));
+    stream.queue(gulp.src('./src/template/offset/*.dust', { base : './src/template' }));
     return stream.done()
+        .pipe(rename({ extname: "" }))
         .pipe(compile())
-        .pipe(concat('decode.js'))
+        .pipe(concat('reader.js'))
         .pipe(insert.prepend('var dust = require("dustjs-linkedin/lib/server");'))
-        .pipe(gulp.dest('dist'));
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(gulp.dest('precompile'));
+});
+
+gulp.task('builder', ['base'], function () {
+    // grep for "//" type comments and issue error
+    var stream = sq({ objectMode: true });
+    stream.queue(gulp.src('./src/template/encode/**/*.dust'));
+    stream.queue(gulp.src('./src/template/offset/*.dust', { base : './src/template' }));
+    return stream.done()
+        .pipe(rename({ extname: "" }))
+        .pipe(compile())
+        .pipe(concat('builder.js'))
+        .pipe(insert.prepend('var dust = require("dustjs-linkedin/lib/server");'))
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(gulp.dest('precompile'));
 });
