@@ -2,7 +2,7 @@ var node = require('when/node');
 var dust = require('dustjs-helpers');
 
 // Introduce helpers into the Dust global.
-require('./template/helpers');
+require('./src/template/helpers');
 
 // Introduce reader and its partials into the Dust global.
 require('./precompile/reader');

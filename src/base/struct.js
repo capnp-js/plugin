@@ -1,3 +1,1 @@
-var Struct = function () {};
-
-module.exports = new Struct();
+module.exports = function () {};
