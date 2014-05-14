@@ -1,4 +1,4 @@
-{?primitive}
+{?type}
     module.exports = function List(segments, segment, begin, length) {
         this.__segments = segments;
         this.__segment = segment;
@@ -6,7 +6,7 @@
         this.__length = length;
     };
 
-    List.prototype = new require('capnp-js').list.Reader()
+    List.prototype = new require('capnp-js').list.Reader(); // Update for new layout.
 
     Object.defineProperty(List.prototype, 'length', {
         get : function () { return this.__length; }
@@ -23,10 +23,8 @@
          * avoid the frequent `stride*i` computations.  The `byteOffset` helper
          * has some goofy logic going on too, but it's still semantic.
          */
-        index = this.__begin + {@byteOffset type=. offset="index"/};
-        {#. type=primitive}
-            return {>"primitives/{type}" segment="segment" begin="this.__begin"/};
-        {/.}
+        index = this.__begin + {@byteOffset type=type offset="index"/};
+        return {>"primitive/{type}" segment="segment" begin="this.__begin"/};
     };
 
     List.deref = {>"far/deref" derefType="list"/}
@@ -42,4 +40,4 @@
                 start,
                 {>"list/cardinality" segment="segment" pointer="pointer"/});
         {/derefReturns}
-{/primitive}
+{/type}
