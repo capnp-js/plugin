@@ -6,7 +6,7 @@
         this.__length = length;
     };
 
-    List.prototype = new require('capnp-js').list.Reader(); // Update for new layout.
+    List.prototype = new require('../base/list')();
 
     Object.defineProperty(List.prototype, 'length', {
         get : function () { return this.__length; }
