@@ -11,13 +11,13 @@ function (segments, segment, pointer) {
     var targetSegment, start;
     if ({>"far/isLocal" segment="segment" pointer="pointer"/}) {
         targetSegment = segment;
-        start = {>"{derefType}/begin" segment="segment" pointer="pointer"/}
+        start = {>"{derefType}/begin" segment="segment" pointer="pointer"/};
     } else {
         targetSegment = segments[{>"far/targetId" segment="segment" pointer="pointer"/}];
         if ({>"far/isDirect" segment="segment" pointer="pointer"/}) {
             pointer = {>"far/begin" segment="segment" pointer="pointer"/};
             segment = targetSegment;
-            start = {>"{derefType}/begin" segment="segment" pointer="pointer"/}
+            start = {>"{derefType}/begin" segment="segment" pointer="pointer"/};
         } else {
             pointer = {>"far/begin" segment="segment" pointer="pointer"/};
             segment = targetSegment;
@@ -29,5 +29,5 @@ function (segments, segment, pointer) {
 
     {+derefBody/}
 
-    return {+returnValue/};
+    return {+derefReturns/};
 };
