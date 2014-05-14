@@ -1,8 +1,8 @@
 /* Base class for all `Struct` readers. */
 var Struct = require('capnp-js').Struct;
 
-/* Blob of module structs */
-var structs = {};
+/* Resolve requestedFiles to merge(x,y,z) for multifile generator requests. */
+module.exports = {};
 
 /*
  * Static methods resolve data and pointer sections from pointer input.
@@ -10,88 +10,120 @@ var structs = {};
  * `pointerSection` should be `begin` or `end`.
  */
 
-{#structs}
-    /* Struct {name} */
-    structs['{id}'] = function (segments, segment, dataSection, pointerSection, end) {
-        this.id = '{id}';
+{! List* !}
+{@injectLists nodes=nodes/}
 
-        {#fields}
-            /*
-             * Default value handling requires encoded representation of the
-             * default. Javascript bitwise operators convert to Int32, so the
-             * XOR should be performed by primitives templates before operating.
-             * This is blocked awaiting encoding facilities, e.g.
-             * ```
-             * var encode = require('encode/primitive');
-             * var __default{name} = encode.Uint8({defaultValue});
-             * ...
-             * return {~lb}>"primitive/{type}.dust" ... default="__default{name}"/{~rb};
-             * ```
-             */
-            Object.defineProperty(this, '{name}', {
-                get : function () {
-                    {?isDatum}
-                        return {>"primitive/{type}" segment="segment" begin="dataSection"/};
-                    {:else}
-                        {@select key=type}
-                        {@eq value="List"} return new rt.List(sig); {/eq}
-                        {@eq value="Data"} return new rt.Data(sig); {/eq}
-                        {@eq value="Text"} return new rt.Text(sig); {/eq}
-                        {@eq value="AnyPointer"}
-                            switch ({@pointer.type segment="segment" p="pointerSection"/}) {
-                            case {@pointer.STRUCT /}:
-                                return new AnyStruct(sig1);
-                            case {@pointer.LIST /}:
-                                return new AnyList(sig2);
-                            /* Follow Far pointers and resolve to Struct or List. */
-                            }
-                            /*
-                             * AnyPointer resolves to an interface for
-                             * reinterpret casting (safety it up as much as
-                             * possible)--AnyType()(?).
-                             */
-                        {/eq}
-                        {@default} return new rt.{type}Reader(sig); {/default}
-                        {/select}
-                    {/isDatum}
-                },
-                set : function () { throw new Error('Readonly'); }
-            });
-        {/fields}
+{! Text !}
+{@injectBuiltType type="Text" nodes=nodes/}
+
+{! Data !}
+{@injectBuiltType type="Data" nodes=nodes/}
+
+{! AnyPointer !}
+{@injectBuiltType type="AnyPointer" nodes=nodes/}
+
+{! Ignore non-structs (is struct iff there exists a fields key) !}
+{#nodes}
+{?fields}
+    /* Struct {name} */
+    exports['{id}'] = function (segments, segment, start, dataBytes, pointerBytes) {
+        this.__segments = segments;
+        this.__segment = segment;
+        this.__dataSection = start;
+        this.__pointerSection = start + dataBytes;
+        this.__end = this.__pointerSection + pointerBytes;
     };
 
+    /* Common base class for `instanceof` use. */
+    exports['{id}'].prototype = new Struct();
+
     /*
-     * Map a `Struct` pointer to a {name} reader.  For `AnyPointer` loci,
-     * inspection of the pointer's A bits can dispatch here as needed.  Finally,
-     * a `List` will have to invoke the constructor directly, since `Struct`
-     * pointers in that case take on a different interpretation.
+     * Map a `Struct` pointer to a {name} reader.
+     * * For `AnyPointer` loci, inspection of the pointer's A bits can dispatch
+     *   here as needed.
      * @param {Uint8Array[]} segments - All of the message segments.
      * @param {Uint8Array} segment - Segment of memory containing the pointer.
-     * With type information available at compile time, this method can be
-     * called blindly to generate a struct.
-     * @param {Uint32} pointer - Byte offset into `segment` where the pointer
+     * @param {Uint32} pointer - Byte offset into `segment` to where the pointer
      * starts.
      */
-    structs['{id}'].deref = function (segments, segment, pointer) {
-        var begin = {>"struct/begin" segment="segment" pointer="pointer"/};
-        var mid = begin + {>"struct/dataBytes" segment="segment" pointer="pointer"/};
+    exports['{id}'].deref = {>"far/deref" derefType="struct"/}
+        {<derefBody}
+            if (!{>"struct/is" segment="segment" pointer="pointer"/}) {
+                throw new TypeError();
+            }
+        {/derefBody}
+        {<derefReturns}
+            new exports['{id}'](
+                segments,
+                targetSegment,
+                start,
+                {>"struct/dataBytes" segment="segment" pointer="pointer"/},
+                {>"struct/pointerBytes" segment="segment" pointer="pointer"/})
+        {/derefReturns}
 
-        return new (structs['{id}'])(segments, segment, begin, mid,
-            mid + {>"struct/pointerBytes" segment="segment" pointer="pointer"/});
-    };
-{/structs}
+    {#fields}
+        /*
+         * Javascript doesn't cover the set of primitives, so perform the
+         * default value XOR at the bytes level for conceptual simplicity.  This
+         * is blocked awaiting encoding facilities, e.g.
+         * ```
+         * var encode = require('encode/primitive');
+         * var d{id}{name} = encode.Uint16({defaultValue});
+         * // Anonymous union that exposes two different types with the same
+         * // name => ? (name collisions on defaults?)
+         * ```
+         */
+        Object.defineProperty(exports['{id}'].prototype, '{name}', {
+            get : function () {
+                /*
+                 * TODO: for all primitive decodings, use default values, e.g.
+                 * bytesOffset < {~lb}end{~rb} ? {~lb}defaultEncoding[0]{~rb} ^ value[0] : {~lb}defaultEncoding[0]{~rb};
+                 */
+                {?isDatum}
+                    var d = d{id}{name};
+                    return {>"primitive/{type}"
+                                 defaultEncoding="d"
+                                 segment="segment"
+                                 begin="this.__dataSection"
+                                 end="this.__pointerSection"/};
+                {:else}
+                    {#offset segments="this.__segments"
+                          segment="this.__segment"
+                          begin="this.__pointerSection + {@math key=. method="multiply" operand=8/}"}
+                        {@select key=type}
+                        /*
+                         * Factory to map non-primitives:
+                         *   NonprimitiveList(elementType)
+                         *   \mapsto
+                         *   {deref:function (segments, segment, pointer) {...}}
+                         * (maintain {elementType : function (segments, segment,
+                         *  pointer) {...}})
+                         */
+                        {@eq value="List"} return {@listType elementType=elementType}.deref({segments}, {segment}, {begin}); {/eq}
+                        {@eq value="Text"} return Text.deref({segments}, {segment}, {begin}); {/eq}
+                        {@eq value="Data"} return Data.deref({segments}, {segment}, {begin}); {/eq}
+                        {@eq value="AnyPointer"} return AnyPointer.deref({segments}, {segment}, {begin}); {/eq}
+                        {@default} return exports['{typeId}'].deref({segments}, {segment}, {begin}); {/default}
+                        {/select}
+                    {/offset}
+                {/isDatum}
+            },
+            set : function () { throw new Error('Readonly'); }
+        });
+    {/fields}
+{/fields}
+{/nodes}
 
-{#structs}
+{#nodes}
+{?fields}
     /*
-     * Expose child structs as static members on the owning struct.  Expose root
-     * structs as exports.
+     * Expose nested structs as static members on the owning struct.  Expose
+     * root structs as exports.
      */
     {?owner}
-        structs['{owner}'].{name} = structs['{id}'];
+        exports['{owner}'].{name} = exports['{id}'];
     {:else}
-        exports.{name} = structs['{id}'];
+        exports.{name} = exports['{id}'];
     {/owner}
-
-    /* Common base class for `instanceof` use */
-    structs['{id}'].prototype = new Struct();
-{/structs}
+{/fields}
+{/nodes}
