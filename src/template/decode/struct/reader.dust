@@ -31,7 +31,6 @@ module.exports = {};
         this.__end = this.__pointerSection + pointerBytes;
     };
 
-    /* Common base class for `instanceof` use. */
     exports['{id}'].prototype = new require('../base/struct')();
 
     /*
