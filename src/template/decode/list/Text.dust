@@ -1,0 +1,39 @@
+var List = require('capnp-js/build/UInt8List');
+var decode = require('text-encoding').TextDecoder('utf-8').decode;
+
+module.exports = function Text(segments, segment, begin, length) {
+    List.call(this, segments, segment, begin, length);
+};
+
+Text.prototype = new List();
+
+Object.defineProperty(Text.prototype, 'length', {
+    get : function () { return this.__length - 1; },
+    set : function (value) { throw new Error('Readonly'); }
+});
+
+Text.prototype.get = function () {
+    return decode(this.getRaw());
+};
+
+Text.prototype.getRaw = function () {
+    return this.__segment.subarray(this.__begin, this.__begin+this.__length-1);
+};
+
+Text.prototype.getRawNulled = function () {
+    return this.__segment.subarray(this.__begin, this.__begin+this.__length);
+};
+
+Text.deref = {>"far/deref" derefType="list"/}
+    {<derefBody}
+        if (!{>"list/is" segment="segment" pointer="pointer"/}) {
+            throw new TypeError();
+        }
+    {/derefBody}
+    {<derefReturns}
+        return new Text(
+            segments,
+            targetSegment,
+            start,
+            {>"list/cardinality" segment="segment" pointer="pointer"/});
+    {/derefReturns}

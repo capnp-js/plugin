@@ -1,0 +1,30 @@
+var List = require('capnp-js/build/UInt8List');
+
+module.exports = function Data(segments, segment, begin, length) {
+    List.call(this, segments, segment, begin, length);
+};
+
+Data.prototype = new List();
+
+Object.defineProperty(Data.prototype, 'length', {
+    get : function () { return this.__length; },
+    set : function (value) { throw new Error('Readonly'); }
+});
+
+Data.prototype.get = function () {
+    return this.__segment.subarray(this.__begin, this.__begin+this.__length);
+};
+
+Data.deref = {>"far/deref" derefType="list"/}
+    {<derefBody}
+        if (!{>"list/is" segment="segment" pointer="pointer"/}) {
+            throw new TypeError();
+        }
+    {/derefBody}
+    {<derefReturns}
+        return new Data(
+            segments,
+            targetSegment,
+            start,
+            {>"list/cardinality" segment="segment" pointer="pointer"/});
+    {/derefReturns}

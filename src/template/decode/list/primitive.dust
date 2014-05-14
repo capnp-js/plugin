@@ -1,0 +1,45 @@
+{?primitive}
+    module.exports = function List(segments, segment, begin, length) {
+        this.__segments = segments;
+        this.__segment = segment;
+        this.__begin = begin;
+        this.__length = length;
+    };
+
+    List.prototype = new require('capnp-js').list.Reader()
+
+    Object.defineProperty(List.prototype, 'length', {
+        get : function () { return this.__length; }
+        set : function (value) { throw new Error('Readonly'); }
+    });
+
+    List.prototype.get = function (index) {
+        if (index<0 || this.__length<=index) {
+            throw RangeError();
+        }
+
+        /**
+         * This kinda sucks--someday there should be an iterator interface to
+         * avoid the frequent `stride*i` computations.  The `byteOffset` helper
+         * has some goofy logic going on too, but it's still semantic.
+         */
+        index = this.__begin + {@byteOffset type=. offset="index"/};
+        {#. type=primitive}
+            return {>"primitives/{type}" segment="segment" begin="this.__begin"/};
+        {/.}
+    };
+
+    List.deref = {>"far/deref" derefType="list"/}
+        {<derefBody}
+            if (!{>"list/is" segment="segment" pointer="pointer"/}) {
+                throw new TypeError();
+            }
+        {/derefBody}
+        {<derefReturns}
+            return new List(
+                segments,
+                targetSegment,
+                start,
+                {>"list/cardinality" segment="segment" pointer="pointer"/});
+        {/derefReturns}
+{/primitive}

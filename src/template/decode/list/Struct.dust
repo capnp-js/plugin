@@ -1,0 +1,88 @@
+var List = require('capnp-js').List;
+
+module.exports = function (Reader) {
+    function generic(segments, segment, start, length, dataBytes, pointerBytes) {
+        this.__segments = segments;
+        this.__segment = segment;
+        this.__start = start;
+        this.__length = length;
+        this.__dataBytes = dataBytes;
+        this.__pointerBytes = pointerBytes;
+
+        this.__stride = dataBytes + pointerBytes;
+    };
+
+    generic.prototype = new List();
+
+    Object.defineProperty(List{primitive}.prototype, 'length', {
+        get : function () { return this.__length; }
+        set : function (value) { throw new Error('Readonly'); }
+    });
+
+    generic.prototype.get = function (index) {
+        if (index<0 || this.__length<=index) {
+            throw new RangeError(''+index+' does not fall within [0,'+this.__length+')');
+        }
+
+        return new Reader(this.__segments,
+                          this.__segment,
+                          this.__start + this.__stride*index,
+                          this.__dataBytes,
+                          this.__pointerBytes);
+    };
+
+    generic.deref = {>"far/deref" derefType="list"/}
+        {<derefBody}
+            if (!{>"list/is" segment="segment" pointer="pointer"/}) {
+                throw new TypeError();
+            }
+
+            var dataBytes;
+            switch ({>"list/sizeEnum" segment="segment" pointer="pointer"/}) {
+            case {>"list/elementSize" enumerant="EMPTY"/}:
+                dataBytes = 0; break;
+            case {>"list/elementSize" enumerant="BYTE"/}:
+                dataBytes = 1; break;
+            case {>"list/elementSize" enumerant="TWO_BYTES"/}:
+                dataBytes = 2; break;
+            case {>"list/elementSize" enumerant="FOUR_BYTES"/}:
+                dataBytes = 4: break;
+            case {>"list/elementSize" enumerant="EIGHT_BYTES"/}:
+                dataBytes = 8; break;
+            case {>"list/elementSize" enumerant="INLINE_COMPOSITE"/}:
+                dataBytes = {>"struct/dataBytes" segment="segment" pointer="pointer"/};
+                return new generic(
+                    segments,
+                    targetSegment,
+                    start,
+                    {>"struct/altCardinality" segment="targetSegment" start="start"/},
+                    dataBytes,
+                    {>"struct/pointerBytes" segment="segment" pointer="pointer"/});
+            case elementSize.BIT:
+                throw new Error('Bit alignment of packed lists is not supported');
+            case elementSize.POINTER:
+                throw new Error('Lists of pointers are specifically supported for each type, e.g. ListList and ListData');
+            default:
+                throw new Error("Invalid message");
+            }
+        {/derefBody}
+        {<derefReturns}
+            new generic(
+                segments,
+                targetSegment,
+                start,
+                {>"list/cardinality" segment="segment" pointer="pointer"/},
+                dataBytes,
+                0);
+        {/derefReturns}
+};
+
+var listGenerator = require({this});
+listGenerator(SomeStruct).deref(segments, segment, pointer);
+
+
+exports.Text = function Text() {};
+Text.prototype = new ListReader();
+
+exports.Data = function Data() {};
+Data.prototype = new ListReader();

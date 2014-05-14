@@ -1,0 +1,3 @@
+{>"list/offsetBytesIsNegative" segment=segment pointer=pointer/} ?
+    {pointer} + 8 - {>"list/offsetBytes" segment=segment pointer=pointer/} : 
+    {pointer} + 8 + {>"list/offsetBytes" segment=segment pointer=pointer/}
