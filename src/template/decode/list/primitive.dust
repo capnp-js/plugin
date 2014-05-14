@@ -1,4 +1,6 @@
 {?type}
+    var Base = require('../base/list');
+
     module.exports = function List(segments, segment, begin, length) {
         this.__segments = segments;
         this.__segment = segment;
@@ -6,10 +8,10 @@
         this.__length = length;
     };
 
-    List.prototype = new require('../base/list')();
+    List.prototype = new Base();
 
     Object.defineProperty(List.prototype, 'length', {
-        get : function () { return this.__length; }
+        get : function () { return this.__length; },
         set : function (value) { throw new Error('Readonly'); }
     });
 
@@ -34,10 +36,10 @@
             }
         {/derefBody}
         {<derefReturns}
-            return new List(
+            new List(
                 segments,
                 targetSegment,
                 start,
-                {>"list/cardinality" segment="segment" pointer="pointer"/});
+                {>"list/cardinality" segment="segment" pointer="pointer"/})
         {/derefReturns}
 {/type}

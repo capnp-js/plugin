@@ -20,7 +20,7 @@ dust.helpers.injectLists = function (chunk, ctx, bodies, params) {
     });
 
     return chunk.write(actives.map(function (active) {
-        return "var List"+active+" = require('capnp-js/build/List"+active+"');";
+        return "var List"+active+" = require('capnp-js/decode/list/"+active+"');";
     }).join('\n'));
 };
 
