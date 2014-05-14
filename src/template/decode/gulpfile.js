@@ -5,11 +5,6 @@ var gutil = require('gulp-util');
 var _ = require('lodash-node');
 var when = require('when/node');
 
-var beautify = require('gulp-beautify');
-// .pipe(beautify()) after render for pretty-printed modules, but leave it off
-// and get a whitespace flag pulled into `dust-compile` for literate bit-
-// shiftery (dust.optimizers.format = function(ctx, node) { return node };).
-
 var buffer = require('gulp-buffer');
 var clean = require('gulp-clean');
 var compile = require('gulp-dust');
@@ -19,10 +14,25 @@ var jshint = require('gulp-jshint');
 var rename = require('gulp-rename');
 var render = require('gulp-dust-render');
 var phonyVinyl = require('vinyl-source-stream');
+var uglify_ = require('gulp-uglify');
 
-var rendering = require('./rendering');
+var pretty = {
+    mangle : false,
+    output : { beautify : true },
+    compress : false,
+    preserveComments : 'all'
+};
+var optimal = {};
+/*
+ * `pretty` introduces errors by separating some return values from their
+ * `return` (with gulp-compile preserving whitespace.  Keeping it around for
+ * js-doc use later.
+ */
+var uglify = function () { return uglify_(pretty); };
 
-var primitives = ['Void', 'Bool', 'UInt8', 'UInt16', 'UInt32', 'UInt64', 'Int8', 'Int16', 'Int32', 'Int64', 'Float32', 'Float64'];
+var primitives = ['Void', 'Bool', 'Float32', 'Float64',
+                  'UInt8', 'UInt16', 'UInt32', 'UInt64',
+                   'Int8',  'Int16',  'Int32',  'Int64'];
 
 gulp.task('clean', function () {
     return gulp.src(['./build/**/*', './precompile/**/*'], {read : false})
@@ -61,6 +71,11 @@ gulp.task('precompiled', function () {
         .pipe(gulp.dest('build'));
 });
 
+gulp.task('struct', function () {
+    return gulp.src('./struct.js')
+        .pipe(gulp.dest('build'));
+});
+
 function sstream(text) {
     var s = new stream.Readable(text);
     s._read = function noop() {};
@@ -73,42 +88,46 @@ function sstream(text) {
 var listTasks = _.map(primitives, function (primitive) { return 'list' + primitive; });
 _(primitives).forEach(function (primitive) {
     gulp.task('list' + primitive, ['precompiled'], function () {
+        var rendering = require('./rendering');
         return sstream(primitive)
-            .pipe(phonyVinyl('List' + primitive))
+            .pipe(phonyVinyl(primitive))
             .pipe(insert.wrap('"', '"'))
             .pipe(insert.wrap('{"type":', '}'))
             .pipe(buffer())
             .pipe(render(rendering.list.primitive))
               .on('error', gutil.log)
-            .pipe(beautify())
+            .pipe(uglify())
             .pipe(rename({ extname: ".js" }))
             .pipe(gulp.dest('build/list'));
     });
 });
 
 gulp.task('listStruct', ['precompiled'], function () {
+    var rendering = require('./rendering');
     return sstream('')
-        .pipe(phonyVinyl('ListStruct.js'))
+        .pipe(phonyVinyl('Struct.js'))
         .pipe(render(rendering.list.Struct))
-        .pipe(beautify())
+        .pipe(uglify())
         .pipe(gulp.dest('build/list'));
 });
 listTasks.push('listStruct');
 
 gulp.task('listData', ['precompiled'], function () {
+    var rendering = require('./rendering');
     return sstream('')
-        .pipe(phonyVinyl('ListData.js'))
+        .pipe(phonyVinyl('Data.js'))
         .pipe(render(rendering.list.Data))
-        .pipe(beautify())
+        .pipe(uglify())
         .pipe(gulp.dest('build/list'));
 });
 listTasks.push('listData');
 
 gulp.task('listText', ['precompiled'], function () {
+    var rendering = require('./rendering');
     return sstream('')
-        .pipe(phonyVinyl('ListText.js'))
+        .pipe(phonyVinyl('Text.js'))
         .pipe(render(rendering.list.Text))
-        .pipe(beautify())
+        .pipe(uglify())
         .pipe(gulp.dest('build/list'));
 });
 listTasks.push('listText');
