@@ -29,6 +29,8 @@ gulp.task('clean', function () {
         .pipe(clean());
 });
 
+gulp.task('build', ['lists', 'base']);
+
 gulp.task('watch', function () {
     gulp.watch('./**/*.js', ['base']);
     gulp.watch([
@@ -41,6 +43,11 @@ gulp.task('jshint', function () {
     return gulp.src('./**/*.js')
         .pipe(jshint())
         .pipe(jshint.reporter('default'));
+});
+
+gulp.task('base', function () {
+    return gulp.src('./base/*.js')
+        .pipe(gulp.dest('build/base'));
 });
 
 gulp.task('precompiled', function () {
@@ -63,9 +70,9 @@ function sstream(text) {
     return s;
 }
 
-var listTasks = _.map(primitives, function (primitive) { return 'list_' + primitive; });
+var listTasks = _.map(primitives, function (primitive) { return 'list' + primitive; });
 _(primitives).forEach(function (primitive) {
-    gulp.task('list_' + primitive, ['precompiled'], function () {
+    gulp.task('list' + primitive, ['precompiled'], function () {
         return sstream(primitive)
             .pipe(phonyVinyl('List' + primitive))
             .pipe(insert.wrap('"', '"'))
