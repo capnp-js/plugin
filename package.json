@@ -33,11 +33,19 @@
     "gulp-dust": "^0.2.0",
     "gulp-insert": "^0.3.0",
     "gulp-rename": "^1.2.0",
-    "streamqueue": "0.0.7"
+    "vinyl-source-stream": "^0.1.1",
+    "gulp-clean": "^0.2.4",
+    "gulp-dust-render": "0.0.2",
+    "gulp-buffer": "0.0.2",
+    "gulp-util": "^2.2.14",
+    "gulp-uglify": "^0.3.0",
+    "gulp-chug": "^0.1.10"
   },
   "dependencies": {
     "dustjs-linkedin": "^2.3.4",
     "dustjs-helpers": "^1.2.0",
-    "when": "^3.1.0"
+    "when": "^3.1.0",
+    "traverse": "^0.6.6",
+    "text-encoding": "0.0.0"
   }
 }
