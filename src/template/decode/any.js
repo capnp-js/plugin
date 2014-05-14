@@ -4,6 +4,6 @@ module.exports = function Any(segments, segment, pointer) {
     this.__pointer = pointer;
 };
 
-Any.prototype.interpret(Type) {
+Any.prototype.interpret = function (Type) {
     return Type.deref(this.__segments, this.__segment, this.__pointer);
-}
+};
