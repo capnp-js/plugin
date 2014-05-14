@@ -1,0 +1,9 @@
+var enums = {};
+
+{#enums}
+    enums['{id}'] = {
+        {#enumerants}
+            {@upcase}{name}{/upcase} : {ordinal}{@sep},{/sep}
+        {/enumerants}
+    };
+{/enums}
