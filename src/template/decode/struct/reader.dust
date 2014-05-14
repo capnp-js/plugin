@@ -1,3 +1,5 @@
+var Base = require('../base/struct');
+
 /* Resolve requestedFiles to merge(x,y,z) for multifile generator requests. */
 module.exports = {};
 
@@ -31,7 +33,7 @@ module.exports = {};
         this.__end = this.__pointerSection + pointerBytes;
     };
 
-    exports['{id}'].prototype = new require('../base/struct')();
+    exports['{id}'].prototype = new Base();
 
     /*
      * Map a `Struct` pointer to a {name} reader.
