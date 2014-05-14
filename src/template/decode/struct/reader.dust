@@ -87,9 +87,10 @@ module.exports = {};
                                  begin="this.__dataSection"
                                  end="this.__pointerSection"/};
                 {:else}
-                    {#offset segments="this.__segments"
+                    {#offset
+                          segments="this.__segments"
                           segment="this.__segment"
-                          begin="this.__pointerSection + {@math key=. method="multiply" operand=8/}"}
+                          begin="this.__pointerSection"}
                         {@select key=type}
                         /*
                          * Factory to map non-primitives:
@@ -99,11 +100,11 @@ module.exports = {};
                          * (maintain {elementType : function (segments, segment,
                          *  pointer) {...}})
                          */
-                        {@eq value="List"} return {@listType elementType=elementType}.deref({segments}, {segment}, {begin}); {/eq}
-                        {@eq value="Text"} return Text.deref({segments}, {segment}, {begin}); {/eq}
-                        {@eq value="Data"} return Data.deref({segments}, {segment}, {begin}); {/eq}
-                        {@eq value="AnyPointer"} return AnyPointer.deref({segments}, {segment}, {begin}); {/eq}
-                        {@default} return exports['{typeId}'].deref({segments}, {segment}, {begin}); {/default}
+                        {@eq value="List"} return {@listType elementType=elementType/}.deref({segments}, {segment}, {begin} + {@lsB word="offset"/}); {/eq}
+                        {@eq value="Text"} return Text.deref({segments}, {segment}, {begin} + {@lsB word="offset"/}); {/eq}
+                        {@eq value="Data"} return Data.deref({segments}, {segment}, {begin} + {@lsB word="offset"/}); {/eq}
+                        {@eq value="AnyPointer"} return AnyPointer.deref({segments}, {segment}, {begin} + {@lsB word="offset"/}); {/eq}
+                        {@default} return exports['{typeId}'].deref({segments}, {segment}, {begin} + {@lsB word="offset"/}); {/default}
                         {/select}
                     {/offset}
                 {/isDatum}
