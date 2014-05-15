@@ -5,14 +5,37 @@ var primitives = ['Void', 'Bool', 'Float32', 'Float64',
                   'UInt8', 'UInt16', 'UInt32', 'UInt64',
                    'Int8',  'Int16',  'Int32',  'Int64'];
 
-var specialLists = ['Data', 'Text', 'AnyPointer'];
+var specialLists = ['Data', 'Text'];
+
+dust.helpers.listType = function (chunk, ctx, bodies, params) {
+    var type = params.elementType;
+    var depth = params.depth;
+
+    var listType;
+    if (type in primitives) {
+        listType = 'List' + type;
+    } else if (type in specialLists) {
+        listType = type;
+    } else if (type === 'AnyPointer') {
+        listType = 'ListAnyPointer';
+    } else {
+        listType = 'structListFactory(' + type + ')';
+    }
+
+    if (depth > 0) {
+        return chunk.write('nestedListFactory(' + listType + ')');
+    } else {
+        return chunk.write(listType);
+    }
+};
 
 dust.helpers.injectLists = function (chunk, ctx, bodies, params) {
     var nodes = params.nodes;
     var requires = [];
 
     var nestsCount = 0;
-    primitives.forEach(function (p) {
+    var prependeds = primitives.concat(['AnyPointer']);
+    prependeds.forEach(function (p) {
         var count = traverse(nodes).reduce(
             function (acc, node) {
                 var isActive = node.type === 'List' && node.elementType === p;
@@ -28,7 +51,7 @@ dust.helpers.injectLists = function (chunk, ctx, bodies, params) {
     });
 
     if (nestsCount > 0) {
-        requires.push("var nestingListFactory = require('capnp-js/decode/list/nested');");
+        requires.push("var nestedListFactory = require('capnp-js/decode/list/nested');");
     }
 
     var structsCount = traverse(nodes).reduce(
@@ -46,7 +69,7 @@ dust.helpers.injectLists = function (chunk, ctx, bodies, params) {
     );
 
     if (structsCount > 0) {
-        requires.push("var structListFactory = require('capnp-js/decode/list/"+s+"');");
+        requires.push("var structListFactory = require('capnp-js/decode/list/Struct');");
     }
 
     specialLists.forEach(function (s) {
@@ -70,6 +93,7 @@ var builts = ['AnyPointer'];
 dust.helpers.injectBuilts = function (chunk, ctx, bodies, params) {
     var nodes = params.nodes;
     var type = params.type;
+    var requires = [];
 
     builts.forEach(function (b) {
         var count = traverse(nodes).reduce(
@@ -84,6 +108,8 @@ dust.helpers.injectBuilts = function (chunk, ctx, bodies, params) {
             requires.push("var "+b+" = require('capnp-js/decode/"+b+"');");
         }
     });
+
+    return chunk.write(requires.join('\n'));
 };
 
 dust.helpers.byteOffset = function (chunk, ctx, bodies, params) {
@@ -186,14 +212,4 @@ dust.helpers.boolMask = function (chunk, ctx, bodies, params) {
 
 dust.helpers.lsB = function (chunk, ctx, bodies, params) {
     return chunk.write(8*params.word);
-};
-
-dust.helpers.listType = function (chunk, ctx, bodies, params) {
-    var type = params.elementType;
-
-    if (type in primitives) {
-        return chunk.write(List + type);
-    } else {
-        return chunk.write('');
-    }
 };
