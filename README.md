@@ -43,3 +43,8 @@ Types
 64bit integral types require more space than Javascript can provide natively, so some alternative will be needed.
 As of this writing, 64bit integers are returned as an array of two integers.
 I considered providing the raw data, but endian interpretation tipped the balance toward the current strategy.
+
+To do
+-----
+The current name of the exported renderer, `struct`, neglects the inclusion on Enums and whatever else can be located at file scope.
+This should be moved to `file`, or it should be nested in `file` that additionally exposes Enums, etc.
