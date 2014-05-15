@@ -47,4 +47,4 @@ I considered providing the raw data, but endian interpretation tipped the balanc
 To do
 -----
 The current name of the exported renderer, `struct`, neglects the inclusion on Enums and whatever else can be located at file scope.
-This should be moved to `file`, or it should be nested in `file` that additionally exposes Enums, etc.
+This should be moved to `file`, or it should be nested in a `file` which additionally exposes Enums, etc.
