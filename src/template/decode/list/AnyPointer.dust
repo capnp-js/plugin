@@ -1,5 +1,5 @@
 var Base = require('../base/list');
-var Any = require('../any.js');
+var Any = require('../AnyPointer');
 
 module.exports = function List(segments, segment, begin, length) {
     Base.call(this, segments, segment, begin, length);

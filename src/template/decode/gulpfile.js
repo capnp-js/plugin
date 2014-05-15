@@ -62,6 +62,11 @@ gulp.task('base', function () {
         .pipe(gulp.dest('build/base'));
 });
 
+gulp.task('decoders', function () {
+    return gulp.src('./decoder/*.js')
+        .pipe(gulp.dest('build/decoder'));
+});
+
 gulp.task('doc', function () {
     /* Parallel to build for full docs. */
     return gulp.src('./**/*.dust')
@@ -80,7 +85,7 @@ gulp.task('precompiled', function () {
         .pipe(gulp.dest('build'));
 });
 
-gulp.task('struct', ['precompiled'], function () {
+gulp.task('struct', ['precompiled', 'decoders'], function () {
     return gulp.src(['./struct.js', './helpers.js'])
         .pipe(gulp.dest('build'));
 });
@@ -110,7 +115,7 @@ function renderStream(promise) {
 
 var listTasks = _.map(primitives, function (primitive) { return 'list' + primitive; });
 _(primitives).forEach(function (primitive) {
-    gulp.task('list' + primitive, ['precompiled'], function () {
+    gulp.task('list' + primitive, ['precompiled', 'decoders'], function () {
         var rendering = require('./rendering');
         return sstream(primitive)
             .pipe(phonyVinyl(primitive))
@@ -165,14 +170,14 @@ gulp.task('listText', ['precompiled'], function () {
 });
 listTasks.push('listText');
 
-gulp.task('listAny', ['precompiled'], function () {
+gulp.task('listAnyPointer', ['precompiled'], function () {
     var rendering = require('./rendering');
-    return renderStream(rendering.list.Any())
-        .pipe(phonyVinyl('Any.js'))
+    return renderStream(rendering.list.AnyPointer())
+        .pipe(phonyVinyl('AnyPointer.js'))
         .pipe(buffer())
         .pipe(uglify())
         .pipe(gulp.dest('build/list'));
 });
-listTasks.push('listAny');
+listTasks.push('listAnyPointer');
 
 gulp.task('lists', listTasks);

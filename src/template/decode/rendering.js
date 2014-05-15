@@ -26,6 +26,6 @@ exports.list.Text = function (context) {
     return when.lift(dust.render)('list/Text', context);
 };
 
-exports.list.Any = function (context) {
-    return when.lift(dust.render)('list/Any', context);
+exports.list.AnyPointer = function (context) {
+    return when.lift(dust.render)('list/AnyPointer', context);
 };

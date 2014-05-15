@@ -12,6 +12,9 @@ module.exports = {};
 {! List* !}
 {@injectLists nodes=nodes/}
 
+{! decodeFloat* !}
+{@injectFloatConversion nodes=nodes/}
+
 {! AnyPointer !}
 {@injectBuiltType type="AnyPointer" nodes=nodes/}
 
