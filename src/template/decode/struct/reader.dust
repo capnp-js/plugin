@@ -15,8 +15,8 @@ module.exports = {};
 {! decodeFloat* !}
 {@injectFloatConversion nodes=nodes/}
 
-{! AnyPointer !}
-{@injectBuiltType type="AnyPointer" nodes=nodes/}
+{! AnyPointer--any others (other whats? this needs a better name. !}
+{@injectBuilts nodes=nodes/}
 
 {! Ignore non-structs (is struct iff there exists a fields key) !}
 {#nodes}

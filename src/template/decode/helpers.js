@@ -1,42 +1,89 @@
 var dust = require('dustjs-helpers');
 var traverse = require('traverse');
 
+var primitives = ['Void', 'Bool', 'Float32', 'Float64',
+                  'UInt8', 'UInt16', 'UInt32', 'UInt64',
+                   'Int8',  'Int16',  'Int32',  'Int64'];
+
+var specialLists = ['Data', 'Text', 'AnyPointer'];
+
 dust.helpers.injectLists = function (chunk, ctx, bodies, params) {
     var nodes = params.nodes;
-    var primitives = ['Void', 'Bool', 'UInt8', 'UInt16', 'UInt32', 'UInt64', 'Int8', 'Int16', 'Int32', 'Int64', 'Float32', 'Float64'];
-    var actives = [];
+    var requires = [];
+
+    var nestsCount = 0;
     primitives.forEach(function (p) {
         var count = traverse(nodes).reduce(
             function (acc, node) {
                 var isActive = node.type === 'List' && node.elementType === p;
+                if (isActive && node.depth > 0) { nestsCount += 1; }
                 return isActive ? acc+1 : acc;
             },
             0
         );
 
         if (count > 0) {
-            actives.push(p);
+            requires.push("var List"+p+" = require('capnp-js/decode/list/"+p+"');");
         }
     });
 
-    return chunk.write(actives.map(function (active) {
-        return "var List"+active+" = require('capnp-js/decode/list/"+active+"');";
-    }).join('\n'));
+    if (nestsCount > 0) {
+        requires.push("var nestingListFactory = require('capnp-js/decode/list/nested');");
+    }
+
+    var structsCount = traverse(nodes).reduce(
+        function (acc, node) {
+            if (node.type === 'List' &&
+                !(node.elementType in primitives) &&
+                !(node.elementType in primitives)) {
+
+                return acc+1;
+            } else {
+                return acc;
+            }
+        },
+        0
+    );
+
+    if (structsCount > 0) {
+        requires.push("var structListFactory = require('capnp-js/decode/list/"+s+"');");
+    }
+
+    specialLists.forEach(function (s) {
+        var count = traverse(nodes).reduce(
+            function (acc, node) {
+                var isActive = node.type === s;
+                return isActive ? acc+1 : acc;
+            },
+            0
+        );
+
+        if (count > 0) {
+            requires.push("var "+s+" = require('capnp-js/decode/list/"+s+"');");
+        }
+    });
+
+    return chunk.write(requires.join('\n'));
 };
 
-dust.helpers.injectBuiltType = function (chunk, ctx, bodies, params) {
+var builts = ['AnyPointer'];
+dust.helpers.injectBuilts = function (chunk, ctx, bodies, params) {
     var nodes = params.nodes;
     var type = params.type;
 
-    var count = traverse(nodes).reduce(function count(acc, node) {
-        return node.type === type ? acc+1 : acc;
-    }, 0);
+    builts.forEach(function (b) {
+        var count = traverse(nodes).reduce(
+            function (acc, node) {
+                var isActive = node.type === b;
+                return isActive ? acc+1 : acc;
+            },
+            0
+        );
 
-    if (count > 0) {
-        return chunk.write("var "+type+" = require('capnp-js/build/"+type+"');");
-    } else {
-        return chunk.write('');
-    }
+        if (count > 0) {
+            requires.push("var "+b+" = require('capnp-js/decode/"+b+"');");
+        }
+    });
 };
 
 dust.helpers.byteOffset = function (chunk, ctx, bodies, params) {
@@ -75,6 +122,8 @@ dust.helpers.byteOffset = function (chunk, ctx, bodies, params) {
             return chunk.write(expression(4, offset, skip));
         case 'UInt64':
             return chunk.write(expression(8, offset, skip));
+        case 'AnyPointer':
+            return chunk.write(expression(8, offset, skip));
         default:
             throw new TypeError('byteOffset of unmanaged type: ' + type);
         }
@@ -100,6 +149,8 @@ dust.helpers.byteOffset = function (chunk, ctx, bodies, params) {
             return chunk.write(4*offset + skip);
         case 'UInt64':
             return chunk.write(8*offset + skip);
+        case 'AnyPointer':
+            return chunk.write(expression(8*offset + skip));
         default:
             throw new TypeError('byteOffset of unmanaged type: ' + type);
         }
@@ -114,10 +165,42 @@ dust.helpers.byteOffset = function (chunk, ctx, bodies, params) {
     }
 };
 
+dust.helpers.injectFloatConversion = function (chunk, ctx, bodies, params) {
+    var nodes = params.nodes;
+    var actives = [];
+    ['Float32', 'Float64'].forEach(function (p) {
+        var count = traverse(nodes).reduce(
+            function (acc, node) {
+                var isActive = node.type === p;
+                return isActive ? acc+1 : acc;
+            },
+            0
+        );
+
+        if (count > 0) {
+            actives.push(p);
+        }
+    });
+
+    return chunk.write(actives.map(function (active) {
+        return "var decode"+active+" = require('capnp-js/decode/decoder/"+active+"');";
+    }).join('\n'));
+};
+
 dust.helpers.boolMask = function (chunk, ctx, bodies, params) {
     return chunk.write((1 >>> 0) << (params.bitDistance & 0x00000007));
 };
 
 dust.helpers.lsB = function (chunk, ctx, bodies, params) {
     return chunk.write(8*params.word);
+};
+
+dust.helpers.listType = function (chunk, ctx, bodies, params) {
+    var type = params.elementType;
+
+    if (type in primitives) {
+        return chunk.write(List + type);
+    } else {
+        return chunk.write('');
+    }
 };
