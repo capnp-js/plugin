@@ -41,7 +41,7 @@ gulp.task('clean', function () {
         .pipe(clean());
 });
 
-gulp.task('build', ['struct', 'lists', 'base']);
+gulp.task('build', ['struct', 'lists', 'anyPointer', 'base']);
 
 gulp.task('watch', function () {
     gulp.watch('./**/*.js', ['base']);
@@ -85,8 +85,13 @@ gulp.task('precompiled', function () {
         .pipe(gulp.dest('build'));
 });
 
-gulp.task('struct', ['precompiled', 'decoders'], function () {
+gulp.task('struct', function () {
     return gulp.src(['./struct.js', './helpers.js'])
+        .pipe(gulp.dest('build'));
+});
+
+gulp.task('anyPointer', function () {
+    return gulp.src(['./AnyPointer.js'])
         .pipe(gulp.dest('build'));
 });
 
