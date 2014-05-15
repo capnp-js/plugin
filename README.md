@@ -2,7 +2,7 @@ capnp-js
 ========
 
 Yet another Capnproto implementation for Javascript.
-Dust templates provide a more literate codebase than C++ string manipulation.
+[Dust](https://github.com/linkedin/dustjs) templates provide a literate codebase.
 
 #CommonJS Modules
 I want to support AMD by browserify, hence the use of browser types instead of node stuff.
