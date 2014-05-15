@@ -38,4 +38,6 @@ module.exports = function (TerminalList) {
                 depth,
                 {>"list/cardinality" segment="segment" pointer="pointer"/})
         {/derefReturns}
+
+    return Nested;
 };

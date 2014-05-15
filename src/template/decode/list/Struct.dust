@@ -63,4 +63,6 @@ module.exports = function (Reader) {
                 dataBytes,
                 0)
         {/derefReturns}
+
+    return List;
 };
