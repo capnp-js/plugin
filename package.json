@@ -30,7 +30,7 @@
     "gulp-jshint": "^1.5.5",
     "gulp": "^3.6.2",
     "gulp-concat": "^2.2.0",
-    "gulp-dust": "^0.2.0",
+    "gulp-dust": "^0.3.0",
     "gulp-insert": "^0.3.0",
     "gulp-rename": "^1.2.0",
     "vinyl-source-stream": "^0.1.1",

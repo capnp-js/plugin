@@ -62,10 +62,19 @@ gulp.task('base', function () {
         .pipe(gulp.dest('build/base'));
 });
 
+gulp.task('doc', function () {
+    /* Parallel to build for full docs. */
+    return gulp.src('./**/*.dust')
+        .pipe(rename({ extname : "" }))
+        .pipe(compile({ preserveWhitespace : true }))
+        .pipe(jsdoc())
+        .pipe(gulp.dest('doc'));
+});
+
 gulp.task('precompiled', function () {
     return gulp.src('./**/*.dust')
         .pipe(rename({ extname : "" }))
-        .pipe(compile())
+        .pipe(compile({ preserveWhitespace : false }))
         .pipe(concat('precompiled.js'))
         .pipe(insert.prepend('var dust = require("dustjs-helpers");'))
         .pipe(gulp.dest('build'));
