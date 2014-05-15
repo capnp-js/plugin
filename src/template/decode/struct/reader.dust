@@ -12,12 +12,6 @@ module.exports = {};
 {! List* !}
 {@injectLists nodes=nodes/}
 
-{! Text !}
-{@injectBuiltType type="Text" nodes=nodes/}
-
-{! Data !}
-{@injectBuiltType type="Data" nodes=nodes/}
-
 {! AnyPointer !}
 {@injectBuiltType type="AnyPointer" nodes=nodes/}
 
@@ -45,11 +39,6 @@ module.exports = {};
      * starts.
      */
     exports['{id}'].deref = {>"far/deref" derefType="struct"/}
-        {<derefBody}
-            if (!{>"struct/is" segment="segment" pointer="pointer"/}) {
-                throw new TypeError();
-            }
-        {/derefBody}
         {<derefReturns}
             new exports['{id}'](
                 segments,

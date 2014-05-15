@@ -16,11 +16,6 @@ Data.prototype.get = function () {
 };
 
 Data.deref = {>"far/deref" derefType="list"/}
-    {<derefBody}
-        if (!{>"list/is" segment="segment" pointer="pointer"/}) {
-            throw new TypeError();
-        }
-    {/derefBody}
     {<derefReturns}
         new Data(
             segments,

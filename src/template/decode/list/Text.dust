@@ -25,11 +25,6 @@ Text.prototype.getRawNulled = function () {
 };
 
 Text.deref = {>"far/deref" derefType="list"/}
-    {<derefBody}
-        if (!{>"list/is" segment="segment" pointer="pointer"/}) {
-            throw new TypeError();
-        }
-    {/derefBody}
     {<derefReturns}
         new Text(
             segments,

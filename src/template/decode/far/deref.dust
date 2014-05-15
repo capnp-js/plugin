@@ -27,6 +27,10 @@ function (segments, segment, pointer) {
         }
     }
 
+    if (!{>"{derefType}/is" segment="segment" pointer="pointer"/}) {
+        throw new TypeError('Pointer resolves to non-{derefType}');
+    }
+
     {+derefBody/}
 
     return {+derefReturns/};

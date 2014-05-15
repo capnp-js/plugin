@@ -33,10 +33,6 @@ module.exports = function (Reader) {
 
     generic.deref = {>"far/deref" derefType="list"/}
         {<derefBody}
-            if (!{>"list/is" segment="segment" pointer="pointer"/}) {
-                throw new TypeError();
-            }
-
             var dataBytes;
             switch ({>"list/sizeEnum" segment="segment" pointer="pointer"/}) {
             case {>"list/elementSize" enumerant="EMPTY"/}:
