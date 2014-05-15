@@ -1,0 +1,41 @@
+var List = require('../base/list');
+
+module.exports = function (TerminalList) {
+    function Nested(segments, segment, begin, depth, length) {
+        this.__segments = segments;
+        this.__segment = segment;
+        this.__begin = begin;
+        this.__depth = depth;
+        this.__length = length;
+    }
+
+    Nested.prototype = new List();
+
+    Object.defineProperty(Nested.prototype, 'length', {
+        get : function () { return this.__length; },
+        set : function () { throw new Error('Readonly'); }
+    });
+
+    Nested.prototype.get = function (index) {
+        if (index<0 || this.__length<=index) {
+            throw new RangeError();
+        }
+
+        if (this.__depth) {
+            return Nested.deref(this.__segments, this.__segment, this.__begin + (index << 3), this.__depth-1);
+        } else {
+            return TerminalList.deref(this.__segments, this.__segment, this.__begin + (index << 3));
+        }
+    };
+
+    Nested.deref = {>"far/deref" derefType="list"/}
+        {<derefBody} var depth = arguments[3]; {/derefBody}
+        {<derefReturns}
+            new Nested(
+                segments, 
+                targetSegment,
+                start,
+                depth,
+                {>"list/cardinality" segment="segment" pointer="pointer"/})
+        {/derefReturns}
+};

@@ -28,6 +28,8 @@ var optimal = {};
  * `return` (with gulp-compile preserving whitespace.  Keeping it around for
  * js-doc use later.
  */
+var beautify = require('gulp-beautify');
+//var uglify = function () {  return beautify(); };
 var uglify = function () { return uglify_(pretty); };
 
 var primitives = ['Void', 'Bool', 'Float32', 'Float64',
@@ -113,6 +115,16 @@ _(primitives).forEach(function (primitive) {
             .pipe(gulp.dest('build/list'));
     });
 });
+
+gulp.task('listNested', ['precompiled'], function () {
+    var rendering = require('./rendering');
+    return renderStream(rendering.list.Nested())
+        .pipe(phonyVinyl('Nested.js'))
+        .pipe(buffer())
+        .pipe(uglify())
+        .pipe(gulp.dest('build/list'));
+});
+listTasks.push('listNested');
 
 gulp.task('listStruct', ['precompiled'], function () {
     var rendering = require('./rendering');
