@@ -101,26 +101,21 @@ dust.helpers.byteOffset = function (chunk, ctx, bodies, params) {
             }
             return chunk.write("(("+offset+") >>> 3)");
         case 'Int8':
-            if (skip) {
-                return chunk.write("(("+offset+") + "+skip+")");
-            }
-            return chunk.write("("+offset+")");
-        case 'Int16':
-            return chunk.write(expression(2, offset, skip));
-        case 'Int32':
-            return chunk.write(expression(4, offset, skip));
-        case 'Int64':
-            return chunk.write(expression(8, offset, skip));
         case 'UInt8':
             if (skip) {
                 return chunk.write("(("+offset+") + "+skip+")");
             }
             return chunk.write("("+offset+")");
+        case 'Int16':
         case 'UInt16':
             return chunk.write(expression(2, offset, skip));
+        case 'Int32':
         case 'UInt32':
+        case 'Float32':
             return chunk.write(expression(4, offset, skip));
+        case 'Int64':
         case 'UInt64':
+        case 'Float64':
             return chunk.write(expression(8, offset, skip));
         case 'AnyPointer':
             return chunk.write(expression(8, offset, skip));
@@ -134,20 +129,18 @@ dust.helpers.byteOffset = function (chunk, ctx, bodies, params) {
         case 'Bool':
             return chunk.write((offset >>> 3) + skip);
         case 'Int8':
-            return chunk.write(offset + skip);
-        case 'Int16':
-            return chunk.write(2*offset + skip);
-        case 'Int32':
-            return chunk.write(4*offset + skip);
-        case 'Int64':
-            return chunk.write(8*offset + skip);
         case 'UInt8':
             return chunk.write(offset + skip);
+        case 'Int16':
         case 'UInt16':
             return chunk.write(2*offset + skip);
+        case 'Int32':
         case 'UInt32':
+        case 'Float32':
             return chunk.write(4*offset + skip);
+        case 'Int64':
         case 'UInt64':
+        case 'Float64':
             return chunk.write(8*offset + skip);
         case 'AnyPointer':
             return chunk.write(expression(8*offset + skip));
