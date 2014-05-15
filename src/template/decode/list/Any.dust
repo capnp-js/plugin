@@ -1,0 +1,29 @@
+var Base = require('../base/list');
+var Any = require('../any.js');
+
+module.exports = function List(segments, segment, begin, length) {
+    Base.call(this, segments, segment, begin, length);
+};
+
+List.prototype = Object.create(Base.prototype);
+
+List.prototype.get = function (index) {
+    if (index<0 || this.__length<=index) {
+        throw RangeError();
+    }
+
+    /*
+     * Use index as a register to record the pointer's first byte.
+     */
+    index = this.__begin + {@byteOffset type="AnyPointer" offset="index"/};
+    return new Any(this.__segments, this.__segment, index);
+};
+
+List.deref = {>"far/deref" derefType="list"/}
+    {<derefReturns}
+        new List(
+            segments,
+            targetSegment,
+            start,
+            {>"list/cardinality" segment="segment" pointer="pointer"/})
+    {/derefReturns}

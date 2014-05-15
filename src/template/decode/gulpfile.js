@@ -165,4 +165,14 @@ gulp.task('listText', ['precompiled'], function () {
 });
 listTasks.push('listText');
 
+gulp.task('listAny', ['precompiled'], function () {
+    var rendering = require('./rendering');
+    return renderStream(rendering.list.Any())
+        .pipe(phonyVinyl('Any.js'))
+        .pipe(buffer())
+        .pipe(uglify())
+        .pipe(gulp.dest('build/list'));
+});
+listTasks.push('listAny');
+
 gulp.task('lists', listTasks);

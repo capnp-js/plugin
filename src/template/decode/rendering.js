@@ -10,6 +10,10 @@ exports.list.primitive = function (context) {
     return when.lift(dust.render)('list/primitive', context);
 };
 
+exports.list.Nested = function (context) {
+    return when.lift(dust.render)('list/Nested', context);
+};
+
 exports.list.Struct = function (context) {
     return when.lift(dust.render)('list/Struct', context);
 };
@@ -20,4 +24,8 @@ exports.list.Data = function (context) {
 
 exports.list.Text = function (context) {
     return when.lift(dust.render)('list/Text', context);
+};
+
+exports.list.Any = function (context) {
+    return when.lift(dust.render)('list/Any', context);
 };
