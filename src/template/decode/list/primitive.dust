@@ -2,31 +2,27 @@
     var Base = require('../base/list');
 
     module.exports = function List(segments, segment, begin, length) {
-        this.__segments = segments;
-        this.__segment = segment;
-        this.__begin = begin;
-        this.__length = length;
+        Base.call(this, segments, segment, begin, length);
     };
 
-    List.prototype = new Base();
-
-    Object.defineProperty(List.prototype, 'length', {
-        get : function () { return this.__length; },
-        set : function (value) { throw new Error('Readonly'); }
-    });
+    List.prototype = Object.create(Base.prototype);
 
     List.prototype.get = function (index) {
         if (index<0 || this.__length<=index) {
             throw RangeError();
         }
 
-        /**
+        /*
          * This kinda sucks--someday there should be an iterator interface to
          * avoid the frequent `stride*i` computations.  The `byteOffset` helper
          * has some goofy logic going on too, but it's still semantic.
          */
+        /*
+         * Use index as a register to record the start of the struct's data
+         * section.
+         */
         index = this.__begin + {@byteOffset type=type offset="index"/};
-        return {>"primitive/{type}" segment="segment" begin="this.__begin"/};
+        return {>"primitive/{type}" segment="segment" begin="index"/};
     };
 
     List.deref = {>"far/deref" derefType="list"/}
