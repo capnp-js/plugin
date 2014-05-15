@@ -1,4 +1,4 @@
-var List = require('capnp-js/build/UInt8List');
+var List = require('./UInt8');
 
 module.exports = function Data(segments, segment, begin, length) {
     List.call(this, segments, segment, begin, length);
@@ -22,9 +22,9 @@ Data.deref = {>"far/deref" derefType="list"/}
         }
     {/derefBody}
     {<derefReturns}
-        return new Data(
+        new Data(
             segments,
             targetSegment,
             start,
-            {>"list/cardinality" segment="segment" pointer="pointer"/});
+            {>"list/cardinality" segment="segment" pointer="pointer"/})
     {/derefReturns}
