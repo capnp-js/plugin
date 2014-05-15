@@ -89,13 +89,13 @@ dust.helpers.injectLists = function (chunk, ctx, bodies, params) {
     return chunk.write(requires.join('\n'));
 };
 
-var builts = ['AnyPointer'];
-dust.helpers.injectBuilts = function (chunk, ctx, bodies, params) {
+var finals = ['AnyPointer'];
+dust.helpers.injectFinals = function (chunk, ctx, bodies, params) {
     var nodes = params.nodes;
     var type = params.type;
     var requires = [];
 
-    builts.forEach(function (b) {
+    finals.forEach(function (b) {
         var count = traverse(nodes).reduce(
             function (acc, node) {
                 var isActive = node.type === b;
@@ -105,7 +105,7 @@ dust.helpers.injectBuilts = function (chunk, ctx, bodies, params) {
         );
 
         if (count > 0) {
-            requires.push("var "+b+" = require('capnp-js/decode/"+b+"');");
+            requires.push("var "+b+" = require('capnp-js/decode/base/"+b+"');");
         }
     });
 
