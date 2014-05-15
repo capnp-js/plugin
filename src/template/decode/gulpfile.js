@@ -39,7 +39,7 @@ gulp.task('clean', function () {
         .pipe(clean());
 });
 
-gulp.task('build', ['lists', 'base']);
+gulp.task('build', ['struct', 'lists', 'base']);
 
 gulp.task('watch', function () {
     gulp.watch('./**/*.js', ['base']);
@@ -66,21 +66,33 @@ gulp.task('precompiled', function () {
         .pipe(compile())
         .pipe(concat('precompiled.js'))
         .pipe(insert.prepend('var dust = require("dustjs-helpers");'))
-        .pipe(jshint())
-        .pipe(jshint.reporter('default'))
         .pipe(gulp.dest('build'));
 });
 
-gulp.task('struct', function () {
-    return gulp.src('./struct.js')
+gulp.task('struct', ['precompiled'], function () {
+    return gulp.src(['./struct.js', './helpers.js'])
         .pipe(gulp.dest('build'));
 });
 
 function sstream(text) {
-    var s = new stream.Readable(text);
+    var s = new stream.Readable;
     s._read = function noop() {};
     s.push(text);
     s.push(null);
+
+    return s;
+}
+
+function renderStream(promise) {
+    var s = new stream.Readable;
+    s._read = function noop() {};
+    promise.done(
+        function (rendering) {
+            s.push(rendering);
+            s.push(null);
+        },
+        console.error
+    );
 
     return s;
 }
@@ -104,9 +116,9 @@ _(primitives).forEach(function (primitive) {
 
 gulp.task('listStruct', ['precompiled'], function () {
     var rendering = require('./rendering');
-    return sstream('')
+    return renderStream(rendering.list.Struct())
         .pipe(phonyVinyl('Struct.js'))
-        .pipe(render(rendering.list.Struct))
+        .pipe(buffer())
         .pipe(uglify())
         .pipe(gulp.dest('build/list'));
 });
@@ -114,9 +126,9 @@ listTasks.push('listStruct');
 
 gulp.task('listData', ['precompiled'], function () {
     var rendering = require('./rendering');
-    return sstream('')
+    return renderStream(rendering.list.Data())
         .pipe(phonyVinyl('Data.js'))
-        .pipe(render(rendering.list.Data))
+        .pipe(buffer())
         .pipe(uglify())
         .pipe(gulp.dest('build/list'));
 });
@@ -124,9 +136,9 @@ listTasks.push('listData');
 
 gulp.task('listText', ['precompiled'], function () {
     var rendering = require('./rendering');
-    return sstream('')
+    return renderStream(rendering.list.Text())
         .pipe(phonyVinyl('Text.js'))
-        .pipe(render(rendering.list.Text))
+        .pipe(buffer())
         .pipe(uglify())
         .pipe(gulp.dest('build/list'));
 });
