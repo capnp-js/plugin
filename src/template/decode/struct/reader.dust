@@ -90,11 +90,11 @@ module.exports = {};
                          * (maintain {elementType : function (segments, segment,
                          *  pointer) {...}})
                          */
-                        {@eq value="List"} return {@listType elementType=elementType/}.deref({segments}, {segment}, {begin} + {@lsB word="offset"/}); {/eq}
-                        {@eq value="Text"} return Text.deref({segments}, {segment}, {begin} + {@lsB word="offset"/}); {/eq}
-                        {@eq value="Data"} return Data.deref({segments}, {segment}, {begin} + {@lsB word="offset"/}); {/eq}
-                        {@eq value="AnyPointer"} return AnyPointer.deref({segments}, {segment}, {begin} + {@lsB word="offset"/}); {/eq}
-                        {@default} return exports['{typeId}'].deref({segments}, {segment}, {begin} + {@lsB word="offset"/}); {/default}
+                        {@eq value="List"} return {@listType elementType=elementType depth=depth/}.deref({segments}, {segment}, {begin} + {@lsB word=offset/}, {depth}); {/eq}
+                        {@eq value="Text"} return Text.deref({segments}, {segment}, {begin} + {@lsB word=offset/}); {/eq}
+                        {@eq value="Data"} return Data.deref({segments}, {segment}, {begin} + {@lsB word=offset/}); {/eq}
+                        {@eq value="AnyPointer"} return AnyPointer.deref({segments}, {segment}, {begin} + {@lsB word=offset/}); {/eq}
+                        {@default} return exports['{typeId}'].deref({segments}, {segment}, {begin} + {@lsB word=offset/}); {/default}
                         {/select}
                     {/offset}
                 {/isDatum}
