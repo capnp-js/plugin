@@ -1,7 +1,7 @@
 var List = require('../base/list');
 
 module.exports = function (Reader) {
-    function generic(segments, segment, start, length, dataBytes, pointerBytes) {
+    function Generic(segments, segment, start, length, dataBytes, pointerBytes) {
         this.__segments = segments;
         this.__segment = segment;
         this.__start = start;
@@ -12,14 +12,14 @@ module.exports = function (Reader) {
         this.__stride = dataBytes + pointerBytes;
     }
 
-    generic.prototype = new List();
+    Generic.prototype = new List();
 
-    Object.defineProperty(List{primitive}.prototype, 'length', {
+    Object.defineProperty(Generic.prototype, 'length', {
         get : function () { return this.__length; },
         set : function (value) { throw new Error('Readonly'); }
     });
 
-    generic.prototype.get = function (index) {
+    Generic.prototype.get = function (index) {
         if (index<0 || this.__length<=index) {
             throw new RangeError(''+index+' does not fall within [0,'+this.__length+')');
         }
@@ -31,7 +31,7 @@ module.exports = function (Reader) {
                           this.__pointerBytes);
     };
 
-    generic.deref = {>"far/deref" derefType="list"/}
+    Generic.deref = {>"far/deref" derefType="list"/}
         {<derefBody}
             var dataBytes;
             switch ({>"list/sizeEnum" segment="segment" pointer="pointer"/}) {
@@ -47,7 +47,7 @@ module.exports = function (Reader) {
                 dataBytes = 8; break;
             case {>"list/elementSize" enumerant="INLINE_COMPOSITE"/}:
                 dataBytes = {>"struct/dataBytes" segment="segment" pointer="pointer"/};
-                return new generic(
+                return new Generic(
                     segments,
                     targetSegment,
                     start,
@@ -57,13 +57,13 @@ module.exports = function (Reader) {
             case elementSize.BIT:
                 throw new Error('Bit alignment of packed lists is not supported');
             case elementSize.POINTER:
-                throw new Error('Lists of pointers are specifically supported for each type, e.g. ListList and ListData');
+                throw new Error('Lists of pointers are specifically supported for each type, e.g. Text and Data');
             default:
                 throw new Error("Invalid message");
             }
         {/derefBody}
         {<derefReturns}
-            new generic(
+            new Generic(
                 segments,
                 targetSegment,
                 start,
