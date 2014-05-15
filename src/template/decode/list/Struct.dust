@@ -1,10 +1,10 @@
 var List = require('../base/list');
 
 module.exports = function (Reader) {
-    function Generic(segments, segment, start, length, dataBytes, pointerBytes) {
+    function Struct(segments, segment, begin, length, dataBytes, pointerBytes) {
         this.__segments = segments;
         this.__segment = segment;
-        this.__start = start;
+        this.__begin = begin;
         this.__length = length;
         this.__dataBytes = dataBytes;
         this.__pointerBytes = pointerBytes;
@@ -12,26 +12,26 @@ module.exports = function (Reader) {
         this.__stride = dataBytes + pointerBytes;
     }
 
-    Generic.prototype = new List();
+    Struct.prototype = new List();
 
-    Object.defineProperty(Generic.prototype, 'length', {
+    Object.defineProperty(Struct.prototype, 'length', {
         get : function () { return this.__length; },
         set : function (value) { throw new Error('Readonly'); }
     });
 
-    Generic.prototype.get = function (index) {
+    Struct.prototype.get = function (index) {
         if (index<0 || this.__length<=index) {
-            throw new RangeError(''+index+' does not fall within [0,'+this.__length+')');
+            throw new RangeError();
         }
 
         return new Reader(this.__segments,
                           this.__segment,
-                          this.__start + this.__stride*index,
+                          this.__begin + this.__stride*index,
                           this.__dataBytes,
                           this.__pointerBytes);
     };
 
-    Generic.deref = {>"far/deref" derefType="list"/}
+    Struct.deref = {>"far/deref" derefType="list"/}
         {<derefBody}
             var dataBytes;
             switch ({>"list/sizeEnum" segment="segment" pointer="pointer"/}) {
@@ -47,7 +47,7 @@ module.exports = function (Reader) {
                 dataBytes = 8; break;
             case {>"list/elementSize" enumerant="INLINE_COMPOSITE"/}:
                 dataBytes = {>"struct/dataBytes" segment="segment" pointer="pointer"/};
-                return new Generic(
+                return new Struct(
                     segments,
                     targetSegment,
                     start,
@@ -63,7 +63,7 @@ module.exports = function (Reader) {
             }
         {/derefBody}
         {<derefReturns}
-            new Generic(
+            new Struct(
                 segments,
                 targetSegment,
                 start,
