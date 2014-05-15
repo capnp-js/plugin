@@ -128,7 +128,7 @@ _(primitives).forEach(function (primitive) {
 gulp.task('listNested', ['precompiled'], function () {
     var rendering = require('./rendering');
     return renderStream(rendering.list.Nested())
-        .pipe(phonyVinyl('Nested.js'))
+        .pipe(phonyVinyl('nested.js'))
         .pipe(buffer())
         .pipe(uglify())
         .pipe(gulp.dest('build/list'));
@@ -138,7 +138,7 @@ listTasks.push('listNested');
 gulp.task('listStruct', ['precompiled'], function () {
     var rendering = require('./rendering');
     return renderStream(rendering.list.Struct())
-        .pipe(phonyVinyl('Struct.js'))
+        .pipe(phonyVinyl('struct.js'))
         .pipe(buffer())
         .pipe(uglify())
         .pipe(gulp.dest('build/list'));
