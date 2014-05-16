@@ -8,6 +8,7 @@ var primitives = ['Void', 'Bool', 'Float32', 'Float64',
 var specialLists = ['Data', 'Text'];
 
 dust.helpers.listType = function (chunk, ctx, bodies, params) {
+    var parentId = params.parentId;
     var type = params.elementType;
     var depth = params.depth;
 
@@ -19,7 +20,9 @@ dust.helpers.listType = function (chunk, ctx, bodies, params) {
     } else if (type === 'AnyPointer') {
         listType = 'ListAnyPointer';
     } else {
-        listType = 'structListFactory(' + type + ')';
+        var typeId = params.elementTypeId;
+        if (!typeId) { throw new Error('List of '+type+' requires an elementTypeId'); }
+        listType = 'structListFactory(exports['+typeId+'])';
     }
 
     if (depth > 0) {
