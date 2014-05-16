@@ -1,7 +1,7 @@
-var List = require('./base/list');
-var Struct = require('./base/struct');
+var List = require('./List');
+var Struct = require('./Struct');
 
-module.exports = function Any(segments, segment, pointer) {
+var Any = function (segments, segment, pointer) {
     this.__segments = segments;
     this.__segment = segment;
     this.__pointer = pointer;
@@ -22,3 +22,5 @@ Any.prototype.cast = function (Reader, depth) {
         return Reader.deref(this.__segments, this.__segment, this.__pointer);
     }
 };
+
+module.exports = Any;
