@@ -9,6 +9,10 @@
 !}
 function (segments, segment, pointer) {
     var targetSegment, start;
+    if ({>"far/isNull" segment="segment" pointer="pointer"/}) {
+        return {nullValue};
+    }
+
     if (!{>"far/is" segment="segment" pointer="pointer"/}) {
         targetSegment = segment;
         start = {>"{derefType}/begin" segment="segment" pointer="pointer"/};

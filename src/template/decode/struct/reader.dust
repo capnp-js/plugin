@@ -41,7 +41,10 @@ var Base = require('capnp-js/decode/base/Struct');
      * @param {Uint32} pointer - Byte offset into `segment` to where the pointer
      * starts.
      */
-    exports['{id}'].deref = {>"far/deref" derefType="struct"/}
+    exports['{id}'].deref = {>"far/deref" derefType="struct" nullValue="new exports['{id}'](null, null, null, 0, 0)"/}
+        /*
+         * Empty struct gets treated like pre-@0 version--all defaults.
+         */
         {<derefReturns}
             new exports['{id}'](
                 segments,
@@ -52,55 +55,16 @@ var Base = require('capnp-js/decode/base/Struct');
         {/derefReturns}
 
     {#fields}
-        /*
-         * Javascript doesn't cover the set of primitives, so perform the
-         * default value XOR at the bytes level for conceptual simplicity.  This
-         * is blocked awaiting encoding facilities, e.g.
-         * ```
-         * var encode = require('encode/primitive');
-         * var d{id}{name} = encode.Uint16({defaultValue});
-         * // Anonymous union that exposes two different types with the same
-         * // name => ? (name collisions on defaults?)
-         * ```
-         */
-        Object.defineProperty(exports['{id}'].prototype, '{name}', {
-            get : function () {
-                /*
-                 * TODO: for all primitive decodings, use default values, e.g.
-                 * bytesOffset < {~lb}end{~rb} ? {~lb}defaultEncoding[0]{~rb} ^ value[0] : {~lb}defaultEncoding[0]{~rb};
-                 */
-                {?isDatum}
-                    var d = d{id}{name};
-                    return {>"primitive/{type}"
-                                 defaultEncoding="d"
-                                 segment="segment"
-                                 begin="this.__dataSection"
-                                 end="this.__pointerSection"/};
-                {:else}
-                    {#offset
-                          segments="this.__segments"
-                          segment="this.__segment"
-                          begin="this.__pointerSection"}
-                        {@select key=type}
-                        /*
-                         * Factory to map non-primitives:
-                         *   NonprimitiveList(elementType)
-                         *   \mapsto
-                         *   {deref:function (segments, segment, pointer) {...}}
-                         * (maintain {elementType : function (segments, segment,
-                         *  pointer) {...}})
-                         */
-                        {@eq value="List"} return {@listType elementType=elementType elementTypeId=elementTypeId depth=depth/}.deref({segments}, {segment}, {begin} + {@lsB word=offset/}, {depth}); {/eq}
-                        {@eq value="Text"} return Text.deref({segments}, {segment}, {begin} + {@lsB word=offset/}); {/eq}
-                        {@eq value="Data"} return Data.deref({segments}, {segment}, {begin} + {@lsB word=offset/}); {/eq}
-                        {@eq value="AnyPointer"} return AnyPointer.deref({segments}, {segment}, {begin} + {@lsB word=offset/}); {/eq}
-                        {@default} return exports['{typeId}'].deref({segments}, {segment}, {begin} + {@lsB word=offset/}); {/default}
-                        {/select}
-                    {/offset}
-                {/isDatum}
-            },
-            set : function () { throw new Error('Readonly'); }
-        });
+        {@select key=type}
+        {! @select pattern for implicit context. !}
+        {@eq value="union"}{>"struct/union"/}{/eq}
+{!
+  If there exists a name, then nest under that name, else bring up to local
+  scope.
+!}
+        {@eq value="group"}{>"struct/group"/}{/eq}
+        {@default}{>"struct/field"/}{/default}{! Cover structs and enumerants !}
+        {/select}
     {/fields}
 {/fields}
 {/nodes}

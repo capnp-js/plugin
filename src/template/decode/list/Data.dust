@@ -15,7 +15,7 @@ Data.prototype.get = function () {
     return this.__segment.subarray(this.__begin, this.__begin+this.__length);
 };
 
-Data.deref = {>"far/deref" derefType="list"/}
+Data.deref = {>"far/deref" derefType="list" nullValue="new Data(null, null, null, 0)"/}
     {<derefReturns}
         new Data(
             segments,

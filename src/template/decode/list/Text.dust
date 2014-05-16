@@ -24,7 +24,11 @@ Text.prototype.getRawNulled = function () {
     return this.__segment.subarray(this.__begin, this.__begin+this.__length);
 };
 
-Text.deref = {>"far/deref" derefType="list"/}
+Text.deref = {>"far/deref" derefType="list" nullValue="new Text(segments, segment, pointer, 1)"/}
+    /*
+     * If null then use the null pointer's zeros with length 1 (null terminated
+     * empty string).
+     */
     {<derefReturns}
         new Text(
             segments,

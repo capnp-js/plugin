@@ -23,7 +23,7 @@ module.exports = function (Reader) {
                           this.__pointerBytes);
     };
 
-    List.deref = {>"far/deref" derefType="list"/}
+    List.deref = {>"far/deref" derefType="list" nullValue="new List(null, null, null, 0, null, null)"/}
         {<derefBody}
             var dataBytes;
             switch ({>"list/sizeEnum" segment="segment" pointer="pointer"/}) {

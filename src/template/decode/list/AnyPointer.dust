@@ -19,7 +19,7 @@ List.prototype.get = function (index) {
     return new Any(this.__segments, this.__segment, index);
 };
 
-List.deref = {>"far/deref" derefType="list"/}
+List.deref = {>"far/deref" derefType="list" nullValue="new List(null, null, null, 0)"/}
     {<derefReturns}
         new List(
             segments,
