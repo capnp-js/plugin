@@ -1,7 +1,7 @@
 var List = require('./UInt8');
 var decode = require('text-encoding').TextDecoder('utf-8').decode;
 
-module.exports = function Text(segments, segment, begin, length) {
+var Text = function (segments, segment, begin, length) {
     List.call(this, segments, segment, begin, length);
 };
 
@@ -32,3 +32,5 @@ Text.deref = {>"far/deref" derefType="list"/}
             start,
             {>"list/cardinality" segment="segment" pointer="pointer"/})
     {/derefReturns}
+
+module.exports = Text;

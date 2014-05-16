@@ -1,6 +1,6 @@
 var List = require('./UInt8');
 
-module.exports = function Data(segments, segment, begin, length) {
+var Data = function (segments, segment, begin, length) {
     List.call(this, segments, segment, begin, length);
 };
 
@@ -23,3 +23,5 @@ Data.deref = {>"far/deref" derefType="list"/}
             start,
             {>"list/cardinality" segment="segment" pointer="pointer"/})
     {/derefReturns}
+
+module.exports = Data;

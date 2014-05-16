@@ -1,4 +1,4 @@
-var List = require('../base/list');
+var List = require('../base/List');
 
 module.exports = function (TerminalList) {
     function Nested(segments, segment, begin, depth, length) {

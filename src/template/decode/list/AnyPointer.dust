@@ -1,7 +1,7 @@
-var Base = require('../base/list');
+var Base = require('../base/List');
 var Any = require('../AnyPointer');
 
-module.exports = function List(segments, segment, begin, length) {
+var List = function (segments, segment, begin, length) {
     Base.call(this, segments, segment, begin, length);
 };
 
@@ -27,3 +27,5 @@ List.deref = {>"far/deref" derefType="list"/}
             start,
             {>"list/cardinality" segment="segment" pointer="pointer"/})
     {/derefReturns}
+
+module.exports = List;
