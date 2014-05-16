@@ -69,7 +69,7 @@ dust.helpers.injectLists = function (chunk, ctx, bodies, params) {
     );
 
     if (structsCount > 0) {
-        requires.push("var structListFactory = require('capnp-js/decode/list/Struct');");
+        requires.push("var structListFactory = require('capnp-js/decode/list/struct');");
     }
 
     specialLists.forEach(function (s) {
