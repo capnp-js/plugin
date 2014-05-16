@@ -1,7 +1,7 @@
-var Base = require('../base/struct');
+var Base = require('capnp-js/decode/base/Struct');
 
-/* Resolve requestedFiles to merge(x,y,z) for multifile generator requests. */
-module.exports = {};
+/* TODO: resolve requestedFiles to merge(x,y,z) for multifile generator requests. */
+/* module.exports = imports; exports = module.exports; */
 
 /*
  * Static methods resolve data and pointer sections from pointer input.
