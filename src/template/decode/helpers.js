@@ -22,7 +22,7 @@ dust.helpers.listType = function (chunk, ctx, bodies, params) {
     } else {
         var typeId = params.elementTypeId;
         if (!typeId) { throw new Error('List of '+type+' requires an elementTypeId'); }
-        listType = 'structListFactory(exports['+typeId+'])';
+        listType = 'structListFactory(exports["'+typeId+'"])';
     }
 
     if (depth > 0) {

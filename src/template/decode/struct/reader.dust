@@ -90,7 +90,7 @@ var Base = require('capnp-js/decode/base/Struct');
                          * (maintain {elementType : function (segments, segment,
                          *  pointer) {...}})
                          */
-                        {@eq value="List"} return {@listType elementType=elementType depth=depth/}.deref({segments}, {segment}, {begin} + {@lsB word=offset/}, {depth}); {/eq}
+                        {@eq value="List"} return {@listType elementType=elementType elementTypeId=elementTypeId depth=depth/}.deref({segments}, {segment}, {begin} + {@lsB word=offset/}, {depth}); {/eq}
                         {@eq value="Text"} return Text.deref({segments}, {segment}, {begin} + {@lsB word=offset/}); {/eq}
                         {@eq value="Data"} return Data.deref({segments}, {segment}, {begin} + {@lsB word=offset/}); {/eq}
                         {@eq value="AnyPointer"} return AnyPointer.deref({segments}, {segment}, {begin} + {@lsB word=offset/}); {/eq}
