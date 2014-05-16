@@ -3,6 +3,7 @@ capnp-js
 
 Yet another Capnproto implementation for Javascript.
 [Dust](https://github.com/linkedin/dustjs) templates provide a literate codebase.
+Most substance is currently under [decode](https://github.com/popham/capnp-js/tree/master/src/template/decode).
 
 #CommonJS Modules
 I want to support AMD by browserify, hence the use of browser types instead of node stuff.
