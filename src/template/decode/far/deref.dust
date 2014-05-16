@@ -9,7 +9,7 @@
 !}
 function (segments, segment, pointer) {
     var targetSegment, start;
-    if ({>"far/isLocal" segment="segment" pointer="pointer"/}) {
+    if (!{>"far/is" segment="segment" pointer="pointer"/}) {
         targetSegment = segment;
         start = {>"{derefType}/begin" segment="segment" pointer="pointer"/};
     } else {
