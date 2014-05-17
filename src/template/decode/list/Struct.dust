@@ -49,7 +49,7 @@ module.exports = function (Reader) {
             case elementSize.BIT:
                 throw new Error('Bit alignment of packed lists is not supported');
             case elementSize.POINTER:
-                throw new Error('Lists of pointers are specifically supported for each type, e.g. Text and Data');
+                throw new Error('Lists of pointers are specifically supported for each type, i.e. Nested, Text, and Data');
             default:
                 throw new Error("Invalid message");
             }
