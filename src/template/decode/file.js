@@ -6,5 +6,5 @@ require('./precompiled');
 require('./helpers');
 
 module.exports = function (schema) {
-    return when.lift(dust.render)('struct/reader', schema);
+    return when.lift(dust.render)('file', schema);
 };

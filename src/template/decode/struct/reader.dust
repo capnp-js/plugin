@@ -1,84 +1,40 @@
 var Base = require('capnp-js/decode/base/Struct');
 
-/* TODO: resolve requestedFiles to merge(x,y,z) for multifile generator requests. */
-/* module.exports = imports; exports = module.exports; */
+/* Struct {name} */
+exports['{id}'] = function (segments, segment, start, dataBytes, pointerBytes) {
+    this.__segments = segments;
+    this.__segment = segment;
+    this.__dataSection = start;
+    this.__pointerSection = start + dataBytes;
+    this.__end = this.__pointerSection + pointerBytes;
+};
+
+exports['{id}'].prototype = new Base();
 
 /*
- * Static methods resolve data and pointer sections from pointer input.
- * For a list with C=5, peek at the head of the field list to determine whether
- * `pointerSection` should be `begin` or `end`.
+ * Map a `Struct` pointer to a {name} reader.
+ * * For `AnyPointer` loci, inspection of the pointer's A bits can dispatch
+ *   here as needed.
+ * @param {Uint8Array[]} segments - All of the message segments.
+ * @param {Uint8Array} segment - Segment of memory containing the pointer.
+ * @param {Uint32} pointer - Byte offset into `segment` to where the pointer
+ * starts.
  */
-
-{! List* !}
-{@injectLists nodes=nodes/}
-
-{! decodeFloat* !}
-{@injectFloatConversion nodes=nodes/}
-
-{! AnyPointer !}
-{@injectFinals nodes=nodes/}
-
-{! Ignore non-structs (is struct iff there exists a fields key) !}
-{#nodes}
-{?fields}
-    /* Struct {name} */
-    exports['{id}'] = function (segments, segment, start, dataBytes, pointerBytes) {
-        this.__segments = segments;
-        this.__segment = segment;
-        this.__dataSection = start;
-        this.__pointerSection = start + dataBytes;
-        this.__end = this.__pointerSection + pointerBytes;
-    };
-
-    exports['{id}'].prototype = new Base();
-
+exports['{id}'].deref = {>"far/deref" derefType="struct" nullValue="new exports['{id}'](null, null, null, 0, 0)"/}
     /*
-     * Map a `Struct` pointer to a {name} reader.
-     * * For `AnyPointer` loci, inspection of the pointer's A bits can dispatch
-     *   here as needed.
-     * @param {Uint8Array[]} segments - All of the message segments.
-     * @param {Uint8Array} segment - Segment of memory containing the pointer.
-     * @param {Uint32} pointer - Byte offset into `segment` to where the pointer
-     * starts.
+     * Empty struct gets treated like pre-@0 version--all defaults.
      */
-    exports['{id}'].deref = {>"far/deref" derefType="struct" nullValue="new exports['{id}'](null, null, null, 0, 0)"/}
-        /*
-         * Empty struct gets treated like pre-@0 version--all defaults.
-         */
-        {<derefReturns}
-            new exports['{id}'](
-                segments,
-                targetSegment,
-                start,
-                {>"struct/dataBytes" segment="segment" pointer="pointer"/},
-                {>"struct/pointerBytes" segment="segment" pointer="pointer"/})
-        {/derefReturns}
+    {<derefReturns}
+        new exports['{id}'](
+            segments,
+            targetSegment,
+            start,
+            {>"struct/dataBytes" segment="segment" pointer="pointer"/},
+            {>"struct/pointerBytes" segment="segment" pointer="pointer"/})
+    {/derefReturns}
 
-    {#fields}
-        {@select key=type}
-        {! @select pattern for implicit context. !}
-        {@eq value="union"}{>"struct/union"/}{/eq}
 {!
-  If there exists a name, then nest under that name, else bring up to local
-  scope.
+{#.fields}
+    {>"struct/resolveField" target="exports['{id}']"/}
+{/.fields}
 !}
-        {@eq value="group"}{>"struct/group"/}{/eq}
-        {@default}{>"struct/field"/}{/default}{! Cover structs and enumerants !}
-        {/select}
-    {/fields}
-{/fields}
-{/nodes}
-
-{#nodes}
-{?fields}
-    /*
-     * Expose nested structs as static members on the owning struct.  Expose
-     * root structs as exports.
-     */
-    {?owner}
-        exports['{owner}'].{name} = exports['{id}'];
-    {:else}
-        exports.{name} = exports['{id}'];
-    {/owner}
-{/fields}
-{/nodes}

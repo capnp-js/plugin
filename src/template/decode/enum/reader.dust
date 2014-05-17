@@ -1,9 +1,5 @@
-var enums = {};
-
-{#enums}
-    enums['{id}'] = {
-        {#enumerants}
-            {@upcase}{name}{/upcase} : {ordinal}{@sep},{/sep}
-        {/enumerants}
-    };
-{/enums}
+exports['{id}'] = {
+    {#enumerants}
+        {@enumerantName}{name}{/enumerantName} : {ordinal}{@sep},{/sep}
+    {/enumerants}
+};
