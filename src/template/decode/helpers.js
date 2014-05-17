@@ -33,13 +33,13 @@ dust.helpers.listType = function (chunk, ctx, bodies, params) {
 };
 
 dust.helpers.injectLists = function (chunk, ctx, bodies, params) {
-    var nodes = params.nodes;
+    var structs = params.structs;
     var requires = [];
 
     var nestsCount = 0;
     var prependeds = primitives.concat(['AnyPointer']);
     prependeds.forEach(function (p) {
-        var count = traverse(nodes).reduce(
+        var count = traverse(structs).reduce(
             function (acc, node) {
                 var isActive = node.type === 'List' && node.elementType === p;
                 if (isActive && node.depth > 0) { nestsCount += 1; }
@@ -57,7 +57,7 @@ dust.helpers.injectLists = function (chunk, ctx, bodies, params) {
         requires.push("var nestedListFactory = require('capnp-js/decode/list/nested');");
     }
 
-    var structsCount = traverse(nodes).reduce(
+    var structsCount = traverse(structs).reduce(
         function (acc, node) {
             if (node.type === 'List' &&
                 !(node.elementType in primitives) &&
@@ -76,7 +76,7 @@ dust.helpers.injectLists = function (chunk, ctx, bodies, params) {
     }
 
     specialLists.forEach(function (s) {
-        var count = traverse(nodes).reduce(
+        var count = traverse(structs).reduce(
             function (acc, node) {
                 var isActive = node.type === s;
                 return isActive ? acc+1 : acc;
@@ -94,12 +94,12 @@ dust.helpers.injectLists = function (chunk, ctx, bodies, params) {
 
 var finals = ['AnyPointer'];
 dust.helpers.injectFinals = function (chunk, ctx, bodies, params) {
-    var nodes = params.nodes;
+    var structs = params.structs;
     var type = params.type;
     var requires = [];
 
     finals.forEach(function (b) {
-        var count = traverse(nodes).reduce(
+        var count = traverse(structs).reduce(
             function (acc, node) {
                 var isActive = node.type === b;
                 return isActive ? acc+1 : acc;
@@ -188,10 +188,10 @@ dust.helpers.byteOffset = function (chunk, ctx, bodies, params) {
 };
 
 dust.helpers.injectFloatConversion = function (chunk, ctx, bodies, params) {
-    var nodes = params.nodes;
+    var structs = params.structs;
     var actives = [];
     ['Float32', 'Float64'].forEach(function (p) {
-        var count = traverse(nodes).reduce(
+        var count = traverse(structs).reduce(
             function (acc, node) {
                 var isActive = node.type === p;
                 return isActive ? acc+1 : acc;
@@ -213,6 +213,30 @@ dust.helpers.boolMask = function (chunk, ctx, bodies, params) {
     return chunk.write((1 >>> 0) << (params.bitDistance & 0x00000007));
 };
 
+dust.helpers.enumerantName = function (chunk, ctx, bodies, params) {
+    /* Insert '_' before any caps that are not the string's first letter. */
+    var text = dust.helpers.tap(bodies.block, chunk, ctx);
+    var newText = text[0];
+    for (var i=1; i<text.length; ++i) {
+        if (/[A-Z]/.test(text[i])) {
+            newText = newText.concat('_');
+        }
+        newText = newText.concat(text[i]);
+    }
+
+    return chunk.write(newText.toUpperCase());
+};
+
 dust.helpers.lsB = function (chunk, ctx, bodies, params) {
     return chunk.write(8*params.word);
+};
+
+dust.helpers.assert = function (chunk, ctx, bodies, params) {
+    var value = params.value;
+    var expect = params.expect;
+
+    if (value !== expect) {
+        throw new Error('Failed assertion: '+value+' !== '+expect);
+    }
+    return chunk.write('');
 };
