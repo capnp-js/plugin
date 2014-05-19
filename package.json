@@ -46,6 +46,7 @@
     "dustjs-helpers": "^1.2.0",
     "when": "^3.1.0",
     "traverse": "^0.6.6",
-    "text-encoding": "0.0.0"
+    "text-encoding": "0.0.0",
+    "dustmotes-provide": "0.0.3"
   }
 }
