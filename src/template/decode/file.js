@@ -1,9 +1,13 @@
 var when = require('when/node');
-var dust = require('dustjs-helpers');
+var dust = require('dustjs-linkedin');
 
-// Populate the Dust global.
-require('./precompiled');
+// Add helpers to Dust
+require('dustjs-helpers');
+require('dustmotes-provide');
 require('./helpers');
+
+// Load precompileds.
+require('./precompiled');
 
 module.exports = function (schema) {
     return when.lift(dust.render)('file', schema);

@@ -1,4 +1,4 @@
-var dust = require('dustjs-helpers');
+var dust = require('dustjs-linkedin');
 var traverse = require('traverse');
 
 var primitives = ['Void', 'Bool', 'Float32', 'Float64',
@@ -13,9 +13,9 @@ dust.helpers.listType = function (chunk, ctx, bodies, params) {
     var depth = params.depth;
 
     var listType;
-    if (type in primitives) {
+    if (primitives.indexOf(type) >= 0) {
         listType = 'List' + type;
-    } else if (type in specialLists) {
+    } else if (specialLists.indexOf(type) >= 0) {
         listType = type;
     } else if (type === 'AnyPointer') {
         listType = 'ListAnyPointer';
@@ -60,8 +60,8 @@ dust.helpers.injectLists = function (chunk, ctx, bodies, params) {
     var structsCount = traverse(structs).reduce(
         function (acc, node) {
             if (node.type === 'List' &&
-                !(node.elementType in primitives) &&
-                !(node.elementType in primitives)) {
+                primitives.indexOf(node.elementType) === -1 &&
+                specialLists.indexOf(node.elementType) === -1) {
 
                 return acc+1;
             } else {
@@ -219,9 +219,9 @@ dust.helpers.enumerantName = function (chunk, ctx, bodies, params) {
     var newText = text[0];
     for (var i=1; i<text.length; ++i) {
         if (/[A-Z]/.test(text[i])) {
-            newText = newText.concat('_');
+            newText = newText + '_';
         }
-        newText = newText.concat(text[i]);
+        newText = newText + text[i];
     }
 
     return chunk.write(newText.toUpperCase());
@@ -232,11 +232,11 @@ dust.helpers.lsB = function (chunk, ctx, bodies, params) {
 };
 
 dust.helpers.assert = function (chunk, ctx, bodies, params) {
-    var value = params.value;
-    var expect = params.expect;
-
+    var value = dust.helpers.tap(params.value, chunk, ctx);
+    var expect = dust.helpers.tap(params.expect, chunk, ctx);
     if (value !== expect) {
         throw new Error('Failed assertion: '+value+' !== '+expect);
     }
+
     return chunk.write('');
 };

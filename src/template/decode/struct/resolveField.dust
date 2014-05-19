@@ -1,0 +1,29 @@
+{>"struct/field"/}
+
+{@select key=type}
+{@eq value="union"}
+    {#fields}
+        {target|s}.prototype.{@enumerantName}{name}{/enumerantName}
+            = {discriminantValue};
+    {/fields}
+
+    {@provide fields=fields}
+        {#fields}
+            {>"struct/resolveField" target=scope/}
+        {/fields}
+    {:scope}
+        {target|s}.{name}
+        {!@fieldNamespace scope=target append=name/!}
+    {/provide}
+{/eq}
+{@eq value="group"}
+    {#fields}
+        {@provide}
+            {>"struct/resolveField" target=scope/}
+        {:scope}
+            {target|s}.{name}
+            {!@fieldNamespace scope=target append=name/!}
+        {/provide}
+    {/fields}
+{/eq}
+{/select}
