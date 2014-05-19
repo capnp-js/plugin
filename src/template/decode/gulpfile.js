@@ -28,8 +28,6 @@ var optimal = {};
  * `return` (with gulp-compile preserving whitespace.  Keeping it around for
  * js-doc use later.
  */
-var beautify = require('gulp-beautify');
-//var uglify = function () {  return beautify(); };
 var uglify = function () { return uglify_(pretty); };
 
 var primitives = ['Void', 'Bool', 'Float32', 'Float64',
@@ -81,7 +79,7 @@ gulp.task('precompiled', function () {
         .pipe(rename({ extname : "" }))
         .pipe(compile({ preserveWhitespace : false }))
         .pipe(concat('precompiled.js'))
-        .pipe(insert.prepend('var dust = require("dustjs-helpers");'))
+        .pipe(insert.prepend('var dust = require("dustjs-linkedin");'))
         .pipe(gulp.dest('build'));
 });
 

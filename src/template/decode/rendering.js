@@ -1,9 +1,14 @@
 var when = require('when/node');
-var dust = require('dustjs-helpers');
+var dust = require('dustjs-linkedin');
 
-// Populate the Dust global.
-require('./build/precompiled');
+// Add helpers to Dust
+require('dustjs-helpers');
+require('dustmotes-provide');
 require('./helpers');
+
+// Load precompileds (reference to build directory ok, since this module should
+// not be used by external requires).
+require('./build/precompiled');
 
 exports.list = {};
 exports.list.primitive = function (context) {
