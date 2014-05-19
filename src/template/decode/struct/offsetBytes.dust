@@ -1,3 +1,4 @@
+/* TODO: clobber the sign bit */
 (((({segment}[{pointer}    ] & 0xfffffffc) >>> 0) <<  1) +
    ({segment}[{pointer} + 1]                      <<  9) +
    ({segment}[{pointer} + 2]                      << 17) +

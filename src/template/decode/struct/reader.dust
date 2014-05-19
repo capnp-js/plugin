@@ -12,7 +12,7 @@ exports['{id}'] = function (segments, segment, start, dataBytes, pointerBytes) {
 exports['{id}'].prototype = new Base();
 
 /*
- * Map a `Struct` pointer to a {name} reader.
+ * Map a `struct` pointer to a {name} reader.
  * * For `AnyPointer` loci, inspection of the pointer's A bits can dispatch
  *   here as needed.
  * @param {Uint8Array[]} segments - All of the message segments.
@@ -33,8 +33,6 @@ exports['{id}'].deref = {>"far/deref" derefType="struct" nullValue="new exports[
             {>"struct/pointerBytes" segment="segment" pointer="pointer"/})
     {/derefReturns}
 
-{!
 {#.fields}
     {>"struct/resolveField" target="exports['{id}']"/}
 {/.fields}
-!}
