@@ -13,7 +13,9 @@ function (segments, segment, pointer) {
         return {nullValue};
     }
 
+    /*jshint -W018 */
     if (!{>"far/is" segment="segment" pointer="pointer"/}) {
+    /*jshint +W018 */
         targetSegment = segment;
         start = {>"{derefType}/begin" segment="segment" pointer="pointer"/};
     } else {
@@ -31,7 +33,9 @@ function (segments, segment, pointer) {
         }
     }
 
+    /*jshint -W018 */
     if (!{>"{derefType}/is" segment="segment" pointer="pointer"/}) {
+    /*jshint +W018 */
         throw new TypeError('Pointer resolves to non-{derefType}');
     }
 
