@@ -8,7 +8,7 @@
  * // encode the default value's string and return the byte at `position`.
  * ```
  */
-Object.defineProperty({target|s}.prototype, {?.name}'{name}'{:else}'which'{/.name}, {
+Object.defineProperty({target|s}.prototype, {?name}'{name}'{:else}'which'{/name}, {
     get : function () {
         /*
          * TODO: For all data section members use default values, e.g.
@@ -41,7 +41,7 @@ Object.defineProperty({target|s}.prototype, {?.name}'{name}'{:else}'which'{/.nam
                 segment="this.__segment"
                 begin="this.__pointerSection"}
                 {@select key=type}
-                {@eq value="group"} return new Group(this); {/eq}
+                {@eq value="group"} return new {target|s}.{name}(this); {/eq}
                 {@eq value="List"} return {@listType elementType=elementType elementTypeId=elementTypeId depth=depth/}.deref({segments}, {segment}, {begin} + {@lsB word=offset/}, {depth}); {/eq}
                 {@eq value="Text"} return Text.deref({segments}, {segment}, {begin} + {@lsB word=offset/}); {/eq}
                 {@eq value="Data"} return Data.deref({segments}, {segment}, {begin} + {@lsB word=offset/}); {/eq}

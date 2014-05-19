@@ -11,14 +11,6 @@
 {! AnyPointer, ... !}
 {@injectFinals structs=structs/}
 
-var Group = function(parent) {
-    this.__segments = root.__segments;
-    this.__segment = root.__segment;
-    this.__dataSection = root.__dataSection;
-    this.__pointerSection = root.__pointerSection;
-    this.__end = root.__end;
-};
-
 {#structs}
     {>"struct/reader"/}
 {/structs}

@@ -1,5 +1,3 @@
-{>"struct/field"/}
-
 {@select key=type}
 {@eq value="union"}
     {#fields}
@@ -9,21 +7,31 @@
 
     {@provide fields=fields}
         {#fields}
+            {! Recur here to admit the possibility of nested unions !}
             {>"struct/resolveField" target=scope/}
         {/fields}
     {:scope}
-        {target|s}.{name}
-        {!@fieldNamespace scope=target append=name/!}
+        {target|s}
     {/provide}
 {/eq}
 {@eq value="group"}
-    {#fields}
+    {target|s}.{name} = function(parent) {
+        this.__segments = root.__segments;
+        this.__segment = root.__segment;
+        this.__dataSection = root.__dataSection;
+        this.__pointerSection = root.__pointerSection;
+        this.__end = root.__end;
+    };
+
+    {#fields groupName=name}
         {@provide}
             {>"struct/resolveField" target=scope/}
         {:scope}
-            {target|s}.{name}
-            {!@fieldNamespace scope=target append=name/!}
+            {target|s}.{groupName}
         {/provide}
     {/fields}
 {/eq}
+{@default}
+    {>"struct/field"/}
+{/default}
 {/select}
