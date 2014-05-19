@@ -1,5 +1,5 @@
 exports['{id}'] = {
     {#enumerants}
-        {@enumerantName}{name}{/enumerantName} : {ordinal}{@sep},{/sep}
+        {@enumerantName}{name}{/enumerantName} : {$idx}{@sep},{/sep}
     {/enumerants}
 };
