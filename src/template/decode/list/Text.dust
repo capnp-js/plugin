@@ -1,5 +1,5 @@
 var List = require('./UInt8');
-var decode = require('text-encoding').TextDecoder('utf-8').decode;
+var decoder = new require('text-encoding').TextDecoder('utf-8');
 
 var Text = function (segments, segment, begin, length) {
     List.call(this, segments, segment, begin, length);
@@ -13,7 +13,7 @@ Object.defineProperty(Text.prototype, 'length', {
 });
 
 Text.prototype.get = function () {
-    return decode(this.getRaw());
+    return decoder.decode(this.getRaw());
 };
 
 Text.prototype.getRaw = function () {
