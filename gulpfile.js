@@ -21,7 +21,7 @@ gulp.task('decode', ['buildDecode'], function () {
     ])
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
-        .pipe(gulp.dest('./decode'));
+        .pipe(gulp.dest('./lib/decode'));
 });
 
 gulp.task('buildDecode', function () {
