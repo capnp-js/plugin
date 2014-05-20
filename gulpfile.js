@@ -39,26 +39,30 @@ gulp.task('clean', function () {
         .pipe(clean());
 });
 
-gulp.task('push', ['bump', 'tag']);
-
-gulp.task('bump', function () {
-  return gulp.src('./package.json')
-    .pipe(bump())
-    .pipe(gulp.dest('./'));
-});
+gulp.task('release', ['releaseTag']);
 
 /*
  * If username and password break flow, then look over at
  * `http://git-scm.com/docs/gitcredentials.html` to inject.
  */
-gulp.task('tag', function () {
+gulp.task('releaseTag', ['bump'], function () {
   var pkg = require('./package.json');
   var v = 'v' + pkg.version;
   var message = 'Release ' + v;
 
-  return gulp.src('./')
-    .pipe(git.commit(message))
-    .pipe(git.tag(v, message))
-    .pipe(git.push('origin', 'master', '--tags'))
-    .pipe(gulp.dest('./'));
+  git.tag(v, message, {}, function () {
+      git.push('origin', 'master', '--tags').end();
+  });
+});
+
+gulp.task('bump', ['incrementVersion'], function () {
+    return gulp.src('./package.json')
+        .pipe(git.add())
+        .pipe(git.commit('Version bump'));
+});
+
+gulp.task('incrementVersion', function () {
+    return gulp.src('./package.json')
+        .pipe(bump())
+        .pipe(gulp.dest('./'));
 });
