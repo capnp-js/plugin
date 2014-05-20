@@ -1,5 +1,5 @@
-capnp-js
-========
+capnp-js [![Build Status](https://travis-ci.org/popham/capnp-js.svg?branch=master)](https://travis-ci.org/popham/capnp-js)
+==========================================================================================================================
 
 Yet another Capnproto implementation for Javascript.
 [Dust](https://github.com/linkedin/dustjs) templates provide a literate codebase.
