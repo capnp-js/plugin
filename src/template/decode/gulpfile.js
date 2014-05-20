@@ -44,7 +44,7 @@ gulp.task('clean', function () {
         .pipe(clean());
 });
 
-gulp.task('test', function () {
+gulp.task('test', ['build'], function () {
     gulp.src('./test/**/*.js')
         .pipe(mocha({ reporter: 'spec' }));
 });
