@@ -17,7 +17,7 @@ function (segments, segment, pointer) {
     if (!{>"far/is" segment="segment" pointer="pointer"/}) {
     /*jshint +W018 */
         targetSegment = segment;
-        {>"{list/objectOffset" segment="segment" pointer="pointer" maskRegister="mask" resultRegister="start"/};
+        {>"list/objectOffset" segment="segment" pointer="pointer" maskRegister="mask" resultRegister="start"/}
         start =
             {>"list/objectOffsetIsNegative" segment="segment" pointer="pointer"/} ?
             pointer + 8 - start :
@@ -27,7 +27,7 @@ function (segments, segment, pointer) {
         if ({>"far/isDirect" segment="segment" pointer="pointer"/}) {
             pointer = {>"far/begin" segment="segment" pointer="pointer"/};
             segment = targetSegment;
-            {>"{list/objectOffset" segment="segment" pointer="pointer" maskRegister="mask" resultRegister="start"/};
+            {>"list/objectOffset" segment="segment" pointer="pointer" maskRegister="mask" resultRegister="start"/}
             start =
                 {>"list/objectOffsetIsNegative" segment="segment" pointer="pointer"/} ?
                 pointer + 8 - start :

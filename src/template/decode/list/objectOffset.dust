@@ -10,9 +10,9 @@
  * ((X...X + 0...0) ^ 0...0) << 2
  */
 
-var {maskRegister} = (({segment}[{pointer} + 3] << 24) >> 31);
+{maskRegister} = (({segment}[{pointer} + 3] << 24) >> 31);
 
-{returns} =
+{resultRegister} =
     ((((({segment}[{pointer}] & 0xfffffffc) >>> 0) +
         ({segment}[{pointer} + 1] <<  8) +
         ({segment}[{pointer} + 2] << 16) +
