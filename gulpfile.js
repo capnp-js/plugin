@@ -1,7 +1,9 @@
 var gulp = require('gulp');
 
+var bump = require('gulp-bump');
 var chug = require('gulp-chug');
 var clean = require('gulp-clean');
+var git = require('gulp-git');
 var jshint = require('gulp-jshint');
 
 gulp.task('watch', function () {
@@ -35,4 +37,28 @@ gulp.task('ci', function () {
 gulp.task('clean', function () {
     return gulp.src('./decode/**/*')
         .pipe(clean());
+});
+
+gulp.task('push', ['bump', 'tag']);
+
+gulp.task('bump', function () {
+  return gulp.src('./package.json')
+    .pipe(bump())
+    .pipe(gulp.dest('./'));
+});
+
+/*
+ * If username and password break flow, then look over at
+ * `http://git-scm.com/docs/gitcredentials.html` to inject.
+ */
+gulp.task('tag', function () {
+  var pkg = require('./package.json');
+  var v = 'v' + pkg.version;
+  var message = 'Release ' + v;
+
+  return gulp.src('./')
+    .pipe(git.commit(message))
+    .pipe(git.tag(v, message))
+    .pipe(git.push('origin', 'master', '--tags'))
+    .pipe(gulp.dest('./'));
 });
