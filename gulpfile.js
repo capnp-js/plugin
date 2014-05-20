@@ -39,13 +39,11 @@ gulp.task('clean', function () {
         .pipe(clean());
 });
 
-gulp.task('release', ['releaseTag']);
-
 /*
  * If username and password break flow, then look over at
  * `http://git-scm.com/docs/gitcredentials.html` to inject.
  */
-gulp.task('releaseTag', ['bump'], function () {
+gulp.task('release', ['bump'], function () {
   var pkg = require('./package.json');
   var v = 'v' + pkg.version;
   var message = 'Release ' + v;
