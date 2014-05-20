@@ -27,6 +27,11 @@ gulp.task('buildDecode', function () {
         .pipe(chug({ tasks : ['build'] }))
 });
 
+gulp.task('ci', function () {
+    return gulp.src('./src/template/decode/gulpfile.js', { read : false })
+        .pipe(chug({ tasks : ['ci'] }));
+});
+
 gulp.task('clean', function () {
     return gulp.src('./decode/**/*')
         .pipe(clean());
