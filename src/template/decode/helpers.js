@@ -49,12 +49,12 @@ dust.helpers.injectLists = function (chunk, ctx, bodies, params) {
         );
 
         if (count > 0) {
-            requires.push("var List"+p+" = require('capnp-js/decode/list/"+p+"');");
+            requires.push("var List"+p+" = require('capnp-js/lib/decode/list/"+p+"');");
         }
     });
 
     if (nestsCount > 0) {
-        requires.push("var nestedListFactory = require('capnp-js/decode/list/nested');");
+        requires.push("var nestedListFactory = require('capnp-js/lib/decode/list/nested');");
     }
 
     var structsCount = traverse(structs).reduce(
@@ -72,7 +72,7 @@ dust.helpers.injectLists = function (chunk, ctx, bodies, params) {
     );
 
     if (structsCount > 0) {
-        requires.push("var structListFactory = require('capnp-js/decode/list/struct');");
+        requires.push("var structListFactory = require('capnp-js/lib/decode/list/struct');");
     }
 
     specialLists.forEach(function (s) {
@@ -85,7 +85,7 @@ dust.helpers.injectLists = function (chunk, ctx, bodies, params) {
         );
 
         if (count > 0) {
-            requires.push("var "+s+" = require('capnp-js/decode/list/"+s+"');");
+            requires.push("var "+s+" = require('capnp-js/lib/decode/list/"+s+"');");
         }
     });
 
@@ -108,7 +108,7 @@ dust.helpers.injectFinals = function (chunk, ctx, bodies, params) {
         );
 
         if (count > 0) {
-            requires.push("var "+b+" = require('capnp-js/decode/base/"+b+"');");
+            requires.push("var "+b+" = require('capnp-js/lib/decode/base/"+b+"');");
         }
     });
 
@@ -205,7 +205,7 @@ dust.helpers.injectFloatConversion = function (chunk, ctx, bodies, params) {
     });
 
     return chunk.write(actives.map(function (active) {
-        return "var decode"+active+" = require('capnp-js/decode/decoder/"+active+"');";
+        return "var decode"+active+" = require('capnp-js/lib/decode/decoder/"+active+"');";
     }).join('\n'));
 };
 
