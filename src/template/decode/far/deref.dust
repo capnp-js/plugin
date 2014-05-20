@@ -17,14 +17,14 @@ function (segments, segment, pointer) {
     if (!{>"far/is" segment="segment" pointer="pointer"/}) {
     /*jshint +W018 */
         targetSegment = segment;
-        half = {>"list/objectHalfOffset" segment="segment" pointer="pointer"/}
+        half = {>"list/objectHalfOffset" segment="segment" pointer="pointer"/};
         start = pointer + 8 + half + half;
     } else {
         targetSegment = segments[{>"far/targetId" segment="segment" pointer="pointer"/}];
         if ({>"far/isDirect" segment="segment" pointer="pointer"/}) {
             pointer = {>"far/begin" segment="segment" pointer="pointer"/};
             segment = targetSegment;
-            half = {>"list/objectHalfOffset" segment="segment" pointer="pointer"/}
+            half = {>"list/objectHalfOffset" segment="segment" pointer="pointer"/};
             start = pointer + 8 + half + half;
         } else {
             pointer = {>"far/begin" segment="segment" pointer="pointer"/};
