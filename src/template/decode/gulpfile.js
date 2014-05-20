@@ -11,6 +11,7 @@ var compile = require('gulp-dust');
 var concat = require('gulp-concat');
 var insert = require('gulp-insert');
 var jshint = require('gulp-jshint');
+var mocha = require('gulp-mocha');
 var rename = require('gulp-rename');
 var render = require('gulp-dust-render');
 var phonyVinyl = require('vinyl-source-stream');
@@ -34,12 +35,19 @@ var primitives = ['Void', 'Bool', 'Float32', 'Float64',
                   'UInt8', 'UInt16', 'UInt32', 'UInt64',
                    'Int8',  'Int16',  'Int32',  'Int64'];
 
+gulp.task('build', ['file', 'lists', 'anyPointer', 'base']);
+
+gulp.task('ci', ['jshint', 'test', 'build']);
+
 gulp.task('clean', function () {
     return gulp.src(['./build/**/*', './precompile/**/*'], {read : false})
         .pipe(clean());
 });
 
-gulp.task('build', ['file', 'lists', 'anyPointer', 'base']);
+gulp.task('test', function () {
+    gulp.src('./test/**/*.js')
+        .pipe(mocha({ reporter: 'list' }));
+});
 
 gulp.task('watch', function () {
     gulp.watch('./**/*.js', ['base']);
@@ -94,7 +102,7 @@ gulp.task('anyPointer', function () {
 });
 
 function sstream(text) {
-    var s = new stream.Readable;
+    var s = new stream.Readable();
     s._read = function noop() {};
     s.push(text);
     s.push(null);
@@ -103,7 +111,7 @@ function sstream(text) {
 }
 
 function renderStream(promise) {
-    var s = new stream.Readable;
+    var s = new stream.Readable();
     s._read = function noop() {};
     promise.done(
         function (rendering) {

@@ -4,8 +4,8 @@ var when = require('when/node');
 
 var dust = require('dustjs-linkedin');
 require('dustjs-helpers');
-require('../../decode/helpers');
-require('../../decode/precompiled');
+require('../../build/helpers');
+require('../../build/precompiled');
 
 function wrap(partial) {
     var schema = { segment : 'data', pointer : 0 };
@@ -13,6 +13,7 @@ function wrap(partial) {
     return when.lift(dust.render)(partial, schema)
         .then(
             function (body) {
+                /*jshint evil:true */
                 eval('var result = function (data) { return ' + body + ' }');
                 return result;
             }
@@ -34,7 +35,7 @@ describe('List decoding', function () {
                     pointer[0] = 3;
                     assert(!isList(pointer), 'That was an interface pointer');
                 }
-            )
+            );
         }
     );
 
@@ -55,7 +56,7 @@ describe('List decoding', function () {
                     // Compute offset (bytes) and convert to words.
                     assert.equal(start + half(pointer) + half(pointer), 0);
                 }
-            )
+            );
         }
     );
 });

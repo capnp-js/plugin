@@ -39,7 +39,8 @@
     "gulp-buffer": "0.0.2",
     "gulp-util": "^2.2.14",
     "gulp-uglify": "^0.3.0",
-    "gulp-chug": "^0.1.10"
+    "gulp-chug": "^0.1.10",
+    "gulp-mocha": "^0.4.1"
   },
   "dependencies": {
     "dustjs-linkedin": "^2.3.4",
