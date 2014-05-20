@@ -1,2 +1,2 @@
-((({segment})[{begin} + {@byteOffset type="UInt16" offset=offset/}] >>> 0)
-    + (({segment})[{begin} + {@byteOffset type="UInt16" offset=offset skip=1/}] << 8))
+((({segment})[{begin} + {@byteOffset type="UInt16" offset=offset/}] >>> 0) +
+ (({segment})[{begin} + {@byteOffset type="UInt16" offset=offset skip=1/}] << 8))

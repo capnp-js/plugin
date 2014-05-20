@@ -8,7 +8,7 @@
    pointer is double-far, so use `start` instead of computing a zero.
 !}
 function (segments, segment, pointer) {
-    var targetSegment, start, mask;
+    var targetSegment, start, half;
     if ({>"far/isNull" segment="segment" pointer="pointer"/}) {
         return {nullValue};
     }
@@ -17,21 +17,15 @@ function (segments, segment, pointer) {
     if (!{>"far/is" segment="segment" pointer="pointer"/}) {
     /*jshint +W018 */
         targetSegment = segment;
-        {>"list/objectOffset" segment="segment" pointer="pointer" maskRegister="mask" resultRegister="start"/}
-        start =
-            {>"list/objectOffsetIsNegative" segment="segment" pointer="pointer"/} ?
-            pointer + 8 - start :
-            pointer + 8 + start;
+        half = {>"list/objectHalfOffset" segment="segment" pointer="pointer"/}
+        start = pointer + 8 + half + half;
     } else {
         targetSegment = segments[{>"far/targetId" segment="segment" pointer="pointer"/}];
         if ({>"far/isDirect" segment="segment" pointer="pointer"/}) {
             pointer = {>"far/begin" segment="segment" pointer="pointer"/};
             segment = targetSegment;
-            {>"list/objectOffset" segment="segment" pointer="pointer" maskRegister="mask" resultRegister="start"/}
-            start =
-                {>"list/objectOffsetIsNegative" segment="segment" pointer="pointer"/} ?
-                pointer + 8 - start :
-                pointer + 8 + start;
+            half = {>"list/objectHalfOffset" segment="segment" pointer="pointer"/}
+            start = pointer + 8 + half + half;
         } else {
             pointer = {>"far/begin" segment="segment" pointer="pointer"/};
             segment = targetSegment;
