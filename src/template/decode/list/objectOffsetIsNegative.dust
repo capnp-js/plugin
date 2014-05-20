@@ -1,0 +1,1 @@
+({segment}[{pointer} + 3] & 0x00000080)

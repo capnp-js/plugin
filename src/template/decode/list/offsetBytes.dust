@@ -1,4 +1,0 @@
-(((({segment}[{pointer}    ] & 0xfffffffc) >>> 0) <<  1) +
-   ({segment}[{pointer} + 1]                      <<  9) +
-   ({segment}[{pointer} + 2]                      << 17) +
-   ({segment}[{pointer} + 3]                      << 25))

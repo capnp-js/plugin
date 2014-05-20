@@ -1,0 +1,19 @@
+/*
+ * See http://graphics.stanford.edu/~seander/bithacks.html#IntegerAbs.
+ *
+ * (X...X00 + 1...111) ^ 1...111
+ * =
+ * ((X...X + 1...1) ^ 1...1) << 2
+ *              and
+ * (X...X00 + 0...000) ^ 0...000
+ * =
+ * ((X...X + 0...0) ^ 0...0) << 2
+ */
+
+var {maskRegister} = (({segment}[{pointer} + 3] << 24) >> 31);
+
+{returns} =
+    ((((({segment}[{pointer}] & 0xfffffffc) >>> 0) +
+        ({segment}[{pointer} + 1] <<  8) +
+        ({segment}[{pointer} + 2] << 16) +
+        ({segment}[{pointer} + 3] << 24)     ) + {maskRegister}) ^ {maskRegister}) << 1;
