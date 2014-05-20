@@ -8,7 +8,7 @@
  * // encode the default value's string and return the byte at `position`.
  * ```
  */
-Object.defineProperty({target|s}.prototype, {?name}'{name}'{:else}'which'{/name}, {
+Object.defineProperty({target|s}.prototype, '{name}', {
     get : function () {
         /*
          * TODO: For all data section members use default values, e.g.

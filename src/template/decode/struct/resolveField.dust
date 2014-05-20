@@ -5,6 +5,8 @@
             = {discriminantValue};
     {/fields}
 
+    {>"struct/field" name="which"/}
+
     {@provide fields=fields}
         {#fields}
             {! Recur here to admit the possibility of nested unions !}
