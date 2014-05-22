@@ -11,9 +11,12 @@ Object.defineProperty(Data.prototype, 'length', {
     set : function (value) { throw new Error('Readonly'); }
 });
 
-Data.prototype.get = function () {
-    return this.__segment.subarray(this.__begin, this.__begin+this.__length);
-};
+Object.defineProperty(Data.prototype, 'raw', {
+    get : function () {
+        return this.__segment.subarray(this.__begin, this.__begin+this.__length);
+    },
+    set : function (value) { throw new Error('Readonly'); }
+});
 
 Data.deref = {>"far/deref" derefType="list" nullValue="new Data(null, null, null, 0)"/}
     {<derefReturns}

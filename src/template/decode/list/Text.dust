@@ -12,17 +12,26 @@ Object.defineProperty(Text.prototype, 'length', {
     set : function (value) { throw new Error('Readonly'); }
 });
 
-Text.prototype.get = function () {
-    return decoder.decode(this.getRaw());
-};
+Object.defineProperty(Text.prototype, 'string', {
+    get : function () {
+        return decoder.decode(this.raw);
+    },
+    set : function (value) { throw new Error('Readonly'); }
+});
 
-Text.prototype.getRaw = function () {
-    return this.__segment.subarray(this.__begin, this.__begin+this.__length-1);
-};
+Object.defineProperty(Text.prototype, 'raw', {
+    get : function () {
+        return this.__segment.subarray(this.__begin, this.__begin+this.__length-1);
+    },
+    set : function (value) { throw new Error('Read only'); }
+});
 
-Text.prototype.getRawNulled = function () {
-    return this.__segment.subarray(this.__begin, this.__begin+this.__length);
-};
+Object.defineProperty(Text.prototype, 'rawNulled', {
+    get : function () {
+        return this.__segment.subarray(this.__begin, this.__begin+this.__length);
+    },
+    set : function (value) { throw new Error('Readonly'); }
+});
 
 Text.deref = {>"far/deref" derefType="list" nullValue="new Text(segments, segment, pointer, 1)"/}
     /*
