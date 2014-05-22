@@ -6,6 +6,7 @@ var _ = require('lodash-node');
 var when = require('when/node');
 
 var buffer = require('gulp-buffer');
+var chug = require('gulp-chug');
 var clean = require('gulp-clean');
 var compile = require('gulp-dust');
 var concat = require('gulp-concat');
@@ -45,8 +46,8 @@ gulp.task('clean', function () {
 });
 
 gulp.task('test', ['build'], function () {
-    return gulp.src('./test/**/*.js')
-        .pipe(mocha({ reporter: 'spec' }));
+    return gulp.src('./test/gulpfile.js')
+        .pipe(chug({ tasks : ['test'] }))
 });
 
 gulp.task('watch', function () {
