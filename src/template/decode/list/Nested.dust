@@ -2,6 +2,10 @@ var List = require('../base/decode/List');
 
 module.exports = function (TerminalList) {
     function Nested(segments, segment, begin, length, depth) {
+        if (depth <= 1) {
+            throw new Error('Nested lists require depth >= 2');
+        }
+
         this.__segments = segments;
         this.__segment = segment;
         this.__begin = begin;
@@ -21,7 +25,7 @@ module.exports = function (TerminalList) {
             throw new RangeError();
         }
 
-        if (this.__depth) {
+        if (this.__depth > 1) {
             return Nested.deref(this.__segments, this.__segment, this.__begin + (index << 3), this.__depth-1);
         } else {
             return TerminalList.deref(this.__segments, this.__segment, this.__begin + (index << 3));
