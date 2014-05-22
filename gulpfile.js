@@ -1,9 +1,7 @@
 var gulp = require('gulp');
 
-var bump = require('gulp-bump');
 var chug = require('gulp-chug');
 var clean = require('gulp-clean');
-var git = require('gulp-git');
 var jshint = require('gulp-jshint');
 
 gulp.task('watch', function () {
