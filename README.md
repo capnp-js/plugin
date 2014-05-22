@@ -9,7 +9,7 @@ Most substance is currently under [decode](https://github.com/popham/capnp-js/tr
 I want to support AMD by browserify, hence the use of browser types instead of node stuff.
 I'm thinking to compartmentalize like so:
 ```
-[filename].capnp -> [filename].js
+[filename].capnp ↦ [filename].js
 struct [Name] {} ↦ exports.[Name] = function (segments, segment, bytes) {...};
 struct [Name] { struct [Sub] {} } ↦ exports.[Name].[Sub] = ...;
 ```
