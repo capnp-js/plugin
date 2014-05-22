@@ -40,7 +40,8 @@
     "gulp-mocha": "^0.4.1",
     "gulp-git": "^0.4.2",
     "gulp-bump": "^0.1.8",
-    "lodash-node": "^2.4.1"
+    "lodash-node": "^2.4.1",
+    "gulp-tap": "^0.1.1"
   },
   "dependencies": {
     "dustjs-linkedin": "^2.3.4",
