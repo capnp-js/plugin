@@ -14,7 +14,14 @@ gulp.task('watch', function () {
     ], ['decode']);
 });
 
-gulp.task('decode', ['buildDecode'], function () {
+gulp.task('classes', function () {
+    return gulp.src('./src/base/**/*.js')
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(gulp.dest('./lib/base'));
+});
+
+gulp.task('decode', ['buildDecode', 'classes'], function () {
     return gulp.src([
         './src/template/decode/build/**/*.js',
         './src/decode/**/*.js'
