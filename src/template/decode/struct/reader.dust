@@ -1,4 +1,4 @@
-var Base = require('capnp-js/lib/decode/base/Struct');
+var Base = require('capnp-js/lib/base/decode/Struct');
 
 /* Struct {name} */
 exports['{id}'] = function (segments, segment, start, dataBytes, pointerBytes) {

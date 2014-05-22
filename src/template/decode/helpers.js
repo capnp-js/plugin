@@ -108,7 +108,7 @@ dust.helpers.injectFinals = function (chunk, ctx, bodies, params) {
         );
 
         if (count > 0) {
-            requires.push("var "+b+" = require('capnp-js/lib/decode/base/"+b+"');");
+            requires.push("var "+b+" = require('capnp-js/lib/base/decode/"+b+"');");
         }
     });
 

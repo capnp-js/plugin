@@ -1,5 +1,5 @@
 {?type}
-    var Base = require('../base/List');
+    var Base = require('../base/decode/List');
 
     var List = function (segments, segment, begin, length) {
         Base.call(this, segments, segment, begin, length);

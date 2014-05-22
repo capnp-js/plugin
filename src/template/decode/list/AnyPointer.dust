@@ -1,4 +1,4 @@
-var Base = require('../base/List');
+var Base = require('../base/decode/List');
 var Any = require('../AnyPointer');
 
 var List = function (segments, segment, begin, length) {
