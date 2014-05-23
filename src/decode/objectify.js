@@ -4,6 +4,11 @@ var Text = require('capnp-js/lib/base/Text');
 var List = require('capnp-js/lib/base/List');
 var AnyPointer = require('capnp-js/lib/base/AnyPointer');
 
+/*
+ * Primary use case is testing.  AnyPointers map to `'[AnyPointer]'` not a nice
+ * dump for general use, but good for testing.  Circular reference will bring
+ * this crashing down too.
+ */
 var objectify = function (reader) {
     var object = {};
     for (var key in reader) {
