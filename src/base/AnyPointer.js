@@ -1,5 +1,4 @@
-var Base = require('../AnyPointer');
-var nested = require('../../decode/list/nested.js');
+var nested = require('../decode/list/nested.js');
 
 var Any = function (segments, segment, pointer) {
     this.__segments = segments;
@@ -7,7 +6,7 @@ var Any = function (segments, segment, pointer) {
     this.__pointer = pointer;
 };
 
-Any.prototype = Object.create(Base.prototype);
+Any.prototype = function () {};
 
 Any.prototype.listDeref = function (TerminalList, depth) {
     if (depth === undefined || depth === 1) {
