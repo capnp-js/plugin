@@ -24,7 +24,7 @@ List.prototype.map = function (callback, context) {
     do {
         /* TODO: Optimize me */
         out[i] = callback(this.get(i));
-    } while (--i)
+    } while (--i);
 
     return out;
 };

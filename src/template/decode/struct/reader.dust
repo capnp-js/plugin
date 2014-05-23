@@ -9,7 +9,7 @@ exports['{id}'] = function (segments, segment, start, dataBytes, pointerBytes) {
     this.__end = this.__pointerSection + pointerBytes;
 };
 
-exports['{id}'].prototype = new Base();
+exports['{id}'].prototype = Object.create(Base.prototype)
 
 /*
  * Map a `struct` pointer to a {name} reader.

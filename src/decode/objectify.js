@@ -16,7 +16,7 @@ var objectify = function (reader) {
         if (v instanceof Struct) {
             object[key] = objectify(v);
         } else if (v instanceof List) {
-            if (v instance of Data) {
+            if (v instanceof Data) {
                 object[key] = v.raw;
             } else if (v instanceof Text) {
                 object[key] = v.string;
