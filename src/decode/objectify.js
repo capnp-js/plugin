@@ -1,8 +1,8 @@
-var Struct = require('capnp-js/lib/base/Struct');
-var Data = require('capnp-js/lib/base/Data');
-var Text = require('capnp-js/lib/base/Text');
-var List = require('capnp-js/lib/base/List');
-var AnyPointer = require('capnp-js/lib/base/AnyPointer');
+var Struct = require('../base/Struct');
+var Data = require('../base/Data');
+var Text = require('../base/Text');
+var List = require('../base/List');
+var AnyPointer = require('../base/AnyPointer');
 
 /*
  * Primary use case is testing.  AnyPointers map to `'[AnyPointer]'` not a nice

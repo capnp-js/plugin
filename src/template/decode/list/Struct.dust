@@ -1,4 +1,4 @@
-var Base = require('../base/decode/List');
+var Base = require('../../base/decode/List');
 
 module.exports = function (Reader) {
     function List(segments, segment, begin, length, dataBytes, pointerBytes) {
