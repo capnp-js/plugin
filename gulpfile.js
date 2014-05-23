@@ -40,6 +40,6 @@ gulp.task('ci', function () {
 });
 
 gulp.task('clean', function () {
-    return gulp.src('./decode/**/*')
+    return gulp.src('./lib/**/*')
         .pipe(clean());
 });
