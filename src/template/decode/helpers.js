@@ -25,7 +25,7 @@ dust.helpers.listType = function (chunk, ctx, bodies, params) {
         listType = 'structListFactory(exports["'+typeId+'"])';
     }
 
-    if (depth > 0) {
+    if (depth > 1) {
         return chunk.write('nestedListFactory(' + listType + ')');
     } else {
         return chunk.write(listType);
