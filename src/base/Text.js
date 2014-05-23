@@ -1,7 +1,7 @@
-var List = require('./List');
+var Base = require('../Text');
 
 var Text = function () {};
 
-Text.prototype = Object.create(List.prototype);
+Text.prototype = Object.create(Base.prototype);
 
 module.exports = Text;

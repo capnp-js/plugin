@@ -1,4 +1,4 @@
-var List = require('../../base/decode/List');
+var List = require('../../base/List');
 
 module.exports = function (TerminalList) {
     function Nested(segments, segment, begin, length, depth) {

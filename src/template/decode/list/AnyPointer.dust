@@ -1,5 +1,5 @@
-var Base = require('../../base/decode/List');
-var Any = require('../../AnyPointer');
+var Base = require('../../base/List');
+var Any = require('../../base/AnyPointer');
 
 var List = function (segments, segment, begin, length) {
     Base.call(this, segments, segment, begin, length);
