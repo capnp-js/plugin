@@ -2,6 +2,6 @@ var Base = require('../Data');
 
 var Data = function () {};
 
-Data.prototype = new Base();
+Data.prototype = Object.create(Base.prototype);
 
 module.exports = Data;
