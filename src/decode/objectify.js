@@ -1,6 +1,6 @@
 var Struct = require('../base/Struct');
-var Data = require('../base/Data');
-var Text = require('../base/Text');
+var Data = require('./list/Data');
+var Text = require('./list/Text');
 var List = require('../base/List');
 var AnyPointer = require('../base/AnyPointer');
 
@@ -12,7 +12,10 @@ var AnyPointer = require('../base/AnyPointer');
 var objectify = function (reader) {
     var object = {};
     for (var key in reader) {
+        if (key[0] !== '$') continue;
+
         var v = reader[key];
+
         if (v instanceof Struct) {
             object[key] = objectify(v);
         } else if (v instanceof List) {
@@ -30,7 +33,6 @@ var objectify = function (reader) {
             object[key] = v;
         }
     }
-
     return object;
 };
 
