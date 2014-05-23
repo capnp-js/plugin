@@ -6,6 +6,8 @@ var List = function (segments, segment, begin, length) {
 };
 
 List.prototype = Object.create(Base.prototype);
+List.prototype.map = Base.prototype.map;
+List.prototype.forEach = Base.prototype.forEach;
 
 List.prototype.get = function (index) {
     if (index<0 || this.__length<=index) {

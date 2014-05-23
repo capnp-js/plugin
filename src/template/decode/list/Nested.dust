@@ -14,6 +14,8 @@ module.exports = function (TerminalList) {
     }
 
     Nested.prototype = new List();
+    Nested.prototype.map = List.prototype.map;
+    Nested.prototype.forEach = List.prototype.forEach;
 
     Object.defineProperty(Nested.prototype, 'length', {
         get : function () { return this.__length; },
