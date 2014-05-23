@@ -16,11 +16,10 @@ List.prototype.map = function (callback, context) {
     }
 
     var out = [];
-    var i=this.length - 1;
-    do {
+    for (var i=0; i<this.length; ++i) {
         /* TODO: Optimize me */
         out[i] = callback(this.get(i));
-    } while (--i);
+    }
 
     return out;
 };
