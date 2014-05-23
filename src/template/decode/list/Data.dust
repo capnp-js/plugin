@@ -4,7 +4,7 @@ var Data = function (segments, segment, begin, length) {
     List.call(this, segments, segment, begin, length);
 };
 
-Data.prototype = new List();
+Data.prototype = Object.create(List.prototype);
 
 Object.defineProperty(Data.prototype, 'length', {
     get : function () { return this.__length; },

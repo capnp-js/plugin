@@ -5,7 +5,7 @@ var Text = function (segments, segment, begin, length) {
     List.call(this, segments, segment, begin, length);
 };
 
-Text.prototype = new List();
+Text.prototype = Object.create(List.prototype);
 
 Object.defineProperty(Text.prototype, 'length', {
     get : function () { return this.__length - 1; },

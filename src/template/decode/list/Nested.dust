@@ -13,7 +13,7 @@ module.exports = function (TerminalList) {
         this.__depth = depth;
     }
 
-    Nested.prototype = new List();
+    Nested.prototype = Object.create(List.prototype);
     Nested.prototype.map = List.prototype.map;
     Nested.prototype.forEach = List.prototype.forEach;
 
