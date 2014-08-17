@@ -1,5 +1,5 @@
 {?.type.meta}
-    {.type}
+    {#.type}
         {! Updated context for recursion. !}
         {@select key=.meta}
             {@eq value="list"}

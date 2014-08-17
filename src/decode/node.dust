@@ -1,4 +1,4 @@
-@select key=.meta}
+{@select key=.meta}
     {@eq value="struct"}
         {>structure/}
     {/eq}
@@ -6,7 +6,7 @@
     {@eq value="enum"}
         {>enumeration/}
         {?.nodes}
-            {@ctThrow message="Invariant violated: enum nodes cannot have any child nodes."}
+            {@ctThrow message="Invariant violated: enum nodes cannot have any child nodes."/}
         {/.nodes}
     {/eq}
 
