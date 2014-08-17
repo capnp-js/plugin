@@ -1,15 +1,11 @@
-var stream = require('stream');
-
 var gulp = require('gulp');
-var gutil = require('gulp-util');
-var when = require('when/node');
 
-var chug = require('gulp-chug');
-var clean = require('gulp-clean');
+//var chug = require('gulp-chug');
+var clean = require('gulp-rimraf');
 var compile = require('gulp-dust');
 var concat = require('gulp-concat');
 var insert = require('gulp-insert');
-var mocha = require('gulp-mocha');
+//var mocha = require('gulp-mocha');
 var rename = require('gulp-rename');
 var uglify_ = require('gulp-uglify');
 
@@ -20,6 +16,7 @@ var pretty = {
     preserveComments : 'all'
 };
 var optimal = {};
+
 /*
  * `pretty` introduces errors by separating some return values from their
  * `return` (with gulp-compile preserving whitespace.  Keeping it around for
@@ -32,7 +29,7 @@ gulp.task('build', ['precompile']);
 //gulp.task('ci', ['test', 'build']);
 
 gulp.task('clean', function () {
-    return gulp.src(['./precompile.js'], {read : false})
+    return gulp.src(['./script/templates.js'], {read : false})
         .pipe(clean());
 });
 
@@ -57,5 +54,5 @@ gulp.task('precompile', function () {
         .pipe(compile({ preserveWhitespace : false }))
         .pipe(concat('templates.js'))
         .pipe(insert.prepend('var dust = require("dustjs-linkedin");'))
-        .pipe(gulp.dest('./'));
+        .pipe(gulp.dest('./script/'));
 });
