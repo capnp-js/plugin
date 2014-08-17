@@ -3,7 +3,7 @@
         {! Updated context for recursion. !}
         {@select key=.meta}
             {@eq value="list"}
-                decode.lists.pointer({>"structure/list"})
+                decode.lists.pointer({>"structure/list"/})
             {/eq}
 
             {@eq value="struct"}

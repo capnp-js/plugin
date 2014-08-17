@@ -64,7 +64,7 @@
                 {/eq}
 
                 {@eq value="list"}
-                    var List_{name} = {>"list/reader"};
+                    var List_{name} = {>"list/reader"/};
                     var default_{name} = {defaultBytes}.map(function (b64) {
                         return encode.base64(b64);
                     });
@@ -91,12 +91,12 @@
                     };
                 {/eq}
 
-                {@eq value="enum"}{>"structure/dataField" decoder="fields.uint16" byteCount="2"}{/eq}
+                {@eq value="enum"}{>"structure/dataField" decoder="fields.uint16" byteCount="2"/}{/eq}
             {/select}
         {:else}
             {@select key=.type}
                 {@eq value="group"}
-                    var Group_{name} = {>structure};
+                    var Group_{name} = {>structure/};
                     methods.get{name} = function () {
                         return new Group_{name}(this);
                     };
@@ -149,16 +149,16 @@
                     };
                 {/eq}
 
-                {@eq value="Int8"}{>"structure/dataField"  default=defaultValue decoder="fields.int8"  byteCount="1"}{/eq}
-                {@eq value="Int16"}{>"structure/dataField" default=defaultValue decoder="fields.int16" byteCount="2"}{/eq}
-                {@eq value="Int32"}{>"structure/dataField" default=defaultValue decoder="fields.int32" byteCount="4"}{/eq}
-                {@eq value="Int64"}{>"structure/dataField" default=defaultValue decoder="fields.int64" byteCount="8"}{/eq}
-                {@eq value="UInt8"}{>"structure/dataField"  default=defaultValue decoder="fields.uint8"  byteCount="1"}{/eq}
-                {@eq value="UInt16"}{>"structure/dataField" default=defaultValue decoder="fields.uint16" byteCount="2"}{/eq}
-                {@eq value="UInt32"}{>"structure/dataField" default=defaultValue decoder="fields.uint32" byteCount="4"}{/eq}
-                {@eq value="UInt64"}{>"structure/dataField" default=defaultValue decoder="fields.uint64" byteCount="8"}{/eq}
-                {@eq value="Float32"}{>"structure/dataField" default=defaultBytes decoder="fields.float32" byteCount="4"}{/eq}
-                {@eq value="Float64"}{>"structure/dataField" default=defaultBytes decoder="fields.float64" byteCount="8"}{/eq}
+                {@eq value="Int8"}{>"structure/dataField"  default=defaultValue decoder="fields.int8"  byteCount="1"/}{/eq}
+                {@eq value="Int16"}{>"structure/dataField" default=defaultValue decoder="fields.int16" byteCount="2"/}{/eq}
+                {@eq value="Int32"}{>"structure/dataField" default=defaultValue decoder="fields.int32" byteCount="4"/}{/eq}
+                {@eq value="Int64"}{>"structure/dataField" default=defaultValue decoder="fields.int64" byteCount="8"/}{/eq}
+                {@eq value="UInt8"}{>"structure/dataField"  default=defaultValue decoder="fields.uint8"  byteCount="1"/}{/eq}
+                {@eq value="UInt16"}{>"structure/dataField" default=defaultValue decoder="fields.uint16" byteCount="2"/}{/eq}
+                {@eq value="UInt32"}{>"structure/dataField" default=defaultValue decoder="fields.uint32" byteCount="4"/}{/eq}
+                {@eq value="UInt64"}{>"structure/dataField" default=defaultValue decoder="fields.uint64" byteCount="8"/}{/eq}
+                {@eq value="Float32"}{>"structure/dataField" default=defaultBytes decoder="fields.float32" byteCount="4"/}{/eq}
+                {@eq value="Float64"}{>"structure/dataField" default=defaultBytes decoder="fields.float64" byteCount="8"/}{/eq}
             {/select}
         {/.meta}
     {/.fields}
@@ -166,7 +166,7 @@
     Structure = structure(methods);
 
     {#.nodes}
-        Structure.{name} = {>node};
+        Structure.{name} = {>node/};
     {/.nodes}
 
     return Structure;
