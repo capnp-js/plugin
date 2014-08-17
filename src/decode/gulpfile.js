@@ -41,7 +41,6 @@ gulp.task('test', ['build'], function () {
 */
 
 gulp.task('watch', function () {
-//    gulp.watch('./**/*.js', ['base']);
     gulp.watch([
         './**/*.dust',
         './script/**/*.js'
