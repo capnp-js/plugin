@@ -1,9 +1,0 @@
-(0 === (segment[pointer]
-      | segment[pointer+1]
-      | segment[pointer+2]
-      | segment[pointer+3]
-      | segment[pointer+4]
-      | segment[pointer+5]
-      | segment[pointer+6]
-      | segment[pointer+7]
-      | segment[pointer+8]))

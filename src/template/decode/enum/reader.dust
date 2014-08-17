@@ -1,5 +1,0 @@
-exports['{id}'] = {
-    {#enumerants}
-        {@enumerantName}{name}{/enumerantName} : {$idx}{@sep},{/sep}
-    {/enumerants}
-};

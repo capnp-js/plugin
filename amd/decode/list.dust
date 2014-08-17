@@ -1,0 +1,25 @@
+{?.type.meta}
+    {.type}
+        {! Updated context for recursion. !}
+        {@select key=.meta}
+            {@eq value="list"}
+                decode.lists.pointer({>"structure/list"})
+            {/eq}
+
+            {@eq value="struct"}
+                /*
+                 * Assume that all types are available within the local scope.
+                 * This assumption is valid for a schema that doesn't import any
+                 * others.  This is fine to bootstrap Capnproto, but ultimately
+                 * file scopes will be available as an `imports` environment.
+                 * Structure paths will then need to be resolved within
+                 * `imports` (some import variation(s) may augment `local` so
+                 * that external structs are available within the local scope).
+                 */
+                 decode.lists.structure({@structPath id=.id internal="local"})
+            {/eq}
+        {/select}
+    {/.type}
+{:else}
+    decode.lists.{.type}
+{/.type.meta}

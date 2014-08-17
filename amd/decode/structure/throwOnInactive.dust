@@ -1,0 +1,7 @@
+{! Code fragment that will throw at runtime if is{name} fails. !}
+
+{@neq key=.discriminantValue value="65535"}
+    if (!this.is{name}()) {
+        throw new Error("{error}");
+    }
+{/neq}

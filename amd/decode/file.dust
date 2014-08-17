@@ -1,0 +1,30 @@
+define(['capnp-js/encode/primitives', 'capnp-js/decode', './readerImports'], function (
+                  encode                        decode            imports) {
+
+    /*
+     * Compiler dumps `./rpc.js` and `./rpcMethods.js.stub` (blank template for
+     * implementing RPC methods).  The `rpc.js` imports `./rpcMethods.js` file uses this, including its
+     * imports.
+     */
+
+    var local = {};
+
+    imports.inject(local); // => local.petName = fileScope.Path.To.Resource;
+
+    {#.nodes}
+    /*
+     * Helper function that maps {name} to its munged version based on the
+     * corresponding type (const aBcdeF => A_BCDE_F, struct AbcdEf => AbcdEf,
+     * enum AbcDef => AbcDef, therefore downcase first lettered local variables
+     * will not yield any name collisions).
+     */
+    /*
+     * Assign petnames for user availability, but internally use id lookup
+     * for resources from imports.
+     */
+        var {name} = {>node/}; /* Allow petnames for local structures. */
+        local.{name} = {name};
+    {/.nodes}
+
+    return local;
+});

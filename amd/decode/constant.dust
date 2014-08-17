@@ -1,0 +1,8 @@
+(function () {
+    var T = asdf; // FIXME: resolve to type or decoder
+    return T.deref(
+        {bytes},
+        {bytes}[{segment}],
+        {position}
+    );
+})()

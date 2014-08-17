@@ -1,0 +1,22 @@
+define(['capnp-js/primitives', 'capnp-js/structure', './enumerations', './constants', './bImports'], function (
+                  primitives,            structure,     enumerations,     constants,      imports) {
+
+    var members = {};
+
+    for (name in constants) {
+        members[name] = constants[name];
+    }
+
+    for (name in enumerations) {
+        members[name] = enumerations[name];
+    }
+
+    // For struct in structs:
+    members[{name}] = structure({
+        {#.fields}
+
+        {/.fields}
+    });
+
+    return members;
+});

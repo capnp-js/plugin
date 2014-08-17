@@ -1,3 +1,0 @@
-/*jshint -W018 */
-(!!(({segment})[{begin} + {@byteOffset type=type offset=offset/}] & {@boolMask bitDistance=offset/}))
-/*jshint +W018 */

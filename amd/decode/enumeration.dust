@@ -1,0 +1,9 @@
+(function () {
+    var local = {};
+
+    {enumerants}.forEach(function (enumerant, index) {
+        local.{name}[enumerant] = index;
+    });
+
+    return local;
+})()

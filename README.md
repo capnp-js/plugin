@@ -6,13 +6,18 @@ Yet another Capnproto implementation for Javascript.
 Most substance is currently under [decode](https://github.com/popham/capnp-js/tree/master/src/template/decode).
 
 #CommonJS Modules
-I want to support AMD by browserify, hence the use of browser types instead of node stuff.
-I'm thinking to compartmentalize like so:
-```
-[filename].capnp ↦ [filename].js
-struct [Name] {} ↦ exports.[Name] = function (segments, segment, bytes) {...};
-struct [Name] { struct [Sub] {} } ↦ exports.[Name].[Sub] = ...;
-```
+I'm building AMD modules--Nodefy should take care of building the CommonJS distribution.
+
+#AMD Modules
+* [filename+extension] ↦
+  - `[filename+extension].d/_readers.js`: File scoped enumeration definitions, constants, and structure readers based on `[filename+extension]`.
+  - `[filename+extension].d/readers.js`: Structure readers from `_readers.js`.
+  - `[filename+extension].d/constants.js`: Constants from `_readers.js`.
+  - `[filename+extension].d/enumerations.js`: Enumeration definitions from `_readers.js`.
+  - `[filename+extension].d/readerImports.js`: Complementary imports for `[filename+extension].d/_readers.js` based on `[filename+extension]`.
+  - `[filename+extension].d/builders.js`: Structure builders based on `[filename+extension]`.
+  - `[filename+extension].d/builderImports.js`: Complementary imports from `[filename+extension].d/builders.js based on `[filename+extension]`.
+
 
 AMD Use Case
 ------------
