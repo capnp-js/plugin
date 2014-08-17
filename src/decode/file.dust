@@ -9,20 +9,17 @@ define(['capnp-js/encode/primitives', 'capnp-js/decode', './readerImports'], fun
 
     var local = {};
 
-    imports.inject(local); // => local.petName = fileScope.Path.To.Resource;
+    imports.inject(local);
 
     {#.nodes}
-    /*
-     * Helper function that maps {name} to its munged version based on the
-     * corresponding type (const aBcdeF => A_BCDE_F, struct AbcdEf => AbcdEf,
-     * enum AbcDef => AbcDef, therefore downcase first lettered local variables
-     * will not yield any name collisions).
-     */
-    /*
-     * Assign petnames for user availability, but internally use id lookup
-     * for resources from imports.
-     */
-        var {name} = {>node/}; /* Allow petnames for local structures. */
+    {!
+     ! Helper function that maps {name} to its munged version based on the
+     ! corresponding type (const aBcdeF => A_BCDE_F, struct AbcdEf => AbcdEf,
+     ! enum AbcDef => AbcDef, therefore downcase first lettered local variables
+     ! will not yield any name collisions).  Types are attached to their
+     ! petnames locally for consumption from within IIFE's.
+     !}
+        var {name} = {>node/};
         local.{name} = {name};
     {/.nodes}
 
