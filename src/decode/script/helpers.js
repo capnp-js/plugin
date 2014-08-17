@@ -1,11 +1,15 @@
 var dust = require('dustjs-linkedin');
 var traverse = require('traverse');
 
-dust.helpers.boolMask = function (chunk, ctx, bodies, params) {
-    return chunk.write((1 >>> 0) << (params.bitDistance & 0x00000007));
+dust.helpers.boolOffset = function (chunk, ctx, bodies, params) {
+    return chunk.write(params.offset >>> 3);
 };
 
-dust.helpers.enumerantName = function (chunk, ctx, bodies, params) {
+dust.helpers.boolMask = function (chunk, ctx, bodies, params) {
+    return chunk.write(params.offset & 0x00000007);
+};
+
+dust.helpers.allCapitalize = function (chunk, ctx, bodies, params) {
     /* Insert '_' before any caps that are not the string's first letter. */
     var text = dust.helpers.tap(bodies.block, chunk, ctx);
     var newText = text[0];
@@ -27,4 +31,8 @@ dust.helpers.assert = function (chunk, ctx, bodies, params) {
     }
 
     return chunk.write('');
+};
+
+dust.helpers.ctThrow = function (chunk, ctx, bodies, params) {
+    throw new Error(params.message);
 };

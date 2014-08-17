@@ -135,13 +135,13 @@
                     methods.get{name} = function () {
                         {>"struct/throwOnInactive" error="Attempted to access an inactive union member"/}
 
-                        var position = this.dataSection + ({offset} >>> 3);
+                        var position = this.dataSection + {@boolOffset offset=offset/};
 
                         if (position < this.pointersSection) {
                             return fields.bool(
                                 this.segment,
                                 position,
-                                {offset} & 0x00000007
+                                {@boolMask offset=offset/}
                             );
                         } else {
                             return {defaultValue};
