@@ -1,20 +1,20 @@
 {?.type.meta}
-    {#type}
+    {#.type}
         {! Updated context for recursion. !}
-        {@eq key=meta value="list"}
+        {@eq key=.meta value="list"}
             decode.lists.pointer({>"structure/list"/})
         {/eq}
 
-        {@eq key=meta value="struct"}
+        {@eq key=.meta value="struct"}
             decode.lists.structure(
-                {@contains key=id set=localIds}
-                    {name}
+                {@contains key=.id set=localIds}
+                    {.name}
                 {:else}
-                    imports.resource({id})
+                    imports.resource({.id})
                 {/contains}
             )
         {/eq}
-    {/type}
+    {/.type}
 {:else}
-    decode.lists.{type}
+    decode.lists.{.type}
 {/.type.meta}

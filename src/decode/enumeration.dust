@@ -2,7 +2,7 @@
     var E = {};
 
     {#.enumerants}
-        E[{name}] = {$idx};
+        E[{.name}] = {$idx};
     {/.enumerants}
 
     return E;

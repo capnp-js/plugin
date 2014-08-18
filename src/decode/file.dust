@@ -19,8 +19,8 @@ define(['capnp-js/encode/primitives', 'capnp-js/decode', './readerImports'], fun
      ! will not yield any name collisions).  Types are attached to their
      ! petnames locally for consumption from within IIFE's.
      !}
-        var {name} = {>node/};
-        local.{name} = {name};
+        var {.name} = {>node/};
+        local.{.name} = {.name};
     {/.nodes}
 
     return local;

@@ -1,7 +1,3 @@
-{?.meta}
-    {@eq key=meta value="struct"}{>structure/}{/eq}
-    {@eq key=meta value="enum"}{>enumeration/}{/eq}
-    {@eq key=meta value="const"}{>constant/}{/eq}
-{:else}
-    {@ctThrow message="Encountered a node without a meta key"/}
-{/.meta
+{@eq key=.meta value="struct"}{>structure/}{/eq}
+{@eq key=.meta value="enum"}{>enumeration/}{/eq}
+{@eq key=.meta value="const"}{>constant/}{/eq}

@@ -1,5 +1,5 @@
-define([{#.files}'../{name}.d/file'{/.files}{@sep}, {/sep}], function (
-        {#.files}file{id}{/.files}{@sep}, {/sep}) {
+define([{#.files}'../{.name}.d/file'{/.files}{@sep}, {/sep}], function (
+        {#.files}file{.id}{/.files}{@sep}, {/sep}) {
 
 /* Dump this by tracing the scope ids of resources up to their enclosing file.
  * Every member of this data structure should get incorporated into the owner of
@@ -29,8 +29,8 @@ define([{#.files}'../{name}.d/file'{/.files}{@sep}, {/sep}], function (
 
     var resources = {
         {#.files}
-            {#.resources fileId=id}
-                {id} : file{fileId}.{path}{@sep},{/sep}
+            {#.resources fileId=.id}
+                {.id} : file{fileId}.{.path}{@sep},{/sep}
             {/.resources}
             {@sep},{/sep}
         {/.files}
@@ -38,7 +38,7 @@ define([{#.files}'../{name}.d/file'{/.files}{@sep}, {/sep}], function (
 
     var merges = [];
     {#.files}
-        merges = merges.concat({mergeIds});
+        merges = merges.concat({.mergeIds});
     {/.files}
 
     return {

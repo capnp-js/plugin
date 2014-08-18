@@ -1,14 +1,14 @@
-var decoder_{name} = {decoder};
+var decoder_{.name} = {decoder};
 
-methods.get{name} = function () {
+methods.get{.name} = function () {
     {>"struct/throwOnInactive" error="Attempted to access an inactive union member"/}
 
     var position = this.dataSection +
-        {@math key=offset method="multiply" operand=byteCount/};
+        {@math key=.offset method="multiply" operand=byteCount/};
 
     if (position < this.pointersSection) {
-        return decoder_{name}({default}, this.segment, position);
+        return decoder_{.name}({default}, this.segment, position);
     } else {
-        return {defaultValue};
+        return {.defaultValue};
     }
 };
