@@ -5,7 +5,16 @@ var clean = require('gulp-rimraf');
 var jshint = require('gulp-jshint');
 var rename = require('gulp-rename');
 var render = require('gulp-dust-render');
-var uglify = require('gulp-uglify');
+var uglify_ = require('gulp-uglify');
+
+var pretty = {
+    mangle : false,
+    output : { beautify : true },
+    compress : false,
+    preserveComments : 'all'
+};
+var optimal = {};
+var uglify = function () { return uglify_(pretty); };
 
 gulp.task('watch', function () {
     gulp.watch('./src/**/*.js');
@@ -48,7 +57,7 @@ var file = require('./lib/decode/file');
 gulp.task('generator', function() {
     return gulp.src('./generator/schema.js')
         .pipe(render(file))
-//        .pipe(uglify())
+        .pipe(uglify())
         .pipe(rename('reader.js'))
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
