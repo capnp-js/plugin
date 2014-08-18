@@ -1,9 +1,9 @@
 (function () {
-    var local = {};
+    var E = {};
 
-    {enumerants}.forEach(function (enumerant, index) {
-        local.{name}[enumerant] = index;
-    });
+    {#.enumerants}
+        E[{name}] = {$idx};
+    {/.enumerants}
 
-    return local;
+    return E;
 })()
