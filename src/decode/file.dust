@@ -1,5 +1,5 @@
 define(['capnp-js/encode/primitives', 'capnp-js/decode', './readerImports'], function (
-                  encode                        decode            imports) {
+                  encode,                       decode,           imports) {
 
     /*
      * Compiler dumps `./rpc.js` and `./rpcMethods.js.stub` (blank template for
