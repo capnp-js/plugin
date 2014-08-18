@@ -3,6 +3,9 @@ var gulp = require('gulp');
 var chug = require('gulp-chug');
 var clean = require('gulp-rimraf');
 var jshint = require('gulp-jshint');
+var rename = require('gulp-rename');
+var render = require('gulp-dust-render');
+var uglify = require('gulp-uglify');
 
 gulp.task('watch', function () {
     gulp.watch('./src/**/*.js');
@@ -39,4 +42,15 @@ gulp.task('clean', ['cleanDecode'], function () {
 gulp.task('cleanDecode', function () {
     return gulp.src('./src/decode/gulpfile.js', { read : false })
         .pipe(chug({ tasks : ['clean'] }))
+});
+
+var file = require('./lib/decode/file');
+gulp.task('generator', function() {
+    return gulp.src('./generator/schema.js')
+        .pipe(render(file))
+//        .pipe(uglify())
+        .pipe(rename('reader.js'))
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(gulp.dest('generator'));
 });
