@@ -3,13 +3,13 @@
     var Structure;
     var methods = {};
 
-    {@neq key=discriminantCount value="0"}
-        var decode_{name} = decode.fields.uint16;
+    {@ne key=.discriminantCount value=0}
+        var decode_{.name} = decode.fields.uint16;
         methods.which = function () {
-            var position = this.dataSection + {discriminantOffset};
+            var position = this.dataSection + {.discriminantOffset};
 
             if (position < this.pointerSection) {
-                return decode_{name}(
+                return decode_{.name}(
                     0,
                     this.segment,
                     position
@@ -18,155 +18,151 @@
                 return 0;
             }
         };
-    {/neq}
+    {/ne}
 
     {#.fields}
         {?.discriminantValue}
             {! Anonymous union member !}
-            methods.is{name} = function () {
-                return this.which() === {discriminantValue};
+            methods.is{.name} = function () {
+                return this.which() === {.discriminantValue};
             };
         {/.discriminantValue}
 
         {?.meta}
-            {@select key=.meta}
-                {@eq value="struct"}
-                    var Structure_{name} = 
-                        {@contains key=id set=localIds}
-                            decode.structure({name});
-                        {:else}
-                            decode.structure(imports.resource({id}));
-                        {/contains}
-                    var default_{name} = {defaultBytes}.map(function (b64) {
-                        return encode.base64(b64);
-                    });
+            {@eq key=.meta value="struct"}
+                var Structure_{.name} =
+                    {@contains key=.id set=localIds}
+                        decode.structure({.name});
+                    {:else}
+                        decode.structure(imports.resource({.id}));
+                    {/contains}
+                var default_{.name} = {.defaultBytes}.map(function (b64) {
+                    return encode.base64(b64);
+                });
 
-                    methods.get{name} = function () {
-                        {>"struct/throwOnInactive" error="Attempted to access an inactive union member"/}
+                methods.get{.name} = function () {
+                    {>"struct/throwOnInactive" error="Attempted to access an inactive union member"/}
 
-                        var position = this.pointersSection +
-                            {@math key=offset method="multiply" operand="8"/};
+                    var position = this.pointersSection +
+                        {@math key=.offset method="multiply" operand="8"/};
 
-                        if (position < this.end) {
-                            return Structure_{name}.deref(
-                                this.segments,
-                                this.segment,
-                                position
-                            );
-                        } else {
-                            return Structure_{name}.deref(
-                                default_{name},
-                                default_{name}[{defaultSegment}],
-                                {defaultPosition}
-                            );
-                        }
-                    };
-                {/eq}
+                    if (position < this.end) {
+                        return Structure_{.name}.deref(
+                            this.segments,
+                            this.segment,
+                            position
+                        );
+                    } else {
+                        return Structure_{.name}.deref(
+                            default_{.name},
+                            default_{.name}[{.defaultSegment}],
+                            {.defaultPosition}
+                        );
+                    }
+                };
+            {/eq}
 
-                {@eq value="list"}
-                    var List_{name} = {>"list/reader"/};
-                    var default_{name} = {defaultBytes}.map(function (b64) {
-                        return encode.base64(b64);
-                    });
+            {@eq key=.meta value="list"}
+                var List_{.name} = {>"list/reader"/};
+                var default_{.name} = {.defaultBytes}.map(function (b64) {
+                    return encode.base64(b64);
+                });
 
-                    methods.get{name} = function () {
-                        {>"struct/throwOnInactive" error="Attempted to access an inactive union member"/}
+                methods.get{.name} = function () {
+                    {>"struct/throwOnInactive" error="Attempted to access an inactive union member"/}
 
-                        var position = this.pointersSection +
-                            {@math key=offset method="multiply" operand="8"/};
+                    var position = this.pointersSection +
+                        {@math key=.offset method="multiply" operand="8"/};
 
-                        if (position < this.end) {
-                            return List_{name}.deref(
-                                this.segments,
-                                this.segment,
-                                position
-                            );
-                        } else {
-                            return List_{name}.deref(
-                                default_{name},
-                                default_{name}[{defaultSegment}],
-                                {defaultPosition}
-                            );
-                        }
-                    };
-                {/eq}
+                    if (position < this.end) {
+                        return List_{.name}.deref(
+                            this.segments,
+                            this.segment,
+                            position
+                        );
+                    } else {
+                        return List_{.name}.deref(
+                            default_{.name},
+                            default_{.name}[{.defaultSegment}],
+                            {.defaultPosition}
+                        );
+                    }
+                };
+            {/eq}
 
-                {@eq value="enum"}{>"structure/dataField" decoder="fields.uint16" byteCount="2"/}{/eq}
-            {/select}
+            {@eq key=.meta value="enum"}{>"structure/dataField" decoder="fields.uint16" byteCount="2"/}{/eq}
         {:else}
-            {@select key=.type}
-                {@eq value="group"}
-                    var Group_{name} = {>structure/};
-                    methods.get{name} = function () {
-                        return new Group_{name}(this);
-                    };
-                {/eq}
-                {@eq value="Data"}{>"structure/listField"/}{/eq}
-                {@eq value="Text"}{>"structure/listField"/}{/eq}
-                {@eq value="AnyPointer"}
-                    var Decode_{name} = decode.AnyPointer;
-                    var default_{name} = {defaultBytes}.map(function (b64) {
-                        return encode.base64(b64);
-                    });
+            {@eq key=.type value="group"}
+                var Group_{.name} = {>structure/};
+                methods.get{.name} = function () {
+                    return new Group_{.name}(this);
+                };
+            {/eq}
+            {@eq key=.type value="Data"}{>"structure/listField"/}{/eq}
+            {@eq key=.type value="Text"}{>"structure/listField"/}{/eq}
+            {@eq key=.type value="AnyPointer"}
+                var Decode_{.name} = decode.AnyPointer;
+                var default_{.name} = {.defaultBytes}.map(function (b64) {
+                    return encode.base64(b64);
+                });
 
-                    methods.get{name} = function () {
-                        {>"struct/throwOnInactive" error="Attempted to access an inactive union member"/}
+                methods.get{.name} = function () {
+                    {>"struct/throwOnInactive" error="Attempted to access an inactive union member"/}
 
-                        var position = this.pointersSection +
-                            {@math key=offset method="multiply" operand="8"/};
+                    var position = this.pointersSection +
+                        {@math key=.offset method="multiply" operand="8"/};
 
-                        if (position < this.end) {
-                            return Decode_{name}.deref(
-                                this.segments,
-                                this.segment,
-                                position
-                            );
-                        } else {
-                            return Decode_{name}.deref(
-                                default_{name},
-                                default_{name}[{defaultSegment}],
-                                {defaultPosition}
-                            );
-                        }
-                    };
-                {/eq}
+                    if (position < this.end) {
+                        return Decode_{.name}.deref(
+                            this.segments,
+                            this.segment,
+                            position
+                        );
+                    } else {
+                        return Decode_{.name}.deref(
+                            default_{.name},
+                            default_{.name}[{.defaultSegment}],
+                            {.defaultPosition}
+                        );
+                    }
+                };
+            {/eq}
 
-                {@eq value="bool"}
-                    methods.get{name} = function () {
-                        {>"struct/throwOnInactive" error="Attempted to access an inactive union member"/}
+            {@eq key=.type value="bool"}
+                methods.get{.name} = function () {
+                    {>"struct/throwOnInactive" error="Attempted to access an inactive union member"/}
 
-                        var position = this.dataSection + {@boolOffset offset=offset/};
+                    var position = this.dataSection + {@boolOffset offset=.offset/};
 
-                        if (position < this.pointersSection) {
-                            return fields.bool(
-                                this.segment,
-                                position,
-                                {@boolMask offset=offset/}
-                            );
-                        } else {
-                            return {defaultValue};
-                        }
-                    };
-                {/eq}
+                    if (position < this.pointersSection) {
+                        return fields.bool(
+                            this.segment,
+                            position,
+                            {@boolMask offset=.offset/}
+                        );
+                    } else {
+                        return {.defaultValue};
+                    }
+                };
+            {/eq}
 
-                {@eq value="Int8"}{>"structure/dataField"  default=defaultValue decoder="fields.int8"  byteCount="1"/}{/eq}
-                {@eq value="Int16"}{>"structure/dataField" default=defaultValue decoder="fields.int16" byteCount="2"/}{/eq}
-                {@eq value="Int32"}{>"structure/dataField" default=defaultValue decoder="fields.int32" byteCount="4"/}{/eq}
-                {@eq value="Int64"}{>"structure/dataField" default=defaultValue decoder="fields.int64" byteCount="8"/}{/eq}
-                {@eq value="UInt8"}{>"structure/dataField"  default=defaultValue decoder="fields.uint8"  byteCount="1"/}{/eq}
-                {@eq value="UInt16"}{>"structure/dataField" default=defaultValue decoder="fields.uint16" byteCount="2"/}{/eq}
-                {@eq value="UInt32"}{>"structure/dataField" default=defaultValue decoder="fields.uint32" byteCount="4"/}{/eq}
-                {@eq value="UInt64"}{>"structure/dataField" default=defaultValue decoder="fields.uint64" byteCount="8"/}{/eq}
-                {@eq value="Float32"}{>"structure/dataField" default=defaultBytes decoder="fields.float32" byteCount="4"/}{/eq}
-                {@eq value="Float64"}{>"structure/dataField" default=defaultBytes decoder="fields.float64" byteCount="8"/}{/eq}
-            {/select}
+            {@eq key=.type value="Int8"}{>"structure/dataField"  default=.defaultValue decoder="fields.int8"  byteCount="1"/}{/eq}
+            {@eq key=.type value="Int16"}{>"structure/dataField" default=.defaultValue decoder="fields.int16" byteCount="2"/}{/eq}
+            {@eq key=.type value="Int32"}{>"structure/dataField" default=.defaultValue decoder="fields.int32" byteCount="4"/}{/eq}
+            {@eq key=.type value="Int64"}{>"structure/dataField" default=.defaultValue decoder="fields.int64" byteCount="8"/}{/eq}
+            {@eq key=.type value="UInt8"}{>"structure/dataField"  default=.defaultValue decoder="fields.uint8"  byteCount="1"/}{/eq}
+            {@eq key=.type value="UInt16"}{>"structure/dataField" default=.defaultValue decoder="fields.uint16" byteCount="2"/}{/eq}
+            {@eq key=.type value="UInt32"}{>"structure/dataField" default=.defaultValue decoder="fields.uint32" byteCount="4"/}{/eq}
+            {@eq key=.type value="UInt64"}{>"structure/dataField" default=.defaultValue decoder="fields.uint64" byteCount="8"/}{/eq}
+            {@eq key=.type value="Float32"}{>"structure/dataField" default=.defaultBytes decoder="fields.float32" byteCount="4"/}{/eq}
+            {@eq key=.type value="Float64"}{>"structure/dataField" default=.defaultBytes decoder="fields.float64" byteCount="8"/}{/eq}
         {/.meta}
     {/.fields}
 
     Structure = structure(methods);
 
     {#.nodes}
-        Structure.{name} = {>node/};
+        Structure.{.name} = {>node/};
     {/.nodes}
 
     return Structure;
