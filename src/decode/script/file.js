@@ -1,8 +1,7 @@
 var when = require('when/node');
-var dust = require('dustjs-linkedin');
+var dust = require('dustjs-helpers');
 
 // Add helpers to Dust
-require('dustjs-helpers');
 require('./helpers');
 
 // Load precompiled templates.

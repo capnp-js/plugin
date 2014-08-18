@@ -1,4 +1,4 @@
-var dust = require('dustjs-linkedin');
+var dust = require('dustjs-helpers');
 var traverse = require('traverse');
 
 dust.helpers.boolOffset = function (chunk, ctx, bodies, params) {
