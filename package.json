@@ -4,7 +4,8 @@
   "description": "Yet another Capnproto implementation for Javascript.",
   "main": "index",
   "scripts": {
-    "test": "gulp ci"
+    "test": "./node_modules/.bin/gulp ci",
+    "build" : "./node_modules/.bin/gulp build && ./node_modules/.bin/gulp generator"
   },
   "repository": {
     "type": "git",
@@ -43,8 +44,9 @@
     "vinyl-source-stream": "^0.1.1"
   },
   "dependencies": {
-    "when": "^3.1.0",
+    "base64-js": "0.0.7",
+    "text-encoding": "0.0.0",
     "traverse": "^0.6.6",
-    "text-encoding": "0.0.0"
+    "when": "^3.1.0"
   }
 }
