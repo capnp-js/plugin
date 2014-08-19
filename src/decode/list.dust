@@ -7,7 +7,7 @@
 
         {@eq key=.meta value="struct"}
             decode.lists.structure(
-                {@contains key=.id set=localIds}
+                {@contains key=.id hash=locals}
                     {.name}
                 {:else}
                     imports.resource({.id})
