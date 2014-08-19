@@ -44,7 +44,7 @@ gulp.task('buildDecode', function () {
 //});
 
 gulp.task('clean', ['cleanDecode'], function () {
-    return gulp.src('./lib/**/*')
+    return gulp.src(['./lib/**/*', './generator/reader.js'])
         .pipe(clean());
 });
 
