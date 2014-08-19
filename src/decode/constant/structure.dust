@@ -1,7 +1,0 @@
-{@contains key=.id hash=locals}
-    {! Use this file's petname for the structure !}
-    {@lookup key=.id hash=locals/};
-{:else}
-    {! Use the structure's UUID if it comes from some other file. !}
-    imports.lookup({.id});
-{/contains}

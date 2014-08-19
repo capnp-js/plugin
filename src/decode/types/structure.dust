@@ -1,0 +1,7 @@
+{@eq key=.meta value="struct"}
+    types['{.id}'] = decode.structure();
+
+    {#.nodes}
+        {>"types/structure"/};
+    {/.nodes}
+{/eq}

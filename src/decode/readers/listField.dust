@@ -3,12 +3,12 @@ var default_{.name} = ['{@join array=.defaultSegments interpolator="','"/}']
     .map(function (b64) { return encode.base64(b64); });
 
 methods.get{.name} = function () {
-    {>"structure/throwOnInactive" error="Attempted to access an inactive union member"/}
+    {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
 
     var position = this.pointersSection +
         {@math key=.offset method="multiply" operand="8"/};
 
-    if (position < this.end) {
+    if (position < this.end && !decode.isNull(this.segment, position)) {
         return Decode_{.name}.deref(
             this.segments,
             this.segment,

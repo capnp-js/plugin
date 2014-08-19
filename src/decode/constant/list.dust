@@ -1,8 +1,0 @@
-{?.type.meta}
-    {#.type}
-        {@eq key=.meta value="struct"}{>"constant/structure"/}{/eq}
-        {@eq key=.meta value="list"}decode.lists.pointer({>"constant/list"/}){/eq}
-    {/.type}
-{:else}
-    decode.lists.{.type}
-{/.type.meta}

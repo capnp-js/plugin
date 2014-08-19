@@ -1,0 +1,10 @@
+define(['capnp-js/decode', './scope'], function (decode, scope) {
+
+    var constants = {};
+
+    {#.nodes}
+        {>"constants/node" recurTarget="struct"/}
+    {/.nodes}
+
+    return constants;
+});

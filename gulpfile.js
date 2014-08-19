@@ -44,7 +44,7 @@ gulp.task('buildDecode', function () {
 //});
 
 gulp.task('clean', ['cleanDecode'], function () {
-    return gulp.src(['./lib/**/*', './generator/reader.js'])
+    return gulp.src(['./lib/**/*', './generator/reader.js'], { read : false })
         .pipe(clean());
 });
 
@@ -53,10 +53,29 @@ gulp.task('cleanDecode', function () {
         .pipe(chug({ tasks : ['clean'] }))
 });
 
-var file = require('./lib/decode/file');
-gulp.task('generator', function() {
+gulp.task('generator', ['types', 'scope', 'constants', 'readers']);
+
+gulp.task('nonscope', ['types', 'constants', 'readers']);
+
+['constants', 'readers', 'types'].forEach(function (processor) {
+    gulp.task(processor, function () {
+        return gulp.src('./generator/schema.js')
+            .pipe(render(
+                require('./lib/decode/' + processor)
+            ))
+            .pipe(uglify())
+            .pipe(rename('reader.js'))
+            .pipe(jshint())
+            .pipe(jshint.reporter('default'))
+            .pipe(gulp.dest('generator'));
+    });
+});
+
+gulp.task('scope', function () {
     return gulp.src('./generator/schema.js')
-        .pipe(render(file))
+        .pipe(render(
+            require('./lib/decode/scope')
+        ))
         .pipe(uglify())
         .pipe(rename('reader.js'))
         .pipe(jshint())

@@ -1,0 +1,58 @@
+{@eq key=.meta value="const"}
+    {#.datum constId=.id}
+        {?.meta}
+            {@eq key=.meta value="struct"}
+                constants['{constId}'] = scope['{.id}'].deref(
+                    {.segments},
+                    {.segments}[{.segment}],
+                    {.position}
+                );
+            {/eq}
+
+            {@eq key=.meta value="list"}
+                constants['{constId}'] = ({>list/}).deref(
+                    {.segments},
+                    {.segments}[{.segment}],
+                    {.position}
+                );
+            {/eq}
+        {:else}
+            {@eq key=.type value="Text"}
+                constants['{constId}'] = ({>list/}).deref(
+                    {segments},
+                    {segments}[{segment}],
+                    {position}
+                );
+            {/eq}
+
+            {@eq key=.type value="Data"}
+                constants['{constId}'] = ({>list/}).deref(
+                    {segments},
+                    {segments}[{segment}],
+                    {position}
+                );
+            {/eq}
+
+            {@eq key=.type value="Void"}constants['{constId}'] = null;{/eq}
+            {@eq key=.type value="Bool"}constants['{constId}'] = {.value};{/eq}
+            {@eq key=.type value="Int8" }constants['{constId}'] = {.value};{/eq}
+            {@eq key=.type value="Int16"}constants['{constId}'] = {.value};{/eq}
+            {@eq key=.type value="Int32"}constants['{constId}'] = {.value};{/eq}
+            {@eq key=.type value="Int64"}constants['{constId}'] = {.value};{/eq}
+            {@eq key=.type value="UInt8" }constants['{constId}'] = {.value};{/eq}
+            {@eq key=.type value="UInt16"}constants['{constId}'] = {.value};{/eq}
+            {@eq key=.type value="UInt32"}contants['{constId}'] = {.value};{/eq}
+            {@eq key=.type value="UInt64"}constants['{constId}'] = {.value};{/eq}
+            {@eq key=.type value="Float32"}constants['{constId}'] = {.value};{/eq}
+            {@eq key=.type value="Float64"}constants['{constId}'] = {.value};{/eq}
+        {/.meta}
+    {/.datum}
+{/eq}
+
+{?recurTarget}
+    {@eq key=.meta value=recurTarget}
+        {#.nodes}
+            {>"constants/node" recurTarget=recurTarget/}
+        {/.nodes}
+    {/eq}
+{/recurTarget}

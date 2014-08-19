@@ -1,0 +1,3 @@
+{@eq key=.meta value="struct"}{>"readers/structure"/}{/eq}
+{@eq key=.meta value="enum"}scope['{.id}']{/eq}
+{@eq key=.meta value="const"}constants['{.id}']{/eq}

@@ -1,5 +1,4 @@
 var dust = require('dustjs-helpers');
-var traverse = require('traverse');
 
 dust.helpers.boolOffset = function (chunk, context, bodies, params) {
     return chunk.write(params.offset >>> 3);
@@ -23,15 +22,17 @@ dust.helpers.join = function (chunk, context, bodies, params) {
 };
 
 dust.helpers.contains = function (chunk, context, bodies, params) {
-    /* {@contains key=.someArrayMember hash=.someObject} */
+    /* {@contains key=.someArrayMember set=.someObject} */
     if (params.key === undefined) { throw new Error('`contains` helper called without a `key` parameter'); }
-    if (params.hash === undefined) { throw new Error('`contains` helper called without a `hash` parameter'); }
+    if (params.set === undefined) { throw new Error('`contains` helper called without a `set` parameter'); }
 
     var key = dust.helpers.tap(params.key, chunk, context);
-    var hash = dust.helpers.tap(params.hash, chunk, context);
+    var set = dust.helpers.tap(params.set, chunk, context);
     var body = bodies.block;
 
-    if (hash[key]) {
+    if (set.indexOf === undefined) { throw new Error('`set` parameter of the `contains` helper must have an `indexOf` method'); }
+
+    if (set.indexOf(key) >= 0) {
         if (body) {
             return chunk.render(body, context);
         } else {
@@ -42,19 +43,6 @@ dust.helpers.contains = function (chunk, context, bodies, params) {
     }
 
     return chunk;
-};
-
-dust.helpers.lookup = function (chunk, context, bodies, params) {
-    /* {@lookup key=.someKeyIntoHash hash=.someHash/} */
-    if (params.key === undefined) { throw new Error('`lookup` helper called without a `key` parameter'); }
-    if (params.hash === undefined) { throw new Error('`lookup` helper called without a `hash` parameter'); }
-
-    var key = dust.helpers.tap(params.key, chunk, context);
-    var hash = dust.helpers.tap(params.hash, chunk, context);
-
-    if (!(key in hash)) { throw new Error('`lookup` was unable to find the sought key'); }
-
-    return chunk.write(hash[key]);
 };
 
 dust.helpers.allCapitalize = function (chunk, context, bodies, params) {

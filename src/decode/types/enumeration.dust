@@ -1,0 +1,15 @@
+{@eq key=.meta value="enum"}
+    types['{.id}'] = {};
+
+    {#.enumerants enumerationId=.id}
+        types['{enumerationId}'].{.name} = {$idx};
+    {/.enumerants}
+{/eq}
+
+{?recurTarget}
+    {@eq key=.meta value=recurTarget}
+        {#.nodes}
+            {>"types/enumeration" recurTarget=recurTarget/}
+        {/.nodes}
+    {/eq}
+{/recurTarget}

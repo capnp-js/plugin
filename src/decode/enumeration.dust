@@ -1,9 +1,0 @@
-(function () {
-    var E = {};
-
-    {#.enumerants}
-        E.{.name} = {$idx};
-    {/.enumerants}
-
-    return E;
-})()

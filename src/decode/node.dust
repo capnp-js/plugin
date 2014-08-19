@@ -1,3 +1,0 @@
-{@eq key=.meta value="struct"}{>structure/}{/eq}
-{@eq key=.meta value="enum"}{>enumeration/}{/eq}
-{@eq key=.meta value="const"}{>constant/}{/eq}

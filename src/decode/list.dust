@@ -1,19 +1,8 @@
 {?.type.meta}
     {#.type}
-        {! Updated context for recursion. !}
-        {@eq key=.meta value="list"}
-            decode.lists.pointer({>"structure/list"/})
-        {/eq}
-
-        {@eq key=.meta value="struct"}
-            decode.lists.structure(
-                {@contains key=.id hash=locals}
-                    {.name}
-                {:else}
-                    imports.resource({.id})
-                {/contains}
-            )
-        {/eq}
+        {! Update context for recursion. !}
+        {@eq key=.meta value="list"}decode.lists.pointer({>list/}){/eq}
+        {@eq key=.meta value="struct"}decode.lists.structure(scope['{.id}']){/eq}
     {/.type}
 {:else}
     decode.lists.{.type}

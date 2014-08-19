@@ -8,5 +8,5 @@ require('./helpers');
 require('./templates');
 
 module.exports = function (schema) {
-    return when.lift(dust.render)('file', schema);
+    return when.lift(dust.render)('types', schema);
 };
