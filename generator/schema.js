@@ -1,5 +1,19 @@
 {
-    "localIds" : [],
+    "locals" : {
+        "16610026722781537303" : "Node",
+        "16050641862814319170" : "NestedNode",
+        "11145653318641710175" : "Field",
+        "10930602151629473554" : "noDiscriminant",
+        "10919677598968879693" : "Enumerant",
+        "10736806783679155584" : "Method",
+        "15020482145304562784" : "Type",
+        "14853958794117909659" : "Value",
+        "17422339044421236034" : "Annotation",
+        "15102134695616452902" : "ElementSize",
+        "13818529054586492878" : "CodeGeneratorRequest",
+        "14981803260258615394" : "RequestFile",
+        "12560611460656617445" : "Import"
+    },
     "nodes" : [{
         "name" : "Node",
         "meta" : "struct",
@@ -11,18 +25,28 @@
         "fields" : [{
             "name" : "id",
             "type" : "UInt64",
+            "discriminantValue" : 65535,
+            "defaultValue" : "[0,0]",
             "offset" : 0
         }, {
             "name" : "displayName",
             "type" : "Text",
+            "discriminantValue" : 65535,
+            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 0
         }, {
             "name" : "displayNamePrefixLength",
             "type" : "UInt32",
+            "discriminantValue" : 65535,
+            "defaultValue" : "0",
             "offset" : 2
         }, {
             "name" : "scopeId",
             "type" : "UInt64",
+            "discriminantValue" : 65535,
+            "defaultValue" : "[0,0]",
             "offset" : 2
         }, {
             "name" : "nestedNodes",
@@ -31,6 +55,10 @@
                 "meta" : "struct",
                 "id" : "16050641862814319170"
             },
+            "discriminantValue" : 65535,
+            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 1
         }, {
             "name" : "annotations",
@@ -39,6 +67,10 @@
                 "meta" : "struct",
                 "id" : "17422339044421236034"
             },
+            "discriminantValue" : 65535,
+            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 2
         }, {
             "name" : "file",
@@ -52,26 +84,38 @@
             "fields" : [{
                 "name" : "dataWordCount",
                 "type" : "UInt16",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 7
             }, {
                 "name" : "pointerCount",
                 "type" : "UInt16",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 12
             }, {
                 "name" : "preferredListEncoding",
                 "type" : "enum",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 13
             }, {
                 "name" : "isGroup",
                 "type" : "Bool",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 224
             }, {
                 "name" : "discriminantCount",
                 "type" : "UInt16",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 15
             }, {
                 "name" : "discriminantOffset",
                 "type" : "UInt32",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 8
             }, {
                 "name" : "fields",
@@ -80,6 +124,10 @@
                     "meta" : "struct",
                     "id" : "11145653318641710175"
                 },
+                "discriminantValue" : 65535,
+                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegment" : 0,
+                "defaultPosition" : 0,
                 "offset" : 3
             }]
         }, {
@@ -93,6 +141,10 @@
                     "meta" : "struct",
                     "id" : "10919677598968879693"
                 },
+                "discriminantValue" : 65535,
+                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegment" : 0,
+                "defaultPosition" : 0,
                 "offset" : 3
             }]
         }, {
@@ -106,11 +158,19 @@
                     "meta" : "struct",
                     "id" : "10736806783679155584"
                 },
+                "discriminantValue" : 65535,
+                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegment" : 0,
+                "defaultPosition" : 0,
                 "offset" : 3
             }, {
                 "name" : "extends",
                 "meta" : "list",
                 "type" : "UInt64",
+                "discriminantValue" : 65535,
+                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegment" : 0,
+                "defaultPosition" : 0,
                 "offset" : 4
             }]
         }, {
@@ -121,11 +181,19 @@
                 "name" : "type",
                 "meta" : "struct",
                 "id" : "15020482145304562784",
+                "discriminantValue" : 65535,
+                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegment" : 0,
+                "defaultPosition" : 0,
                 "offset" : 3
             }, {
                 "name" : "value",
                 "meta" : "struct",
                 "id" : "14853958794117909659",
+                "discriminantValue" : 65535,
+                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegment" : 0,
+                "defaultPosition" : 0,
                 "offset" : 4
             }]
         }, {
@@ -136,54 +204,82 @@
                 "name" : "type",
                 "meta" : "struct",
                 "id" : "15020482145304562784",
+                "discriminantValue" : 65535,
+                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegment" : 0,
+                "defaultPosition" : 0,
                 "offset" : 3
             }, {
                 "name" : "targetsFile",
                 "type" : "Bool",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 112
             }, {
                 "name" : "targetsConst",
                 "type" : "Bool",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 113
             }, {
                 "name" : "targetsEnum",
                 "type" : "Bool",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 114
             }, {
                 "name" : "targetsEnumerant",
                 "type" : "Bool",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 115
             }, {
                 "name" : "targetsStruct",
                 "type" : "Bool",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 116
             }, {
                 "name" : "targetsField",
                 "type" : "Bool",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 117
             }, {
                 "name" : "targetsUnion",
                 "type" : "Bool",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 118
             }, {
                 "name" : "targetsGroup",
                 "type" : "Bool",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 119
             }, {
                 "name" : "targetsInterface",
                 "type" : "Bool",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 120
             }, {
                 "name" : "targetsMethod",
                 "type" : "Bool",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 121
             }, {
                 "name" : "targetsParam",
                 "type" : "Bool",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 122
             }, {
                 "name" : "targetsAnnotation",
                 "type" : "Bool",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 123
             }]
         }],
@@ -197,10 +293,16 @@
             "fields" : [{
                 "name" : "name",
                 "type" : "Text",
+                "discriminantValue" : 65535,
+                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegment" : 0,
+                "defaultPosition" : 0,
                 "offset" : 0
             }, {
                 "name" : "id",
                 "type" : "UInt64",
+                "discriminantValue" : 65535,
+                "defaultValue" : "[0,0]",
                 "offset" : 0
             }]
         }]
@@ -215,10 +317,16 @@
         "fields" : [{
             "name" : "name",
             "type" : "Text",
+            "discriminantValue" : 65535,
+            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 0
         }, {
             "name" : "codeOrder",
             "type" : "UInt16",
+            "discriminantValue" : 65535,
+            "defaultValue" : "0",
             "offset" : 0
         }, {
             "name" : "annotations",
@@ -227,10 +335,15 @@
                 "meta" : "struct",
                 "id" : "17422339044421236034"
             },
+            "discriminantValue" : 65535,
+            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 1
         }, {
             "name" : "discriminantValue",
             "type" : "UInt16",
+            "discriminantValue" : 65535,
             "defaultValue" : 65535,
             "offset" : 1
         }, {
@@ -240,20 +353,32 @@
             "fields" : [{
                 "name" : "offset",
                 "type" : "UInt32",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 1
             }, {
                 "name" : "type",
                 "meta" : "struct",
                 "id" : "15020482145304562784",
+                "discriminantValue" : 65535,
+                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegment" : 0,
+                "defaultPosition" : 0,
                 "offset" : 2
             }, {
                 "name" : "defaultValue",
                 "meta" : "struct",
                 "id" : "14853958794117909659",
+                "discriminantValue" : 65535,
+                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegment" : 0,
+                "defaultPosition" : 0,
                 "offset" : 3
             }, {
                 "name" : "hadExplicitDefault",
                 "type" : "Bool",
+                "discriminantValue" : 65535,
+                "defaultValue" : "0",
                 "offset" : 128
             }]
         }, {
@@ -263,11 +388,14 @@
             "fields" : [{
                 "name" : "typeId",
                 "type" : "UInt64",
+                "discriminantValue" : 65535,
+                "defaultValue" : "[0,0]",
                 "offset" : 2
             }]
         }, {
             "name" : "ordinal",
             "type" : "group",
+            "discriminantValue" : 65535,
             "discriminantCount" : 2,
             "discriminantOffset" : 5,
             "fields" : [{
@@ -279,6 +407,7 @@
                 "name" : "explicit",
                 "type" : "UInt16",
                 "discriminantValue" : 1,
+                "defaultValue" : "0",
                 "offset" : 6
             }]
         }],
@@ -286,8 +415,10 @@
             "name" : "noDiscriminant",
             "meta" : "const",
             "id" : "10930602151629473554",
-            "type" : "UInt16",
-            "value" : 65535
+            "datum" : {
+                "type" : "UInt16",
+                "value" : 65535
+            }
         }]
     }, {
         "name" : "Enumerant",
@@ -298,10 +429,16 @@
         "fields" : [{
             "name" : "name",
             "type" : "Text",
+            "discriminantValue" : 65535,
+            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 0
         }, {
             "name" : "codeOrder",
             "type" : "UInt16",
+            "discriminantValue" : 65535,
+            "defaultValue" : "0",
             "offset" : 0
         }, {
             "name" : "annotations",
@@ -310,6 +447,10 @@
                 "meta" : "struct",
                 "id" : "17422339044421236034"
             },
+            "discriminantValue" : 65535,
+            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 1
         }]
     }, {
@@ -321,18 +462,28 @@
         "fields" : [{
             "name" : "name",
             "type" : "Text",
+            "discriminantValue" : 65535,
+            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 0
         }, {
             "name" : "codeOrder",
             "type" : "UInt16",
+            "discriminantValue" : 65535,
+            "defaultValue" : "0",
             "offset" : 0
         }, {
             "name" : "paramStructType",
             "type" : "UInt64",
+            "discriminantValue" : 65535,
+            "defaultValue" : "[0,0]",
             "offset" : 1
         }, {
             "name" : "resultStructType",
             "type" : "UInt64",
+            "discriminantValue" : 65535,
+            "defaultValue" : "[0,0]",
             "offset" : 2
         }, {
             "name" : "annotations",
@@ -341,6 +492,10 @@
                 "meta" : "struct",
                 "id" : "17422339044421236034"
             },
+            "discriminantValue" : 65535,
+            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 1
         }]
     }, {
@@ -429,6 +584,10 @@
                 "name" : "elementType",
                 "meta" : "struct",
                 "id" : "15020482145304562784",
+                "discriminantValue" : 65535,
+                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegment" : 0,
+                "defaultPosition" : 0,
                 "offset" : 0
             }]
         }, {
@@ -438,6 +597,8 @@
             "fields" : [{
                 "name" : "typeId",
                 "type" : "UInt64",
+                "discriminantValue" : 65535,
+                "defaultValue" : "[0,0]",
                 "offset" : 1
             }]
         }, {
@@ -447,6 +608,8 @@
             "fields" : [{
                 "name" : "typeId",
                 "type" : "UInt64",
+                "discriminantValue" : 65535,
+                "defaultValue" : "[0,0]",
                 "offset" : 1
             }]
         }, {
@@ -456,6 +619,8 @@
             "fields" : [{
                 "name" : "typeId",
                 "type" : "UInt64",
+                "discriminantValue" : 65535,
+                "defaultValue" : "[0,0]",
                 "offset" : 1
             }]
         }, {
@@ -546,16 +711,23 @@
             "name" : "list",
             "type" : "AnyPointer",
             "discriminantValue" : 14,
+            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 0
         }, {
             "name" : "enum",
             "type" : "UInt16",
             "discriminantValue" : 15,
+            "defaultValue" : "0",
             "offset" : 1
         }, {
             "name" : "struct",
             "type" : "AnyPointer",
             "discriminantValue" : 16,
+            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 0
         }, {
             "name" : "interface",
@@ -566,6 +738,9 @@
             "name" : "anyPointer",
             "type" : "AnyPointer",
             "discriminantValue" : 18,
+            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 0
         }]
     }, {
@@ -577,11 +752,17 @@
         "fields" : [{
             "name" : "id",
             "type" : "UInt64",
+            "discriminantValue" : 65535,
+            "defaultValue" : "[0,0]",
             "offset" : 0
         }, {
             "name" : "value",
             "meta" : "struct",
             "id" : "14853958794117909659",
+            "discriminantValue" : 65535,
+            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 0
         }]
     }, {
@@ -618,6 +799,10 @@
                 "meta" : "struct",
                 "id" : "16610026722781537303"
             },
+            "discriminantValue" : 65535,
+            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 0
         }, {
             "name" : "requestedFiles",
@@ -626,6 +811,10 @@
                 "meta" : "struct",
                 "id" : "14981803260258615394"
             },
+            "discriminantValue" : 65535,
+            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 1
         }],
         "nodes" : [{
@@ -637,10 +826,16 @@
             "fields" : [{
                 "name" : "id",
                 "type" : "UInt64",
+                "discriminantValue" : 65535,
+                "defaultValue" : "[0,0]",
                 "offset" : 0
             }, {
                 "name" : "filename",
                 "type" : "Text",
+                "discriminantValue" : 65535,
+                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegment" : 0,
+                "defaultPosition" : 0,
                 "offset" : 0
             }, {
                 "name" : "imports",
@@ -649,20 +844,31 @@
                     "meta" : "struct",
                     "id" : "12560611460656617445"
                 },
+                "discriminantValue" : 65535,
+                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegment" : 0,
+                "defaultPosition" : 0,
                 "offset" : 1
             }],
             "nodes" : [{
                 "name" : "Import",
+                "meta" : "struct",
                 "id" : "12560611460656617445",
                 "dataWordCount" : 0,
                 "pointerCount" : 1,
                 "fields" : [{
                     "name" : "id",
                     "type" : "UInt64",
+                    "discriminantValue" : 65535,
+                    "defaultValue" : "[0,0]",
                     "offset" : 0
                 }, {
                     "name" : "name",
                     "type" : "Text",
+                    "discriminantValue" : 65535,
+                    "defaultSegments" : ["AAAAAAAAAAA="],
+                    "defaultSegment" : 0,
+                    "defaultPosition" : 0,
                     "offset" : 0
                 }]
             }]
