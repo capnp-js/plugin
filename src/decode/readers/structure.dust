@@ -1,12 +1,14 @@
 (function () {
 
     var Structure =
-        {@eq key=.meta value="struct"}
-            scope['{.id}'];
-        {:else}
+        {^.meta}
             {! Group case !}
             decode.structure();
-        {/eq}
+        {:else}
+            {@eq key=.meta value="struct"}
+                scope['{.id}'];
+            {/eq}
+        {/.meta}
 
     {#.nodes}
         {@eq key=.meta value="struct"}
