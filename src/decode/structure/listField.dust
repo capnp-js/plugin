@@ -1,7 +1,6 @@
 var Decode_{.name} = decode.lists.{.type};
-var default_{.name} = {defaultBytes}.map(function (b64) {
-    return encode.base64(b64);
-});
+var default_{.name} = ['{@join array=.defaultSegments interpolator="','"/}']
+    .map(function (b64) { return encode.base64(b64); });
 
 methods.get{.name} = function () {
     {>"structure/throwOnInactive" error="Attempted to access an inactive union member"/}
