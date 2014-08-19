@@ -42,8 +42,12 @@ define([{#.files}'../{.name}.d/file'{/.files}{@sep}, {/sep}], function (
     {/.files}
 
     return {
-        resource : function (id) { return resources[id]; },
+        resource : function (id) {
+            /* Lookup available resources by id. */
+             return resources[id];
+        },
         inject : function (target) {
+            /* Inject local petnames into the calling module. */
             /* Tentative.  Adapt to the node structure when it emerges more precisely */
             merges.forEach(function (merge) {
                 target[merge.name] = resources[merge.id];
