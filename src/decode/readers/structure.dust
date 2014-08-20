@@ -14,22 +14,24 @@
         {@eq key=.meta value="struct"}
             Structure.{.name} = {>"readers/node"/};
         {/eq}
+
         {@eq key=.meta value="enum"}
             Structure.{.name} = {>"readers/node"/};
         {/eq}
+
         {@eq key=.meta value="const"}
-            Structure.{.name} = constants['{.id}'];
+            Structure.prototype.{@constant name=.name/} = Structure.{@constant name=.name/} = constants['{.id}'];
         {/eq}
     {/.nodes}
 
     {?.discriminantCount}
         {@gt key=.discriminantCount value=0}
-            var disc_{.name} = decode.fields.uint16;
+            var discriminant_{.name} = decode.fields.uint16;
             Structure.prototype.which = function () {
                 var position = this.dataSection + {.discriminantOffset};
 
                 if (position < this.pointerSection) {
-                    return disc_{.name}(
+                    return discriminant_{.name}(
                         0,
                         this.segment,
                         position
@@ -51,26 +53,26 @@
 
         {?.meta}
             {@eq key=.meta value="struct"}
-                var Structure_{.name} = scope['{.id}'];
-                var default_{.name} = ['{@join array=.defaultSegments interpolator="','"/}']
+                var Structure_{@fieldGetter name=.name/} = scope['{.id}'];
+                var default_{@fieldGetter name=.name/} = ['{@join array=.defaultSegments interpolator="','"/}']
                     .map(function (b64) { return encode.base64(b64); });
 
-                Structure.prototype.get{.name} = function () {
+                Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
 
                     var position = this.pointersSection +
                         {@math key=.offset method="multiply" operand="8"/};
 
                     if (position < this.end && !decode.isNull(this.segment, position)) {
-                        return Structure_{.name}.deref(
+                        return Structure_{@fieldGetter name=.name/}.deref(
                             this.segments,
                             this.segment,
                             position
                         );
                     } else {
-                        return Structure_{.name}.deref(
-                            default_{.name},
-                            default_{.name}[{.defaultSegment}],
+                        return Structure_{@fieldGetter name=.name/}.deref(
+                            default_{@fieldGetter name=.name/},
+                            default_{@fieldGetter name=.name/}[{.defaultSegment}],
                             {.defaultPosition}
                         );
                     }
@@ -78,26 +80,26 @@
             {/eq}
 
             {@eq key=.meta value="list"}
-                var List_{.name} = {>list/};
-                var default_{.name} = ['{@join array=.defaultSegments interpolator="','"/}']
+                var List_{@fieldGetter name=.name/} = {>list/};
+                var default_{@fieldGetter name=.name/} = ['{@join array=.defaultSegments interpolator="','"/}']
                     .map(function (b64) { return encode.base64(b64); });
 
-                Structure.prototype.get{.name} = function () {
+                Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
 
                     var position = this.pointersSection +
                         {@math key=.offset method="multiply" operand="8"/};
 
                     if (position < this.end && !decode.isNull(this.segment, position)) {
-                        return List_{.name}.deref(
+                        return List_{@fieldGetter name=.name/}.deref(
                             this.segments,
                             this.segment,
                             position
                         );
                     } else {
-                        return List_{.name}.deref(
-                            default_{.name},
-                            default_{.name}[{.defaultSegment}],
+                        return List_{@fieldGetter name=.name/}.deref(
+                            default_{@fieldGetter name=.name/},
+                            default_{@fieldGetter name=.name/}[{.defaultSegment}],
                             {.defaultPosition}
                         );
                     }
@@ -107,19 +109,19 @@
             {@eq key=.meta value="enum"}{>"readers/dataField" decoder="decode.fields.uint16" byteCount="2"/}{/eq}
         {:else}
             {@eq key=.type value="group"}
-                var Group_{.name} = {>"readers/structure"/};
-                Structure.prototype.get{.name} = function () {
-                    return new Group_{.name}(this);
+                var Group_{@fieldGetter name=.name/} = {>"readers/structure"/};
+                Structure.prototype.{@fieldGetter name=.name/} = function () {
+                    return new Group_{@fieldGetter name=.name/}(this);
                 };
             {/eq}
             {@eq key=.type value="Data"}{>"readers/listField"/}{/eq}
             {@eq key=.type value="Text"}{>"readers/listField"/}{/eq}
             {@eq key=.type value="AnyPointer"}
-                var Decode_{.name} = decode.AnyPointer;
-                var default_{.name} = ['{@join array=.defaultSegments interpolator="','"/}']
+                var Decode_{@fieldGetter name=.name/} = decode.AnyPointer;
+                var default_{@fieldGetter name=.name/} = ['{@join array=.defaultSegments interpolator="','"/}']
                     .map(function (b64) { return encode.base64(b64); });
 
-                Structure.prototype.get{.name} = function () {
+                Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
 
                     var position = this.pointersSection +
@@ -132,15 +134,15 @@
                          ! returns default fields.  Non-structure instances
                          ! should throw (a type byte of 0 implies a structure).
                          !}
-                        return Decode_{.name}.deref(
+                        return Decode_{@fieldGetter name=.name/}.deref(
                             this.segments,
                             this.segment,
                             position
                         );
                     } else {
-                        return Decode_{.name}.deref(
-                            default_{.name},
-                            default_{.name}[{.defaultSegment}],
+                        return Decode_{@fieldGetter name=.name/}.deref(
+                            default_{@fieldGetter name=.name/},
+                            default_{@fieldGetter name=.name/}[{.defaultSegment}],
                             {.defaultPosition}
                         );
                     }
@@ -148,7 +150,7 @@
             {/eq}
 
             {@eq key=.type value="Void"}
-                Structure.prototype.get{.name} = function () {
+                Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
 
                     return null;
@@ -156,7 +158,7 @@
             {/eq}
 
             {@eq key=.type value="Bool"}
-                Structure.prototype.get{.name} = function () {
+                Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
 
                     var position = this.dataSection + {@boolOffset offset=.offset/};

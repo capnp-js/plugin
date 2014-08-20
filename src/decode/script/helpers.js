@@ -45,9 +45,10 @@ dust.helpers.contains = function (chunk, context, bodies, params) {
     return chunk;
 };
 
-dust.helpers.allCapitalize = function (chunk, context, bodies, params) {
+dust.helpers.constant = function (chunk, context, bodies, params) {
+    /* {@constant name="xyzAsdf"/} -> XYZ_ASDF */
     /* Insert '_' before any caps that are not the string's first letter. */
-    var text = dust.helpers.tap(bodies.block, chunk, context);
+    var text = dust.helpers.tap(params.name, chunk, context);
     var newText = text[0];
     for (var i=1; i<text.length; ++i) {
         if (/[A-Z]/.test(text[i])) {
@@ -57,6 +58,22 @@ dust.helpers.allCapitalize = function (chunk, context, bodies, params) {
     }
 
     return chunk.write(newText.toUpperCase());
+};
+
+var prependCamel = function (head, camel) {
+   return head + camel[0].toUpperCase() + camel.slice(1);
+};
+
+dust.helpers.fieldIser = function (chunk, context, bodies, params) {
+    /* {@fieldGetter name="xyzAsdf"/} -> getXyzAsdf */
+    var text = dust.helpers.tap(params.name, chunk, context);
+    return chunk.write(prependCamel('is', text));
+};
+
+dust.helpers.fieldGetter = function (chunk, context, bodies, params) {
+    /* {@fieldGetter name="xyzAsdf"/} -> getXyzAsdf */
+    var text = dust.helpers.tap(params.name, chunk, context);
+    return chunk.write(prependCamel('get', text));
 };
 
 dust.helpers.assert = function (chunk, context, bodies, params) {

@@ -1,18 +1,21 @@
 define(['capnp-js/encode/primitives', 'capnp-js/decode', './scope', './constants'], function (
                   encode,                       decode,     scope,     constants) {
 
-    /*
-     * Compiler dumps `./rpc.js` and `./rpcMethods.js.stub` (blank template for
-     * implementing RPC methods).  The `rpc.js` imports `./rpcMethods.js` file uses this, including its
-     * imports.
-     */
+    {!
+     ! Compiler dumps `./rpc.js` and `./rpcMethods.js.stub` (stubbed out RPC
+     ! methods).  The `./rpcMethods.js` file gets imported by `./rpc.js`.
+     !}
 
     {! Populate prototypes and assign pet-names. !}
 
     var nodes = {};
 
     {#.nodes}
-        nodes.{.name} = {>"readers/node"/};
+        {@eq key=.meta value="const"}
+            nodes.{@constant name=.name/} = {>"readers/node"/};
+        {:else}
+            nodes.{.name} = {>"readers/node"/};
+        {/eq}
     {/.nodes}
 
     return nodes;

@@ -1,23 +1,23 @@
-var Decode_{.name} = decode.lists.{.type};
-var default_{.name} = ['{@join array=.defaultSegments interpolator="','"/}']
+var Decode_{@fieldGetter name=.name/} = decode.lists.{.type};
+var default_{@fieldGetter name=.name/} = ['{@join array=.defaultSegments interpolator="','"/}']
     .map(function (b64) { return encode.base64(b64); });
 
-methods.get{.name} = function () {
+Structure.prototype.{@fieldGetter name=.name/} = function () {
     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
 
     var position = this.pointersSection +
         {@math key=.offset method="multiply" operand="8"/};
 
     if (position < this.end && !decode.isNull(this.segment, position)) {
-        return Decode_{.name}.deref(
+        return Decode_{@fieldGetter name=.name/}.deref(
             this.segments,
             this.segment,
             position
         );
     } else {
-        return Decode_{.name}.deref(
-            default_{.name},
-            default_{.name}[{.defaultSegment}],
+        return Decode_{@fieldGetter name=.name/}.deref(
+            default_{@fieldGetter name=.name/},
+            default_{@fieldGetter name=.name/}[{.defaultSegment}],
             {.defaultPosition}
         );
     }
