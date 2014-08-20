@@ -44,12 +44,12 @@ gulp.task('buildDecode', function () {
 //});
 
 gulp.task('clean', ['cleanDecode'], function () {
-    return gulp.src('./lib/**/*', { read : false })
+    return gulp.src('./lib', { read : false })
         .pipe(clean());
 });
 
 gulp.task('cleanDecode', function () {
-    return gulp.src('./src/decode/gulpfile.js', { read : false })
+    return gulp.src('./src/decode/gulpfile.js')
         .pipe(chug({ tasks : ['clean'] }))
 });
 
