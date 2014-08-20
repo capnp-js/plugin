@@ -24,7 +24,7 @@ gulp.task('watch', function () {
     ], ['decode']);
 });
 
-gulp.task('build', ['decode']);
+gulp.task('build', ['generator']);
 
 gulp.task('decode', ['buildDecode'], function () {
     return gulp.src('./src/decode/script/**/*.js')
@@ -44,7 +44,7 @@ gulp.task('buildDecode', function () {
 //});
 
 gulp.task('clean', ['cleanDecode'], function () {
-    return gulp.src(['./lib/**/*', './generator/reader.js'], { read : false })
+    return gulp.src('./lib/**/*', { read : false })
         .pipe(clean());
 });
 
@@ -58,27 +58,27 @@ gulp.task('generator', ['types', 'scope', 'constants', 'readers']);
 gulp.task('nonscope', ['types', 'constants', 'readers']);
 
 ['constants', 'readers', 'types'].forEach(function (processor) {
-    gulp.task(processor, function () {
-        return gulp.src('./generator/schema.js')
+    gulp.task(processor, ['decode'], function () {
+        return gulp.src('./generator/schema.json')
             .pipe(render(
                 require('./lib/decode/' + processor)
             ))
             .pipe(uglify())
-            .pipe(rename('reader.js'))
+            .pipe(rename(processor+'.js'))
             .pipe(jshint())
             .pipe(jshint.reporter('default'))
-            .pipe(gulp.dest('generator'));
+            .pipe(gulp.dest('lib/generator'));
     });
 });
 
-gulp.task('scope', function () {
-    return gulp.src('./generator/schema.js')
+gulp.task('scope', ['decode'], function () {
+    return gulp.src('./generator/files.json')
         .pipe(render(
             require('./lib/decode/scope')
         ))
         .pipe(uglify())
-        .pipe(rename('reader.js'))
+        .pipe(rename('scope.js'))
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
-        .pipe(gulp.dest('generator'));
+        .pipe(gulp.dest('lib/generator'));
 });
