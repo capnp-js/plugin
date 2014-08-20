@@ -5,7 +5,7 @@
   "main": "index",
   "scripts": {
     "test": "./node_modules/.bin/gulp ci",
-    "build" : "./node_modules/.bin/gulp build && ./node_modules/.bin/gulp generator"
+    "build" : "./node_modules/.bin/gulp build"
   },
   "repository": {
     "type": "git",
