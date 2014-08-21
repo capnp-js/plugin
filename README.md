@@ -6,18 +6,17 @@ Yet another Capnproto implementation for Javascript.
 Most substance is currently under [decode](https://github.com/popham/capnp-js/tree/master/src/template/decode).
 
 #CommonJS Modules
-I'm building AMD modules--Nodefy should take care of building the CommonJS distribution.
+I'm building AMD modules--Nodefy will take care of building the CommonJS distribution.
 
 #AMD Modules
-* [filename+extension] ↦
-  - `[filename+extension].d/_readers.js`: File scoped enumeration definitions, constants, and structure readers based on `[filename+extension]`.
-  - `[filename+extension].d/readers.js`: Structure readers from `_readers.js`.
-  - `[filename+extension].d/constants.js`: Constants from `_readers.js`.
-  - `[filename+extension].d/enumerations.js`: Enumeration definitions from `_readers.js`.
-  - `[filename+extension].d/readerImports.js`: Complementary imports for `[filename+extension].d/_readers.js` based on `[filename+extension]`.
-  - `[filename+extension].d/builders.js`: Structure builders based on `[filename+extension]`.
-  - `[filename+extension].d/builderImports.js`: Complementary imports from `[filename+extension].d/builders.js based on `[filename+extension]`.
-
+The following strategy resolves circular references by populating prototypes as a final step: [filename+extension] ↦
+* `[filename+extension].d/types.js`: Structure types, but without populated prototypes.
+* `[filename+extension].d/scope.js`: Hash: (id ↦ Structure) to lookup any type that is available to the file's scope.
+* `[filename+extension].d/constants.js`: Hash: (id ↦ Constant) to lookup constants that are local to the file's scope.
+  These data could get included under `scope.js`, but would require that the current contents of `scope.js` were populated first.
+  Similarly, these data could get included under `readers.js`, but `readers.js` would require that the contents of `constants.js` were populated first.
+* `[filename+extension].d/readers.js`: Javascript implementation of `[filename+extension]`.
+  This file exposes types by pet-name and populates prototypes.
 
 AMD Use Case
 ------------
