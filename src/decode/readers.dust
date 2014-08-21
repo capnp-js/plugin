@@ -14,15 +14,15 @@ define(['capnp-js/encode/primitives', 'capnp-js/decode', './scope', './constants
 
     {! Populate prototypes and assign pet-names. !}
 
-    var nodes = {};
+    var readers = {};
 
     {#.nodes}
         {@eq key=.meta value="const"}
-            nodes.{@constant name=.name/} = {>"readers/node"/};
+            readers.{@constant name=.name/} = {>"readers/node"/};
         {:else}
-            nodes.{.name} = {>"readers/node"/};
+            readers.{.name} = {>"readers/node"/};
         {/eq}
     {/.nodes}
 
-    return nodes;
+    return readers;
 });
