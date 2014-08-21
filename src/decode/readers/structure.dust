@@ -26,12 +26,13 @@
 
     {?.discriminantCount}
         {@gt key=.discriminantCount value=0}
-            var discriminant_{.name} = decode.fields.uint16;
+            var discriminant = decode.fields.uint16;
             Structure.prototype.which = function () {
-                var position = this.dataSection + {.discriminantOffset};
+                var position = this.dataSection +
+                    {@math key=.discriminantOffset method="multiply" operand="2"/};
 
-                if (position < this.pointerSection) {
-                    return discriminant_{.name}(
+                if (position < this.pointersSection) {
+                    return discriminant(
                         0,
                         this.segment,
                         position
@@ -46,7 +47,7 @@
     {#.fields}
         {@ne key=.discriminantValue value=65535}
             {! Anonymous union member !}
-            Structure.prototype.is{.name} = function () {
+            Structure.prototype.{@fieldIser name=.name/} = function () {
                 return this.which() === {.discriminantValue};
             };
         {/ne}

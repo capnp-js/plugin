@@ -1,7 +1,7 @@
 {! Code fragment that will throw at runtime if is{name} fails. !}
 
 {@ne key=.discriminantValue value=65535}
-    if (!this.is{.name}()) {
+    if (!this.{@fieldIser name=.name/}()) {
         throw new Error("{error}");
     }
 {/ne}
