@@ -28,13 +28,13 @@
         {@gt key=.discriminantCount value=0}
             var discriminant = decode.fields.uint16;
             Structure.prototype.which = function () {
-                var position = this.dataSection +
+                var position = this._dataSection +
                     {@math key=.discriminantOffset method="multiply" operand="2"/};
 
-                if (position < this.pointersSection) {
+                if (position < this._pointersSection) {
                     return discriminant(
                         0,
-                        this.segment,
+                        this._segment,
                         position
                     );
                 } else {
@@ -61,13 +61,13 @@
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
 
-                    var position = this.pointersSection +
+                    var position = this._pointersSection +
                         {@math key=.offset method="multiply" operand="8"/};
 
-                    if (position < this.end && !decode.isNull(this.segment, position)) {
+                    if (position < this._end && !decode.isNull(this._segment, position)) {
                         return Structure_{@fieldGetter name=.name/}.deref(
-                            this.segments,
-                            this.segment,
+                            this._segments,
+                            this._segment,
                             position
                         );
                     } else {
@@ -88,13 +88,13 @@
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
 
-                    var position = this.pointersSection +
+                    var position = this._pointersSection +
                         {@math key=.offset method="multiply" operand="8"/};
 
-                    if (position < this.end && !decode.isNull(this.segment, position)) {
+                    if (position < this._end && !decode.isNull(this._segment, position)) {
                         return List_{@fieldGetter name=.name/}.deref(
-                            this.segments,
-                            this.segment,
+                            this._segments,
+                            this._segment,
                             position
                         );
                     } else {
@@ -114,7 +114,7 @@
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
 
-                    return new Group_{@fieldGetter name=.name/}(this);
+                    return new Group_{@fieldGetter name=.name/}.inject(this);
                 };
             {/eq}
             {@eq key=.type value="Data"}{>"readers/listField"/}{/eq}
@@ -127,10 +127,10 @@
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
 
-                    var position = this.pointersSection +
+                    var position = this._pointersSection +
                         {@math key=.offset method="multiply" operand="8"/};
 
-                    if (position < this.end) {
+                    if (position < this._end) {
                         {!
                          ! Defer null pointer checking to `cast` (casting a null
                          ! pointer to a structure should yield an instance that
@@ -138,8 +138,8 @@
                          ! should throw (a type byte of 0 implies a structure).
                          !}
                         return Decode_{@fieldGetter name=.name/}.deref(
-                            this.segments,
-                            this.segment,
+                            this._segments,
+                            this._segment,
                             position
                         );
                     } else {
@@ -164,11 +164,11 @@
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
 
-                    var position = this.dataSection + {@boolOffset offset=.offset/};
+                    var position = this._dataSection + {@boolOffset offset=.offset/};
 
-                    if (position < this.pointersSection) {
+                    if (position < this._pointersSection) {
                         return decode.fields.bool(
-                            this.segment,
+                            this._segment,
                             position,
                             {@boolMask offset=.offset/}
                         );
