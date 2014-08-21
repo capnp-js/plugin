@@ -112,6 +112,8 @@
             {@eq key=.type value="group"}
                 var Group_{@fieldGetter name=.name/} = {>"readers/structure"/};
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
+                    {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
+
                     return new Group_{@fieldGetter name=.name/}(this);
                 };
             {/eq}
