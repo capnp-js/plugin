@@ -25,7 +25,7 @@ gulp.task('watch', function () {
     ], ['decode']);
 });
 
-gulp.task('build', ['generator']);
+gulp.task('build', ['cgr', 'context']);
 
 gulp.task('decode', ['buildDecode'], function () {
     return gulp.src('src/decode/script/**/*.js')
@@ -54,13 +54,13 @@ gulp.task('cleanDecode', function () {
         .pipe(chug({ tasks : ['clean'] }))
 });
 
-gulp.task('generator', ['types', 'scope', 'constants', 'readers']);
+gulp.task('cgr', ['types', 'scope', 'constants', 'readers']);
 
 gulp.task('nonscope', ['types', 'constants', 'readers']);
 
 ['constants', 'readers', 'types'].forEach(function (processor) {
     gulp.task(processor, ['decode'], function () {
-        return gulp.src('generator/schema.json')
+        return gulp.src('schema/nodes.json')
             .pipe(render(
                 require('./lib/decode/' + processor)
             ))
@@ -69,12 +69,12 @@ gulp.task('nonscope', ['types', 'constants', 'readers']);
             .pipe(jshint())
             .pipe(jshint.reporter('default'))
             .pipe(nodefy())
-            .pipe(gulp.dest('lib/generator'));
+            .pipe(gulp.dest('lib/cgr'));
     });
 });
 
 gulp.task('scope', ['decode'], function () {
-    return gulp.src('generator/files.json')
+    return gulp.src('schema/files.json')
         .pipe(render(
             require('./lib/decode/scope')
         ))
@@ -83,5 +83,14 @@ gulp.task('scope', ['decode'], function () {
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
         .pipe(nodefy())
-        .pipe(gulp.dest('lib/generator'));
+        .pipe(gulp.dest('lib/cgr'));
+});
+
+gulp.task('context', function () {
+    gulp.src('context/**/*.js')
+        .pipe(uglify())
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(nodefy())
+        .pipe(gulp.dest('lib/context'));
 });
