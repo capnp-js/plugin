@@ -1,4 +1,8 @@
 {
+    "name" : "requestedFileFilename.capnp",
+    "meta" : "file",
+    "id" : "12195682960037147353",
+    "imports" : [],
     "nodes" : [{
         "name" : "Node",
         "meta" : "struct",
