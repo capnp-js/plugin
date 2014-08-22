@@ -84,7 +84,8 @@
                 "offset" : 12
             }, {
                 "name" : "preferredListEncoding",
-                "type" : "enum",
+                "meta" : "enum",
+                "id" : "15102134695616452902",
                 "discriminantValue" : 65535,
                 "defaultValue" : "0",
                 "offset" : 13
