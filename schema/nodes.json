@@ -7,7 +7,7 @@
         "name" : "Node",
         "meta" : "struct",
         "id" : "16610026722781537303",
-        "dataWordCount" : 8,
+        "dataWordCount" : 5,
         "pointerCount" : 5,
         "discriminantCount" : 26,
         "discriminantOffset" : 6,
@@ -21,7 +21,7 @@
             "name" : "displayName",
             "type" : "Text",
             "discriminantValue" : 65535,
-            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegments" : ["AQAAAAYAAAA="],
             "defaultSegment" : 0,
             "defaultPosition" : 0,
             "offset" : 0
@@ -45,7 +45,7 @@
                 "id" : "16050641862814319170"
             },
             "discriminantValue" : 65535,
-            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegments" : ["AQAAAAcAAAAAAAAAAQABAA=="],
             "defaultSegment" : 0,
             "defaultPosition" : 0,
             "offset" : 1
@@ -57,7 +57,7 @@
                 "id" : "17422339044421236034"
             },
             "discriminantValue" : 65535,
-            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegments" : ["AQAAAAcAAAAAAAAAAQABAA=="],
             "defaultSegment" : 0,
             "defaultPosition" : 0,
             "offset" : 2
@@ -115,7 +115,7 @@
                     "id" : "11145653318641710175"
                 },
                 "discriminantValue" : 65535,
-                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegments" : ["AQAAAAcAAAAAAAAAAwAEAA=="],
                 "defaultSegment" : 0,
                 "defaultPosition" : 0,
                 "offset" : 3
@@ -132,7 +132,7 @@
                     "id" : "10919677598968879693"
                 },
                 "discriminantValue" : 65535,
-                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegments" : ["AQAAAAcAAAAAAAAAAQACAA=="],
                 "defaultSegment" : 0,
                 "defaultPosition" : 0,
                 "offset" : 3
@@ -149,7 +149,7 @@
                     "id" : "10736806783679155584"
                 },
                 "discriminantValue" : 65535,
-                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegments" : ["AQAAAAcAAAAAAAAAAwACAA=="],
                 "defaultSegment" : 0,
                 "defaultPosition" : 0,
                 "offset" : 3
@@ -158,7 +158,7 @@
                 "meta" : "list",
                 "type" : "UInt64",
                 "discriminantValue" : 65535,
-                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegments" : ["AQAAAAUAAAA="],
                 "defaultSegment" : 0,
                 "defaultPosition" : 0,
                 "offset" : 4
@@ -284,7 +284,7 @@
                 "name" : "name",
                 "type" : "Text",
                 "discriminantValue" : 65535,
-                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegments" : ["AQAAAAYAAAA="],
                 "defaultSegment" : 0,
                 "defaultPosition" : 0,
                 "offset" : 0
@@ -308,7 +308,7 @@
             "name" : "name",
             "type" : "Text",
             "discriminantValue" : 65535,
-            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegments" : ["AQAAAAYAAAA="],
             "defaultSegment" : 0,
             "defaultPosition" : 0,
             "offset" : 0
@@ -326,7 +326,7 @@
                 "id" : "17422339044421236034"
             },
             "discriminantValue" : 65535,
-            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegments" : ["AQAAAAcAAAAAAAAAAQABAA=="],
             "defaultSegment" : 0,
             "defaultPosition" : 0,
             "offset" : 1
@@ -420,7 +420,7 @@
             "name" : "name",
             "type" : "Text",
             "discriminantValue" : 65535,
-            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegments" : ["AQAAAAYAAAA="],
             "defaultSegment" : 0,
             "defaultPosition" : 0,
             "offset" : 0
@@ -438,7 +438,7 @@
                 "id" : "17422339044421236034"
             },
             "discriminantValue" : 65535,
-            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegments" : ["AQAAAAcAAAAAAAAAAQABAA=="],
             "defaultSegment" : 0,
             "defaultPosition" : 0,
             "offset" : 1
@@ -453,7 +453,7 @@
             "name" : "name",
             "type" : "Text",
             "discriminantValue" : 65535,
-            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegments" : ["AQAAAAYAAAA="],
             "defaultSegment" : 0,
             "defaultPosition" : 0,
             "offset" : 0
@@ -483,7 +483,7 @@
                 "id" : "17422339044421236034"
             },
             "discriminantValue" : 65535,
-            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegments" : ["AQAAAAcAAAAAAAAAAQABAA=="],
             "defaultSegment" : 0,
             "defaultPosition" : 0,
             "offset" : 1
@@ -790,7 +790,7 @@
                 "id" : "16610026722781537303"
             },
             "discriminantValue" : 65535,
-            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegments" : ["AQAAAAcAAAAAAAAABQAFAA=="],
             "defaultSegment" : 0,
             "defaultPosition" : 0,
             "offset" : 0
@@ -802,7 +802,7 @@
                 "id" : "14981803260258615394"
             },
             "discriminantValue" : 65535,
-            "defaultSegments" : ["AAAAAAAAAAA="],
+            "defaultSegments" : ["AQAAAAcAAAAAAAAAAQACAA=="],
             "defaultSegment" : 0,
             "defaultPosition" : 0,
             "offset" : 1
@@ -823,7 +823,7 @@
                 "name" : "filename",
                 "type" : "Text",
                 "discriminantValue" : 65535,
-                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegments" : ["AQAAAAYAAAA="],
                 "defaultSegment" : 0,
                 "defaultPosition" : 0,
                 "offset" : 0
@@ -835,7 +835,7 @@
                     "id" : "12560611460656617445"
                 },
                 "discriminantValue" : 65535,
-                "defaultSegments" : ["AAAAAAAAAAA="],
+                "defaultSegments" : ["AQAAAAcAAAAAAAAAAQABAA=="],
                 "defaultSegment" : 0,
                 "defaultPosition" : 0,
                 "offset" : 1
@@ -844,7 +844,7 @@
                 "name" : "Import",
                 "meta" : "struct",
                 "id" : "12560611460656617445",
-                "dataWordCount" : 0,
+                "dataWordCount" : 1,
                 "pointerCount" : 1,
                 "fields" : [{
                     "name" : "id",
@@ -856,7 +856,7 @@
                     "name" : "name",
                     "type" : "Text",
                     "discriminantValue" : 65535,
-                    "defaultSegments" : ["AAAAAAAAAAA="],
+                    "defaultSegments" : ["AQAAAAYAAAA="],
                     "defaultSegment" : 0,
                     "defaultPosition" : 0,
                     "offset" : 0
