@@ -7,6 +7,6 @@ require('./helpers');
 // Load precompiled templates.
 require('./templates');
 
-module.exports = function (schema) {
-    return when.lift(dust.render)('types', schema);
+module.exports = function (context) {
+    return when.lift(dust.render)('types', context);
 };
