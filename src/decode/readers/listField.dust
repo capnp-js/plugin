@@ -1,6 +1,6 @@
 var Decode_{@fieldGetter name=.name/} = decode.lists.{.type};
 var default_{@fieldGetter name=.name/} = ['{@join array=.defaultSegments interpolator="','"/}']
-    .map(function (b64) { return encode.base64(b64); });
+    .map(function (b64) { return fromBase64(b64); });
 
 Structure.prototype.{@fieldGetter name=.name/} = function () {
     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}

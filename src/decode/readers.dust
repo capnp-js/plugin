@@ -1,5 +1,5 @@
-define(['capnp-js/encode/primitives', 'capnp-js/decode', './scope', './constants'], function (
-                  encode,                       decode,     scope,     constants) {
+define(['capnp-js/decode/fromBase64', 'capnp-js/decode', './scope', './constants'], function (
+                         fromBase64,            decode,     scope,     constants) {
 
     {!
      ! TODO: Bring in the `readers.js` files from other directories that contain

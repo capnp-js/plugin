@@ -5,7 +5,7 @@ define(['capnp-js/decode'], function (decode) {
     {! Populate id's only--pet-names come later in the pipeline. !}
 
     {#.nodes}
-        {>"types/structure"/};
+        {>"types/structure"/}
         {>"types/enumeration" recurTarget="struct"/}
     {/.nodes}
 

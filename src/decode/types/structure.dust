@@ -2,6 +2,6 @@
     types['{.id}'] = decode.structure();
 
     {#.nodes}
-        {>"types/structure"/};
+        {>"types/structure"/}
     {/.nodes}
 {/eq}

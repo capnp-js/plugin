@@ -56,7 +56,7 @@
             {@eq key=.meta value="struct"}
                 var Structure_{@fieldGetter name=.name/} = scope['{.id}'];
                 var default_{@fieldGetter name=.name/} = ['{@join array=.defaultSegments interpolator="','"/}']
-                    .map(function (b64) { return encode.base64(b64); });
+                    .map(function (b64) { return fromBase64(b64); });
 
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
@@ -83,7 +83,7 @@
             {@eq key=.meta value="list"}
                 var List_{@fieldGetter name=.name/} = {>list/};
                 var default_{@fieldGetter name=.name/} = ['{@join array=.defaultSegments interpolator="','"/}']
-                    .map(function (b64) { return encode.base64(b64); });
+                    .map(function (b64) { return fromBase64(b64); });
 
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
@@ -107,7 +107,7 @@
                 };
             {/eq}
 
-            {@eq key=.meta value="enum"}{>"readers/dataField" decoder="decode.fields.uint16" byteCount="2"/}{/eq}
+            {@eq key=.meta value="enum"}{>"readers/dataField" default=.defaultValue decoder="decode.fields.uint16" byteCount="2"/}{/eq}
         {:else}
             {@eq key=.type value="group"}
                 var Group_{@fieldGetter name=.name/} = {>"readers/structure"/};
@@ -122,7 +122,7 @@
             {@eq key=.type value="AnyPointer"}
                 var Decode_{@fieldGetter name=.name/} = decode.AnyPointer;
                 var default_{@fieldGetter name=.name/} = ['{@join array=.defaultSegments interpolator="','"/}']
-                    .map(function (b64) { return encode.base64(b64); });
+                    .map(function (b64) { return fromBase64(b64); });
 
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
