@@ -1,5 +1,5 @@
-define(['./Fragment', './toBase64', './joinId'], function (
-           F,            toBase64,     joinId) {
+define(['./toBase64', './joinId'], function (
+           toBase64,     joinId) {
 
     var merge = function (target, source) {
         for (var k in source) {
