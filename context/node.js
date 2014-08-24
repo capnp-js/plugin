@@ -61,7 +61,7 @@ define(['./toBase64', './joinId'], function (
     };
 
     var fieldF = function (field, index) {
-        var name = { name : field.getName() };
+        var name = { name : field.getName().asString() };
 
         if (field.isSlot()) {
             return merge(slotF(field.getSlot(), index), name);
