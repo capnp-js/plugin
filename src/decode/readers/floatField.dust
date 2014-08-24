@@ -1,0 +1,19 @@
+var decoder_{@fieldGetter name=.name/} = {decoder};
+var default_{@fieldGetter name=.name/} = fromBase64("{.defaultBytes}");
+
+Structure.prototype.{@fieldGetter name=.name/} = function () {
+    {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
+
+    var position = this._dataSection +
+        {@math key=.offset method="multiply" operand=byteCount/};
+
+    if (position < this._pointersSection) {
+        return decoder_{@fieldGetter name=.name/}(
+            default_{@fieldGetter name=.name/},
+            this._segment,
+            position
+        );
+    } else {
+        return {.defaultValue};
+    }
+};

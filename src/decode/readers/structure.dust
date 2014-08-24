@@ -186,8 +186,8 @@
             {@eq key=.type value="UInt16"}{>"readers/dataField" default=.defaultValue decoder="decode.fields.uint16" byteCount="2"/}{/eq}
             {@eq key=.type value="UInt32"}{>"readers/dataField" default=.defaultValue decoder="decode.fields.uint32" byteCount="4"/}{/eq}
             {@eq key=.type value="UInt64"}{>"readers/dataField" default=.defaultValue decoder="decode.fields.uint64" byteCount="8"/}{/eq}
-            {@eq key=.type value="Float32"}{>"readers/dataField" default=.defaultBytes decoder="decode.fields.float32" byteCount="4"/}{/eq}
-            {@eq key=.type value="Float64"}{>"readers/dataField" default=.defaultBytes decoder="decode.fields.float64" byteCount="8"/}{/eq}
+            {@eq key=.type value="Float32"}{>"readers/floatField" decoder="decode.fields.float32" byteCount="4"/}{/eq}
+            {@eq key=.type value="Float64"}{>"readers/floatField" decoder="decode.fields.float64" byteCount="8"/}{/eq}
         {/.meta}
     {/.fields}
 

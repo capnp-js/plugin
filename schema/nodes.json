@@ -634,68 +634,87 @@
             "offset" : 0
         }, {
             "name" : "bool",
-            "type" : "Void",
+            "type" : "Bool",
             "discriminantValue" : 1,
+            "defaultValue" : "true",
             "offset" : 0
         }, {
             "name" : "int8",
-            "type" : "Void",
+            "type" : "Int8",
             "discriminantValue" : 2,
+            "defaultValue" : "0",
             "offset" : 0
         }, {
             "name" : "int16",
-            "type" : "Void",
+            "type" : "Int16",
             "discriminantValue" : 3,
+            "defaultValue" : "0",
             "offset" : 0
         }, {
             "name" : "int32",
-            "type" : "Void",
+            "type" : "Int32",
             "discriminantValue" : 4,
+            "defaultValue" : "0",
             "offset" : 0
         }, {
             "name" : "int64",
-            "type" : "Void",
+            "type" : "Int64",
             "discriminantValue" : 5,
+            "defaultValue" : "[0,0]",
             "offset" : 0
         }, {
             "name" : "uint8",
-            "type" : "Void",
+            "type" : "UInt8",
             "discriminantValue" : 6,
+            "defaultValue" : "0",
             "offset" : 0
         }, {
             "name" : "uint16",
-            "type" : "Void",
+            "type" : "UInt16",
             "discriminantValue" : 7,
+            "defaultValue" : "0",
             "offset" : 0
         }, {
             "name" : "uint32",
-            "type" : "Void",
+            "type" : "UInt32",
             "discriminantValue" : 8,
+            "defaultValue" : "0",
             "offset" : 0
         }, {
             "name" : "uint64",
-            "type" : "Void",
+            "type" : "UInt64",
             "discriminantValue" : 9,
+            "defaultValue" : "[0,0]",
             "offset" : 0
         }, {
             "name" : "float32",
-            "type" : "Void",
+            "type" : "Float32",
             "discriminantValue" : 10,
+            "defaultValue" : "0.0",
+            "defaultBytes" : "AAAAAA==",
             "offset" : 0
         }, {
             "name" : "float64",
-            "type" : "Void",
+            "type" : "Float64",
             "discriminantValue" : 11,
+            "defaultValue" : "0.0",
+            "defaultBytes" : "AAAAAAAAAAA=",
             "offset" : 0
         }, {
             "name" : "text",
-            "type" : "Void",
+            "type" : "Text",
             "discriminantValue" : 12,
+            "defaultSegments" : ["AQAAABQAAAAAAAAAAAAAAA=="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 0
         }, {
             "name" : "data",
-            "type" : "Void",
+            "type" : "Data",
             "discriminantValue" : 13,
+            "defaultSegments" : ["AQAAAAYAAAA="],
+            "defaultSegment" : 0,
+            "defaultPosition" : 0,
             "offset" : 0
         }, {
             "name" : "list",
