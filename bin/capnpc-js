@@ -4,59 +4,67 @@ var path = require('path');
 var spawn = require('child_process').spawn;
 
 var file = process.argv[process.argv.length-1];
-var capnp = spawn('capnpc', ['-ostdout', path.resolve(file)]);
+var capnp = spawn('capnpc', ['-ocat', path.resolve(file)]);
+var Buffers = require('buffers');
 
-var repl = require('repl');
-
-var nSegments = 0;
-var sizes = [];
-var segments = [];
-
-function start(nSegments) {
-    var begin = 4 * (nSegments + 1);
-    begin += begin%8 ? 4 : 0;
-    return begin;
-}
-
-var begin;
-var end;
-var next = [];
+var n;
+var buffers = new Buffers();
+var sizes=[];
+var start;
 capnp.stdout.on('readable', function() {
     var chunk;
+    var segment;
     while (null !== (chunk=capnp.stdout.read())) {
-        if (!nSegments) {
-            nSegments = chunk.readUInt32LE(0) + 1;
-            for (var i=0; i<nSegments; ++i) {
-                sizes.push(chunk.readUInt32LE(4*(i+1)));
+        if (n === undefined) {
+            n = chunk.readUInt32LE(0) + 1;
+            for (var i=0; i<n; ++i) {
+                var size = 8*chunk.readUInt32LE(4*(i+1));
+                sizes.push(size);
             }
 
-            begin = start(nSegments);
-            end = begin + sizes[0];
+            start = 4*n + (n%2 ? 4 : 8);
         }
 
-        while (end <= chunk.length) {
-            // Populate segments until we run off the end.
-            next.push(chunk.slice(begin, end));
-            segments.push(new Uint8Array(Buffer.concat(next, sizes.shift())));
-
-            next = [chunk.slice(end)];
-            begin = end;
-            end = sizes[0] - (chunk.length - begin);
-        }
-
-        next.push(chunk.slice(begin))
-        end -= (chunk.length - begin);
-
-        begin=0;
+        buffers.push(chunk);
     }
 });
 
-var CapnpJS = require('../');
-var generator = CapnpJS.generator;
+var segments = [];
 capnp.stdout.on('end', function() {
-    var request = generator.CodeGeneratorRequest.deref(segments, segments[0], 0);
+    var CGR = require('../lib/cgr/readers');
+    var context = require('../lib/context');
+    for (var i=0; i<sizes.length; ++i) {
+        segments.push(new Uint8Array(buffers.slice(start, start+sizes[i])));
+        start += sizes[i];
+    }
+
+    if (start !== buffers.length) {
+        throw new Error('All data has not been included');
+    }
+
+    var request = CGR.CodeGeneratorRequest.deref(segments, segments[0], 0);
+
+    var files = request.getRequestedFiles();
+    var nodes = request.getNodes();
+    var trees = files.map(function (f) { return context(f, nodes); });
+
+    var writer = function (x) {
+        /* REPL writer that avoids long buffer echos. */
+        if (x === undefined) { return; }
+
+        if (x.toString !== undefined) {
+            return x.toString();
+        }
+
+        return x;
+    };
+
+    /* Debugging environment */
     var repl = require('repl');
-    var prompt = repl.start("> ");
-    prompt.context.request = request;
-    prompt.context.obj = require('capnp-js').objectify;
+    var prompt = repl.start({ prompt : "> " });
+    prompt.context.require = require;
+    prompt.context.inspect = require('util').inspect;
+    prompt.context.segments = segments;
+    prompt.context.trees = trees;
+    prompt.context.nodes = nodes;
 });

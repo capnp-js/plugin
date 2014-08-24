@@ -6,6 +6,7 @@
   "scripts": {
     "test": "./node_modules/.bin/gulp ci",
     "build": "./node_modules/.bin/gulp build",
+    "rebuild": "npm run clean && npm run build",
     "clean": "./node_modules/.bin/gulp clean"
   },
   "repository": {
@@ -47,6 +48,7 @@
   },
   "dependencies": {
     "base64-js": "0.0.7",
+    "buffers": "^0.1.1",
     "text-encoding": "0.0.0",
     "traverse": "^0.6.6",
     "when": "^3.1.0"
