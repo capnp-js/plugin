@@ -168,6 +168,7 @@
 
                     if (position < this._pointersSection) {
                         return decode.fields.bool(
+                            {.defaultValue},
                             this._segment,
                             position,
                             {@boolMask offset=.offset/}
