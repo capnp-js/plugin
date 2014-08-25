@@ -3,7 +3,7 @@
     var Structure =
         {^.meta}
             {! Group case !}
-            decode.structure();
+            reader.structure();
         {:else}
             {@eq key=.meta value="struct"}
                 scope['{.id}'];
@@ -26,7 +26,7 @@
 
     {?.discriminantCount}
         {@gt key=.discriminantCount value=0}
-            var discriminant = decode.fields.uint16;
+            var discriminant = reader.fields.uint16;
             Structure.prototype.which = function () {
                 var position = this._dataSection +
                     {@math key=.discriminantOffset method="multiply" operand="2"/};
@@ -64,7 +64,7 @@
                     var position = this._pointersSection +
                         {@math key=.offset method="multiply" operand="8"/};
 
-                    if (position < this._end && !decode.isNull(this._segment, position)) {
+                    if (position < this._end && !reader.isNull(this._segment, position)) {
                         return Structure_{@fieldGetter name=.name/}.deref(
                             this._segments,
                             this._segment,
@@ -91,7 +91,7 @@
                     var position = this._pointersSection +
                         {@math key=.offset method="multiply" operand="8"/};
 
-                    if (position < this._end && !decode.isNull(this._segment, position)) {
+                    if (position < this._end && !reader.isNull(this._segment, position)) {
                         return List_{@fieldGetter name=.name/}.deref(
                             this._segments,
                             this._segment,
@@ -107,7 +107,7 @@
                 };
             {/eq}
 
-            {@eq key=.meta value="enum"}{>"readers/dataField" default=.defaultValue decoder="decode.fields.uint16" byteCount="2"/}{/eq}
+            {@eq key=.meta value="enum"}{>"readers/dataField" default=.defaultValue decoder="reader.fields.uint16" byteCount="2"/}{/eq}
         {:else}
             {@eq key=.type value="group"}
                 var Group_{@fieldGetter name=.name/} = {>"readers/structure"/};
@@ -120,7 +120,7 @@
             {@eq key=.type value="Data"}{>"readers/listField"/}{/eq}
             {@eq key=.type value="Text"}{>"readers/listField"/}{/eq}
             {@eq key=.type value="AnyPointer"}
-                var Decode_{@fieldGetter name=.name/} = decode.AnyPointer;
+                var Decode_{@fieldGetter name=.name/} = reader.AnyPointer;
                 var default_{@fieldGetter name=.name/} = ['{@join array=.defaultSegments interpolator="','"/}']
                     .map(function (b64) { return fromBase64(b64); });
 
@@ -167,7 +167,7 @@
                     var position = this._dataSection + {@boolOffset offset=.offset/};
 
                     if (position < this._pointersSection) {
-                        return decode.fields.bool(
+                        return reader.fields.bool(
                             {.defaultValue},
                             this._segment,
                             position,
@@ -179,16 +179,16 @@
                 };
             {/eq}
 
-            {@eq key=.type value="Int8"}{>"readers/dataField"  default=.defaultValue decoder="decode.fields.int8"  byteCount="1"/}{/eq}
-            {@eq key=.type value="Int16"}{>"readers/dataField" default=.defaultValue decoder="decode.fields.int16" byteCount="2"/}{/eq}
-            {@eq key=.type value="Int32"}{>"readers/dataField" default=.defaultValue decoder="decode.fields.int32" byteCount="4"/}{/eq}
-            {@eq key=.type value="Int64"}{>"readers/dataField" default=.defaultValue decoder="decode.fields.int64" byteCount="8"/}{/eq}
-            {@eq key=.type value="UInt8"}{>"readers/dataField"  default=.defaultValue decoder="decode.fields.uint8"  byteCount="1"/}{/eq}
-            {@eq key=.type value="UInt16"}{>"readers/dataField" default=.defaultValue decoder="decode.fields.uint16" byteCount="2"/}{/eq}
-            {@eq key=.type value="UInt32"}{>"readers/dataField" default=.defaultValue decoder="decode.fields.uint32" byteCount="4"/}{/eq}
-            {@eq key=.type value="UInt64"}{>"readers/dataField" default=.defaultValue decoder="decode.fields.uint64" byteCount="8"/}{/eq}
-            {@eq key=.type value="Float32"}{>"readers/floatField" decoder="decode.fields.float32" byteCount="4"/}{/eq}
-            {@eq key=.type value="Float64"}{>"readers/floatField" decoder="decode.fields.float64" byteCount="8"/}{/eq}
+            {@eq key=.type value="Int8"}{>"readers/dataField"  default=.defaultValue decoder="reader.fields.int8"  byteCount="1"/}{/eq}
+            {@eq key=.type value="Int16"}{>"readers/dataField" default=.defaultValue decoder="reader.fields.int16" byteCount="2"/}{/eq}
+            {@eq key=.type value="Int32"}{>"readers/dataField" default=.defaultValue decoder="reader.fields.int32" byteCount="4"/}{/eq}
+            {@eq key=.type value="Int64"}{>"readers/dataField" default=.defaultValue decoder="reader.fields.int64" byteCount="8"/}{/eq}
+            {@eq key=.type value="UInt8"}{>"readers/dataField"  default=.defaultValue decoder="reader.fields.uint8"  byteCount="1"/}{/eq}
+            {@eq key=.type value="UInt16"}{>"readers/dataField" default=.defaultValue decoder="reader.fields.uint16" byteCount="2"/}{/eq}
+            {@eq key=.type value="UInt32"}{>"readers/dataField" default=.defaultValue decoder="reader.fields.uint32" byteCount="4"/}{/eq}
+            {@eq key=.type value="UInt64"}{>"readers/dataField" default=.defaultValue decoder="reader.fields.uint64" byteCount="8"/}{/eq}
+            {@eq key=.type value="Float32"}{>"readers/floatField" decoder="reader.fields.float32" byteCount="4"/}{/eq}
+            {@eq key=.type value="Float64"}{>"readers/floatField" decoder="reader.fields.float64" byteCount="8"/}{/eq}
         {/.meta}
     {/.fields}
 

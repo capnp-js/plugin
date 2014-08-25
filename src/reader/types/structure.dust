@@ -1,5 +1,5 @@
 {@eq key=.meta value="struct"}
-    types['{.id}'] = decode.structure();
+    types['{.id}'] = reader.structure();
 
     {#.nodes}
         {>"types/structure"/}

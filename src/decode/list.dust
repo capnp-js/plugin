@@ -1,9 +1,0 @@
-{?.type.meta}
-    {#.type}
-        {! Update context for recursion. !}
-        {@eq key=.meta value="list"}decode.lists.pointer({>list/}){/eq}
-        {@eq key=.meta value="struct"}decode.lists.structure(scope['{.id}']){/eq}
-    {/.type}
-{:else}
-    decode.lists.{.type}
-{/.type.meta}

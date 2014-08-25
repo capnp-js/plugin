@@ -22,35 +22,35 @@ gulp.task('watch', function () {
     gulp.watch([
          'src/template/decode/**/*',
         '!src/template/decode/script{,/**}'
-    ], ['decode']);
+    ], ['reader']);
 });
 
 gulp.task('build', ['cgr', 'context']);
 
-gulp.task('decode', ['buildDecode'], function () {
-    return gulp.src('src/decode/script/**/*.js')
+gulp.task('reader', ['buildReader'], function () {
+    return gulp.src('src/reader/script/**/*.js')
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
-        .pipe(gulp.dest('lib/decode'));
+        .pipe(gulp.dest('lib/reader'));
 });
 
-gulp.task('buildDecode', function () {
-    return gulp.src('src/decode/gulpfile.js', { read : false })
+gulp.task('buildReader', function () {
+    return gulp.src('src/reader/gulpfile.js', { read : false })
         .pipe(chug({ tasks : ['build'] }))
 });
 
 //gulp.task('ci', function () {
-//    return gulp.src('./src/decode/gulpfile.js', { read : false })
+//    return gulp.src('./src/reader/gulpfile.js', { read : false })
 //        .pipe(chug({ tasks : ['ci'] }));
 //});
 
-gulp.task('clean', ['cleanDecode'], function () {
+gulp.task('clean', ['cleanReader'], function () {
     return gulp.src('lib', { read : false })
         .pipe(clean());
 });
 
-gulp.task('cleanDecode', function () {
-    return gulp.src('src/decode/gulpfile.js')
+gulp.task('cleanReader', function () {
+    return gulp.src('src/reader/gulpfile.js')
         .pipe(chug({ tasks : ['clean'] }))
 });
 
@@ -59,10 +59,10 @@ gulp.task('cgr', ['types', 'scope', 'constants', 'readers']);
 gulp.task('nonscope', ['types', 'constants', 'readers']);
 
 ['constants', 'readers', 'types'].forEach(function (processor) {
-    gulp.task(processor, ['decode'], function () {
+    gulp.task(processor, ['reader'], function () {
         return gulp.src('schema/nodes.json')
             .pipe(render(
-                require('./lib/decode/' + processor)
+                require('./lib/reader/' + processor)
             ))
             .pipe(uglify())
             .pipe(rename(processor+'.js'))
@@ -73,10 +73,10 @@ gulp.task('nonscope', ['types', 'constants', 'readers']);
     });
 });
 
-gulp.task('scope', ['decode'], function () {
+gulp.task('scope', ['reader'], function () {
     return gulp.src('schema/files.json')
         .pipe(render(
-            require('./lib/decode/scope')
+            require('./lib/reader/scope')
         ))
         .pipe(uglify())
         .pipe(rename('scope.js'))

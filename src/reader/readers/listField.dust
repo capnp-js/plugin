@@ -1,4 +1,4 @@
-var Decode_{@fieldGetter name=.name/} = decode.lists.{.type};
+var Decode_{@fieldGetter name=.name/} = reader.lists.{.type};
 var default_{@fieldGetter name=.name/} = ['{@join array=.defaultSegments interpolator="','"/}']
     .map(function (b64) { return fromBase64(b64); });
 
@@ -8,7 +8,7 @@ Structure.prototype.{@fieldGetter name=.name/} = function () {
     var position = this._pointersSection +
         {@math key=.offset method="multiply" operand="8"/};
 
-    if (position < this._end && !decode.isNull(this._segment, position)) {
+    if (position < this._end && !reader.isNull(this._segment, position)) {
         return Decode_{@fieldGetter name=.name/}.deref(
             this._segments,
             this._segment,

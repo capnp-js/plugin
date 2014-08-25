@@ -1,0 +1,9 @@
+{?.type.meta}
+    {#.type}
+        {! Update context for recursion. !}
+        {@eq key=.meta value="list"}reader.lists.pointer({>list/}){/eq}
+        {@eq key=.meta value="struct"}reader.lists.structure(scope['{.id}']){/eq}
+    {/.type}
+{:else}
+    reader.lists.{.type}
+{/.type.meta}
