@@ -1,5 +1,3 @@
-var decoder_{@fieldGetter name=.name/} = {decoder};
-
 Structure.prototype.{@fieldGetter name=.name/} = function () {
     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
 
@@ -7,7 +5,7 @@ Structure.prototype.{@fieldGetter name=.name/} = function () {
         {@math key=.offset method="multiply" operand=byteCount/};
 
     if (position < this._pointersSection) {
-        return decoder_{@fieldGetter name=.name/}({default}, this._segment, position);
+        return {decoder}({default}, this._segment, position);
     } else {
         return {default};
     }
