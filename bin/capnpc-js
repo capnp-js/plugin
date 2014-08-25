@@ -29,20 +29,24 @@ capnp.stdout.on('readable', function() {
     }
 });
 
-var segments = [];
 capnp.stdout.on('end', function() {
     var CGR = require('../lib/cgr/readers');
     var context = require('../lib/context');
+
+    var segments = [];
     for (var i=0; i<sizes.length; ++i) {
         segments.push(new Uint8Array(buffers.slice(start, start+sizes[i])));
         start += sizes[i];
     }
 
+    var Arena = require('capnp-js/arena').Reader;
+    var arena = new Arena(segments, +Infinity, +Infinity);
+
     if (start !== buffers.length) {
         throw new Error('All data has not been included');
     }
 
-    var request = CGR.CodeGeneratorRequest.deref(segments, segments[0], 0);
+    var request = CGR.CodeGeneratorRequest.deref(arena, 0, arena.getSegment(0), 0);
 
     var files = request.getRequestedFiles();
     var nodes = request.getNodes();
