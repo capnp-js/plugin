@@ -15,8 +15,10 @@ The following strategy resolves circular references by populating prototypes as 
 * `[filename+extension].d/constants.js`: Hash: (id ↦ Constant) to lookup constants that are local to the file's scope.
   These data could get included under `scope.js`, but would require that the current contents of `scope.js` were populated first.
   Similarly, these data could get included under `readers.js`, but `readers.js` would require that the contents of `constants.js` were populated first.
-* `[filename+extension].d/readers.js`: Javascript implementation of `[filename+extension]`.
+* `[filename+extension].d/readers.js`: Javascript implementation of readers for `[filename+extension]`.
   This file exposes types by pet-name and populates prototypes.
+* `[filename+extension].d/builders.js`: Javascript implementation of builders for `[filename+extension]`.
+* `[filename+extension].js`: Exposes `readers` and `builders` modules for `[filename+extension]`.
 
 AMD Use Case
 ------------
