@@ -1,4 +1,4 @@
-define(['capnp-js/reader'], function (decode) {
+define(['capnp-js/reader'], function (reader) {
 
     var types = {};
 

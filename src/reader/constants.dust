@@ -1,4 +1,4 @@
-define(['capnp-js/decode', './scope'], function (decode, scope) {
+define(['./scope'], function (scope) {
 
     var constants = {};
 
