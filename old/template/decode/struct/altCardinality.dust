@@ -1,4 +1,0 @@
-(({segment}[{start} - 8] >>> 2) +
- ({segment}[{start} - 7] <<  6) +
- ({segment}[{start} - 6] << 14) +
- ({segment}[{start} - 5] << 22))

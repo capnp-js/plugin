@@ -1,2 +1,0 @@
-((({segment}[{pointer} + 6] >>> 0) <<  3) +
-  ({segment}[{pointer} + 7]        << 11))

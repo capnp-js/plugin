@@ -1,8 +1,0 @@
-{bytesV}[{baseIndex}] = (6 >>> 0) + ({offset} & 0x000000f8);
-{bytesV}[{baseIndex}+1] =           ({offset} & 0x0000ff00) >>> 8;
-{bytesV}[{baseIndex}+2] =           ({offset} & 0x00ff0000) >>> 16;
-{bytesV}[{baseIndex}+3] =           ({offset} & 0xff000000) >>> 24;
-{bytesV}[{baseIndex}+4] = ({sid} & 0x000000ff) >>> 0;
-{bytesV}[{baseIndex}+5] = ({sid} & 0x0000ff00) >>> 8;
-{bytesV}[{baseIndex}+6] = ({sid} & 0x00ff0000) >>> 16;
-{bytesV}[{baseIndex}+7] = ({sid} & 0xff000000) >>> 24;
