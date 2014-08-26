@@ -76,6 +76,12 @@ dust.helpers.fieldGetter = function (chunk, context, bodies, params) {
     return chunk.write(prependCamel('get', text));
 };
 
+dust.helpers.fieldHaser = function (chunk, context, bodies, params) {
+    /* {@fieldHaser name="xyzAsdf"/} -> hasXyzAsdf */
+    var text = dust.helpers.tap(params.name, chunk, context);
+    return chunk.write(prependCamel('has', text));
+};
+
 dust.helpers.assert = function (chunk, context, bodies, params) {
     var value = dust.helpers.tap(params.value, chunk, context);
     var expect = dust.helpers.tap(params.expect, chunk, context);

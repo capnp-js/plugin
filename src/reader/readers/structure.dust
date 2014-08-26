@@ -53,6 +53,7 @@
         {/ne}
 
         {?.defaultSegments}
+            {! There exists a default pointer type !}
             var default_{@fieldGetter name=.name/} = new Arena(
                 ['{@join array=.defaultSegments interpolator="','"/}']
                     .map(function (b64) { return fromBase64(b64); }),
@@ -62,9 +63,17 @@
         {/.defaultSegments}
 
         {?.meta}
-            {@eq key=.meta value="struct"}
-                var Structure_{@fieldGetter name=.name/} = scope['{.id}'];
-                default_{@fieldGetter name=.name/} = Structure_{@fieldGetter name=.name/}.deref(
+            {@eq key=.meta value="enum"}
+                {>"readers/dataField" default=.defaultValue decoder="reader.fields.uint16" byteCount="2"/}
+            {:else}
+                {@eq key=.meta value="struct"}
+                    var Decode_{@fieldGetter name=.name/} = scope['{.id}'];
+                {/eq}
+                {@eq key=.meta value="list"}
+                    var Decode_{@fieldGetter name=.name/} = {>list/};
+                {/eq}
+
+                default_{@fieldGetter name=.name/} = Decode_{@fieldGetter name=.name/}.deref(
                     default_{@fieldGetter name=.name/},
                     0,
                     default_{@fieldGetter name=.name/}.getSegment({.defaultSegment}),
@@ -78,7 +87,7 @@
                         {@math key=.offset method="multiply" operand="8"/};
 
                     if (position < this._end && !reader.isNull(this._segment, position)) {
-                        return Structure_{@fieldGetter name=.name/}.deref(
+                        return Decode_{@fieldGetter name=.name/}.deref(
                             this._arena,
                             this._depth + 1,
                             this._segment,
@@ -88,37 +97,16 @@
                         return default_{@fieldGetter name=.name/};
                     }
                 };
-            {/eq}
 
-            {@eq key=.meta value="list"}
-                var List_{@fieldGetter name=.name/} = {>list/};
-                default_{@fieldGetter name=.name/} = List_{@fieldGetter name=.name/}.deref(
-                    default_{@fieldGetter name=.name/},
-                    0,
-                    default_{@fieldGetter name=.name/}.getSegment({.defaultSegment}),
-                    {.defaultPosition}
-                );
-
-                Structure.prototype.{@fieldGetter name=.name/} = function () {
+                Structure.prototype.{@fieldHaser name=.name/} = function () {
                     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
 
                     var position = this._pointersSection +
                         {@math key=.offset method="multiply" operand="8"/};
 
-                    if (position < this._end && !reader.isNull(this._segment, position)) {
-                        return List_{@fieldGetter name=.name/}.deref(
-                            this._arena,
-                            this._depth + 1,
-                            this._segment,
-                            position
-                        );
-                    } else {
-                        return default_{@fieldGetter name=.name/};
-                    }
+                    return position < this._end && !reader.isNull(this._segment, position);
                 };
             {/eq}
-
-            {@eq key=.meta value="enum"}{>"readers/dataField" default=.defaultValue decoder="reader.fields.uint16" byteCount="2"/}{/eq}
         {:else}
             {@eq key=.type value="group"}
                 var Group_{@fieldGetter name=.name/} = {>"readers/structure"/};
