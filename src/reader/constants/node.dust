@@ -1,35 +1,48 @@
 {@eq key=.meta value="const"}
     {#.datum constId=.id}
+        {?.segments}
+            var arena_{constId} = new Arena(
+                ['{@join array=.segments interpolator="','"/}']
+                    .map(function (b64) { return fromBase64(b64); }),
+                +Infinity,
+                +Infinity
+            );
+        {/.segments}
+
         {?.meta}
             {@eq key=.meta value="struct"}
                 constants['{constId}'] = scope['{.id}'].deref(
-                    {.segments},
-                    {.segments}[{.segment}],
+                    arena_{constId},
+                    0,
+                    arena_{constId}.getSegment({.segment}),
                     {.position}
                 );
             {/eq}
 
             {@eq key=.meta value="list"}
                 constants['{constId}'] = ({>list/}).deref(
-                    {.segments},
-                    {.segments}[{.segment}],
+                    arena_{constId},
+                    0,
+                    arena_{constId}.getSegment({.segment}),
                     {.position}
                 );
             {/eq}
         {:else}
             {@eq key=.type value="Text"}
                 constants['{constId}'] = ({>list/}).deref(
-                    {segments},
-                    {segments}[{segment}],
-                    {position}
+                    arena_{constId},
+                    0,
+                    arena_{constId}.getSegment({.segment}),
+                    {.position}
                 );
             {/eq}
 
             {@eq key=.type value="Data"}
                 constants['{constId}'] = ({>list/}).deref(
-                    {segments},
-                    {segments}[{segment}],
-                    {position}
+                    arena_{constId},
+                    0,
+                    arena_{constId}.getSegment({.segment}),
+                    {.position}
                 );
             {/eq}
 
