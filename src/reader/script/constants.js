@@ -1,8 +1,5 @@
 var when = require('when/node');
-var dust = require('dustjs-helpers');
-
-// Add helpers to Dust
-require('../../helpers');
+var dust = require('capnp-js-plugin-dust');
 
 // Load precompiled templates.
 require('./templates');

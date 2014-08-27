@@ -25,8 +25,6 @@
   "devDependencies": {
     "bitstring": "^1.0.0",
     "chance": "^0.5.6",
-    "dustjs-helpers": "^1.2.0",
-    "dustjs-linkedin": "^2.4.0",
     "exec-sync": "^0.1.6",
     "gulp": "^3.8.7",
     "gulp-chug": "^0.3.0",
@@ -49,6 +47,7 @@
   "dependencies": {
     "base64-js": "0.0.7",
     "buffers": "^0.1.1",
+    "dustjs-linkedin": "^2.4.0",
     "text-encoding": "0.0.0",
     "traverse": "^0.6.6",
     "when": "^3.1.0"
