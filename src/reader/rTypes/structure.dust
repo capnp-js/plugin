@@ -1,7 +1,0 @@
-{@eq key=.meta value="struct"}
-    types['{.id}'] = reader.structure();
-
-    {#.nodes}
-        {>"rTypes/structure"/}
-    {/.nodes}
-{/eq}

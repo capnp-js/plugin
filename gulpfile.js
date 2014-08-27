@@ -41,8 +41,13 @@ gulp.task('builder', ['buildBuilder'], function () {
         .pipe(gulp.dest('lib/builder'));
 });
 
-gulp.task('buildReader', function () {
+gulp.task('buildReader', ['sharedTemplates'], function () {
     return gulp.src('src/reader/gulpfile.js', { read : false })
+        .pipe(chug({ tasks : ['build'] }))
+});
+
+gulp.task('buildBuilder', ['sharedTemplates'], function () {
+    return gulp.src('src/builder/gulpfile.js', { read : false })
         .pipe(chug({ tasks : ['build'] }))
 });
 
@@ -59,6 +64,15 @@ gulp.task('clean', ['cleanReader'], function () {
 gulp.task('cleanReader', function () {
     return gulp.src('src/reader/gulpfile.js')
         .pipe(chug({ tasks : ['clean'] }))
+});
+
+gulp.task('sharedTemplates', function () {
+    return gulp.src('./src/shared/**/*.dust')
+        .pipe(rename({ extname : "" }))
+        .pipe(compile({ preserveWhitespace : false }))
+        .pipe(concat('templates.js'))
+        .pipe(insert.prepend('var dust = require("capnp-js-plugin-dust");'))
+        .pipe(gulp.dest('./src'));
 });
 
 gulp.task('cgr', ['rTypes', 'rScope', 'constants', 'readers']);
