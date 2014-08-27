@@ -8,5 +8,5 @@ require('../../helpers');
 require('./templates');
 
 module.exports = function (context) {
-    return when.lift(dust.render)('types', context);
+    return when.lift(dust.render)('rTypes', context);
 };

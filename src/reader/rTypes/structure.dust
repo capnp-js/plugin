@@ -2,6 +2,6 @@
     types['{.id}'] = reader.structure();
 
     {#.nodes}
-        {>"types/structure"/}
+        {>"rTypes/structure"/}
     {/.nodes}
 {/eq}

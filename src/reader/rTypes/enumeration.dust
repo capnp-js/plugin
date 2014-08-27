@@ -9,7 +9,7 @@
 {?recurTarget}
     {@eq key=.meta value=recurTarget}
         {#.nodes}
-            {>"types/enumeration" recurTarget=recurTarget/}
+            {>"rTypes/enumeration" recurTarget=recurTarget/}
         {/.nodes}
     {/eq}
 {/recurTarget}
