@@ -34,6 +34,13 @@ gulp.task('reader', ['buildReader'], function () {
         .pipe(gulp.dest('lib/reader'));
 });
 
+gulp.task('builder', ['buildBuilder'], function () {
+    return gulp.src('src/builder/script/**/*.js')
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(gulp.dest('lib/builder'));
+});
+
 gulp.task('buildReader', function () {
     return gulp.src('src/reader/gulpfile.js', { read : false })
         .pipe(chug({ tasks : ['build'] }))
@@ -54,11 +61,11 @@ gulp.task('cleanReader', function () {
         .pipe(chug({ tasks : ['clean'] }))
 });
 
-gulp.task('cgr', ['types', 'scope', 'constants', 'readers']);
+gulp.task('cgr', ['rTypes', 'rScope', 'constants', 'readers']);
 
-gulp.task('nonscope', ['types', 'constants', 'readers']);
+gulp.task('nonscope', ['rTypes', 'constants', 'readers']);
 
-['constants', 'readers', 'types'].forEach(function (processor) {
+['constants', 'readers', 'rTypes'].forEach(function (processor) {
     gulp.task(processor, ['reader'], function () {
         return gulp.src('schema/nodes.json')
             .pipe(render(
@@ -73,13 +80,28 @@ gulp.task('nonscope', ['types', 'constants', 'readers']);
     });
 });
 
-gulp.task('scope', ['reader'], function () {
+['builders', 'bTypes'].forEach(function (processor) {
+    gulp.task(processor, ['builder'], function () {
+        return gulp.src('schema/nodes.json')
+            .pipe(render(
+                require('./lib/builder/' + processor)
+            ))
+            .pipe(uglify())
+            .pipe(rename(processor+'.js'))
+            .pipe(jshint())
+            .pipe(jshint.reporter('default'))
+            .pipe(nodefy())
+            .pipe(gulp.dest('lib/cgr'));
+    });
+});
+
+gulp.task('rScope', ['reader'], function () {
     return gulp.src('schema/files.json')
         .pipe(render(
-            require('./lib/reader/scope')
+            require('./lib/reader/rScope')
         ))
         .pipe(uglify())
-        .pipe(rename('scope.js'))
+        .pipe(rename('rScope.js'))
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
         .pipe(nodefy())
