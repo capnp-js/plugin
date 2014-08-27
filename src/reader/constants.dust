@@ -1,5 +1,5 @@
-define(['capnp-js/reader/Arena', './scope'], function (
-                         Arena,     scope) {
+define(['capnp-js/reader/Arena', './rScope'], function (
+                         Arena,      scope) {
 
     var constants = {};
 

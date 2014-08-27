@@ -1,5 +1,5 @@
-define(['./types'{?.files},{/.files}{! {#.files}'../{.name}.d/types'{/.files}{@sep}, {/sep} !}], function (
-           types {?.files},{/.files} {! {#.files}file{.id}{/.files}{@sep}, {/sep}!}) {
+define(['./rTypes'{?.files},{/.files}{! {#.files}'../{.name}.d/rTypes'{/.files}{@sep}, {/sep} !}], function (
+            types {?.files},{/.files} {! {#.files}file{.id}{/.files}{@sep}, {/sep}!}) {
 
     {!
      ! Every member of the `resources` fields gets incorporated into this file's

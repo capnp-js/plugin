@@ -8,5 +8,5 @@ require('../../helpers');
 require('./templates');
 
 module.exports = function (context) {
-    return when.lift(dust.render)('scope', context);
+    return when.lift(dust.render)('rScope', context);
 };
