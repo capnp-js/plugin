@@ -2,7 +2,7 @@ var when = require('when/node');
 var dust = require('dustjs-helpers');
 
 // Add helpers to Dust
-require('./helpers');
+require('../../helpers');
 
 // Load precompiled templates.
 require('./templates');
