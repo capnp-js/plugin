@@ -1,5 +1,5 @@
-define(['capnp-js/reader/Arena', 'capnp-js/reader/fromBase64', 'capnp-js/reader', './scope', './constants'], function (
-                         Arena,                   fromBase64,            reader,     scope,     constants) {
+define(['capnp-js/reader/Arena', 'capnp-js/reader/fromBase64', 'capnp-js/reader/index', './scope', './constants'], function (
+                         Arena,                   fromBase64,            reader,           scope,     constants) {
 
     {!
      ! TODO: Bring in the `readers.js` files from other directories that contain
