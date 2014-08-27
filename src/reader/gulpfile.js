@@ -29,7 +29,7 @@ gulp.task('build', ['precompile']);
 //gulp.task('ci', ['test', 'build']);
 
 gulp.task('clean', function () {
-    return gulp.src(['./script/templates.js'], {read : false})
+    return gulp.src(['script/templates.js'], {read : false})
         .pipe(clean());
 });
 
@@ -42,16 +42,16 @@ gulp.task('test', ['build'], function () {
 
 gulp.task('watch', function () {
     gulp.watch([
-        './**/*.dust',
-        './script/**/*.js'
+        '**/*.dust',
+        'script/**/*.js'
     ], ['precompile']);
 });
 
 gulp.task('precompile', function () {
-    return gulp.src('./**/*.dust')
+    return gulp.src('**/*.dust')
         .pipe(rename({ extname : "" }))
         .pipe(compile({ preserveWhitespace : false }))
         .pipe(concat('templates.js'))
         .pipe(insert.prepend('var dust = require("capnp-js-plugin-dust");'))
-        .pipe(gulp.dest('./script/'));
+        .pipe(gulp.dest('script/'));
 });

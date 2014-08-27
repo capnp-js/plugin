@@ -2,6 +2,9 @@ var gulp = require('gulp');
 
 var chug = require('gulp-chug');
 var clean = require('gulp-rimraf');
+var compile = require('gulp-dust');
+var concat = require('gulp-concat');
+var insert = require('gulp-insert');
 var jshint = require('gulp-jshint');
 var nodefy = require('gulp-nodefy');
 var rename = require('gulp-rename');
@@ -57,7 +60,11 @@ gulp.task('buildBuilder', ['sharedTemplates'], function () {
 //});
 
 gulp.task('clean', ['cleanReader'], function () {
-    return gulp.src('lib', { read : false })
+    return gulp.src([
+        'lib',
+        'src/reader/script/sharedTemplates',
+        'src/builder/script/sharedTemplates'
+    ], { read : false })
         .pipe(clean());
 });
 
@@ -67,12 +74,13 @@ gulp.task('cleanReader', function () {
 });
 
 gulp.task('sharedTemplates', function () {
-    return gulp.src('./src/shared/**/*.dust')
+    return gulp.src('src/shared/**/*.dust')
         .pipe(rename({ extname : "" }))
         .pipe(compile({ preserveWhitespace : false }))
-        .pipe(concat('templates.js'))
+        .pipe(concat('sharedTemplates.js'))
         .pipe(insert.prepend('var dust = require("capnp-js-plugin-dust");'))
-        .pipe(gulp.dest('./src'));
+        .pipe(gulp.dest('src/reader/script'))
+        .pipe(gulp.dest('src/builder/script'));
 });
 
 gulp.task('cgr', ['rTypes', 'rScope', 'constants', 'readers']);
