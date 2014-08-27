@@ -51,7 +51,7 @@ gulp.task('precompile', function () {
     return gulp.src('**/*.dust')
         .pipe(rename({ extname : "" }))
         .pipe(compile({ preserveWhitespace : false }))
-        .pipe(concat('templates.js'))
+        .pipe(concat('rTemplates.js'))
         .pipe(insert.prepend('var dust = require("capnp-js-plugin-dust");'))
         .pipe(gulp.dest('script/'));
 });

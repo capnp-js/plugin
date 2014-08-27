@@ -2,7 +2,7 @@ var when = require('when/node');
 var dust = require('capnp-js-plugin-dust');
 
 // Load precompiled templates.
-require('./templates');
+require('./rTemplates');
 require('./sharedTemplates');
 
 module.exports = function (context) {
