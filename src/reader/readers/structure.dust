@@ -26,13 +26,12 @@
 
     {?.discriminantCount}
         {@gt key=.discriminantCount value=0}
-            var discriminant = reader.fields.uint16;
             Structure.prototype.which = function () {
                 var position = this._dataSection +
                     {@math key=.discriminantOffset method="multiply" operand="2"/};
 
                 if (position < this._pointersSection) {
-                    return discriminant(
+                    return reader.fields.uint16(
                         0,
                         this._segment,
                         position
@@ -54,7 +53,7 @@
 
         {?.defaultSegments}
             {! There exists a default pointer type !}
-            var default_{@fieldGetter name=.name/} = new Arena(
+            var defaultArena_{@fieldGetter name=.name/} = new Arena(
                 ['{@join array=.defaultSegments interpolator="','"/}']
                     .map(function (b64) { return fromBase64(b64); }),
                 +Infinity,
@@ -73,12 +72,16 @@
                     var Decode_{@fieldGetter name=.name/} = {>list/};
                 {/eq}
 
-                default_{@fieldGetter name=.name/} = Decode_{@fieldGetter name=.name/}.deref(
-                    default_{@fieldGetter name=.name/},
-                    0,
-                    default_{@fieldGetter name=.name/}.getSegment({.defaultSegment}),
-                    {.defaultPosition}
+                var default_{@fieldGetter name=.name/} = Decode_{@fieldGetter name=.name/}.deref(
+                    defaultArena_{@fieldGetter name=.name/},
+                    {
+                        segment : defaultArena_{@fieldGetter name=.name/}.getSegment({.defaultSegment}),
+                        position : {.defaultPosition}
+                    },
+                    0
                 );
+
+                Structure._default_{@fieldGetter name=.name/} = default_{@fieldGetter name=.name/};
 
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
@@ -89,9 +92,11 @@
                     if (position < this._end && !reader.isNull(this._segment, position)) {
                         return Decode_{@fieldGetter name=.name/}.deref(
                             this._arena,
-                            this._depth + 1,
-                            this._segment,
-                            position
+                            {
+                                segment : this._segment,
+                                position : position
+                            },
+                            this._depth + 1
                         );
                     } else {
                         return default_{@fieldGetter name=.name/};
@@ -110,6 +115,7 @@
         {:else}
             {@eq key=.type value="group"}
                 var Group_{@fieldGetter name=.name/} = {>"readers/structure"/};
+
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
 
@@ -120,11 +126,13 @@
             {@eq key=.type value="Text"}{>"readers/listField"/}{/eq}
             {@eq key=.type value="AnyPointer"}
                 var Decode_{@fieldGetter name=.name/} = reader.AnyPointer;
-                default_{@fieldGetter name=.name/} = Decode_{@fieldGetter name=.name/}.deref(
-                    default_{@fieldGetter name=.name/},
-                    0,
-                    default_{@fieldGetter name=.name/}.getSegment({.defaultSegment}),
-                    {.defaultPosition}
+                var default_{@fieldGetter name=.name/} = Decode_{@fieldGetter name=.name/}.deref(
+                    defaultArena_{@fieldGetter name=.name/},
+                    {
+                        segment : defaultArena_{@fieldGetter name=.name/}.getSegment({.defaultSegment}),
+                        position : {.defaultPosition}
+                    },
+                    0
                 );
 
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
@@ -142,9 +150,11 @@
                          !}
                         return Decode_{@fieldGetter name=.name/}.deref(
                             this._arena,
-                            this._depth + 1,
-                            this._segment,
-                            position
+                            {
+                                segment : this._segment,
+                                position : position
+                            },
+                            this._depth + 1
                         );
                     } else {
                         return default_{@fieldGetter name=.name/};

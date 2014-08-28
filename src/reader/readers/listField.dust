@@ -1,10 +1,15 @@
 var Decode_{@fieldGetter name=.name/} = reader.lists.{.type};
-default_{@fieldGetter name=.name/} = Decode_{@fieldGetter name=.name/}.deref(
-    default_{@fieldGetter name=.name/},
-    0,
-    default_{@fieldGetter name=.name/}.getSegment({.defaultSegment}),
-    {.defaultPosition}
+
+var default_{@fieldGetter name=.name/} = Decode_{@fieldGetter name=.name/}.deref(
+    defaultArena_{@fieldGetter name=.name/},
+    {
+        segment : defaultArena_{@fieldGetter name=.name/}.getSegment({.defaultSegment}),
+        position : {.defaultPosition}
+    },
+    0
 );
+
+Structure._default_{@fieldGetter name=.name/} = default_{@fieldGetter name=.name/};
 
 Structure.prototype.{@fieldGetter name=.name/} = function () {
     {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
@@ -15,9 +20,11 @@ Structure.prototype.{@fieldGetter name=.name/} = function () {
     if (position < this._end && !reader.isNull(this._segment, position)) {
         return Decode_{@fieldGetter name=.name/}.deref(
             this._arena,
-            this._depth + 1,
-            this._segment,
-            position
+            {
+                segment : this._segment,
+                position : position
+            },
+            this._depth + 1
         );
     } else {
         return default_{@fieldGetter name=.name/};
