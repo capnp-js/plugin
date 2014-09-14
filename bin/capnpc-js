@@ -1,21 +1,22 @@
 #!/usr/bin/env node
 
+var fs = require('fs');
 var path = require('path');
-var spawn = require('child_process').spawn;
+//var spawn = require('child_process').spawn;
 var Buffers = require('buffers');
 var render = require('../index');
 
-var file = process.argv[process.argv.length-1];
-var capnp = spawn('capnpc', ['-ocat', path.resolve(file)]);
+//var file = process.argv[process.argv.length-1];
+//var capnp = spawn('capnpc', ['-ocat', path.resolve(file)]);
 
 var n;
 var buffers = new Buffers();
 var sizes=[];
 var start;
-capnp.stdout.on('readable', function() {
+process.stdin.on('readable', function() {
     var chunk;
     var segment;
-    while (null !== (chunk=capnp.stdout.read())) {
+    while (null !== (chunk=process.stdin.read())) {
         if (n === undefined) {
             n = chunk.readUInt32LE(0) + 1;
             for (var i=0; i<n; ++i) {
@@ -30,7 +31,7 @@ capnp.stdout.on('readable', function() {
     }
 });
 
-capnp.stdout.on('end', function() {
+process.stdin.on('end', function() {
     var CGR = require('../lib/cgr/readers');
     var context = require('../lib/context');
 
@@ -60,12 +61,6 @@ capnp.stdout.on('end', function() {
     var nodes = request.getNodes();
     var trees = files.map(function (f) { return context(f, nodes); });
 
-    var dir = tree.name + '.d';
-
-    // Leave existing permissions unaltered
-    if (!fs.existsSync(dir))
-        fs.mkdirSync(dir, 292); // 100100100 (read-only for all)
-
     var files = [
         'rTypes',
         'rScope',
@@ -77,22 +72,28 @@ capnp.stdout.on('end', function() {
     ];
 
     trees.forEach(function (tree) {
-        for (var file in files) {
-            var filename = dir + '/' + file + '.js';
+        var dir = tree.name + '.d';
 
-            if (fs.existsSync(file)) {
-                process.stderr.write('File already exists: ' + filename + '\n');
-                return;
-            }
+        // Leave existing permissions unaltered
+        if (!fs.existsSync(dir))
+            // 111101101 (rx for all)
+            fs.mkdirSync(dir, 493);
+
+        files.forEach(function (file) {
+            var filename = dir + '/' + file + '.js';
 
             render[file](tree).done(
                 function (rendering) {
+                    if (fs.existsSync(filename))
+                        fs.unlinkSync(filename);
+
+                    // 100100100 (r for all)
                     fs.writeFileSync(filename, rendering, { mode : 292 });
                 },
                 function (err) {
                     process.stderr.write('Dust rendering error: ' + err + '\n');
                 }
             );
-        }
+        });
     });
 });
