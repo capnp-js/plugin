@@ -20,7 +20,7 @@
             {/eq}
 
             {@eq key=.meta value="list"}
-                constants['{constId}'] = ({>list/}).deref(
+                constants['{constId}'] = ({>"readers/list"/}).deref(
                     arena_{constId},
                     0,
                     arena_{constId}.getSegment({.segment}),
@@ -29,7 +29,7 @@
             {/eq}
         {:else}
             {@eq key=.type value="Text"}
-                constants['{constId}'] = ({>list/}).deref(
+                constants['{constId}'] = ({>"readers/list"/}).deref(
                     arena_{constId},
                     0,
                     arena_{constId}.getSegment({.segment}),
@@ -38,7 +38,7 @@
             {/eq}
 
             {@eq key=.type value="Data"}
-                constants['{constId}'] = ({>list/}).deref(
+                constants['{constId}'] = ({>"readers/list"/}).deref(
                     arena_{constId},
                     0,
                     arena_{constId}.getSegment({.segment}),

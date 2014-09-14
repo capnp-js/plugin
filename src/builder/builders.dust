@@ -1,22 +1,29 @@
-define(['capnp-js/primitives', 'capnp-js/structure', './enumerations', './constants', './bImports'], function (
-                  primitives,            structure,     enumerations,     constants,      imports) {
+define(['capnp-js/builder/index', 'capnp-js/reader/index', './rScope', './bScope', './constants', './readers'], function (
+                  builder,                  reader,           rScope,      scope,     constants) {
 
-    var members = {};
+    /*
+     * Loading `readers` guarantees that reader prototypes have been populated.
+     * Imagine using a builder, `b`:  If the underlying data is shared read-only
+     * by `b.asReader()`, then the prototype of this reader would not have been
+     * initialized unless some external code imported `readers`.
+     */
 
-    for (name in constants) {
-        members[name] = constants[name];
-    }
+    {!
+     ! Compiler dumps `./rpc.js` and `./rpcMethods.js.stub` (stubbed out RPC
+     ! methods).  The `./rpcMethods.js` file gets imported by `./rpc.js`.
+     !}
 
-    for (name in enumerations) {
-        members[name] = enumerations[name];
-    }
+    {! Populate prototypes and assign pet-names. !}
 
-    // For struct in structs:
-    members[{name}] = structure({
-        {#.fields}
+    var builders = {};
 
-        {/.fields}
-    });
+    {#.nodes}
+        {@eq key=.meta value="const"}
+            builders.{@constant name=.name/} = {>"builders/node"/};
+        {:else}
+            builders.{.name} = {>"builders/node"/};
+        {/eq}
+    {/.nodes}
 
-    return members;
+    return builders;
 });

@@ -1,0 +1,13 @@
+define(['capnp-js/builder/index'], function (base) {
+
+    var types = {};
+
+    {! Populate id's only--pet-names come later in the pipeline. !}
+
+    {#.nodes}
+        {>"types/structure"/}
+        {>"types/enumeration" recurTarget="struct"/}
+    {/.nodes}
+
+    return types;
+});

@@ -1,0 +1,305 @@
+(function () {
+
+    var Structure =
+        {^.meta}
+            {! Group case !}
+            builder.structure();
+        {:else}
+            {@eq key=.meta value="struct"}
+                scope['{.id}'];
+            {/eq}
+        {/.meta}
+
+    Structure._Reader = rScope['{.id}'];
+    Structure.prototype._defaults = Structure._Reader.prototype._defaults;
+
+    {#.nodes}
+        {@eq key=.meta value="struct"}
+            Structure.{.name} = {>"builders/node"/};
+        {/eq}
+
+        {@eq key=.meta value="enum"}
+            Structure.{.name} = {>"builders/node"/};
+        {/eq}
+
+        {@eq key=.meta value="const"}
+            Structure.prototype.{@constant name=.name/} = Structure.{@constant name=.name/} = {>"builders/node"/};
+        {/eq}
+    {/.nodes}
+
+    {?.discriminantCount}
+        {@gt key=.discriminantCount value=0}
+            Structure.prototype.which = function () {
+                return reader.primitives.uint16(
+                    this._segment,
+                    this._dataSection +
+                        {@math key=.discriminantOffset method="multiply" operand="2"/};
+                );
+            };
+
+            Structure.prototype._setWhich = function (discriminant) {
+                {>"builders/zeroUnion" zero="builder.zero"/}
+
+                var position = this._dataSection +
+                    {@math key=.discriminantOffset method="multiply" operand="2"/};
+
+                builder.primitives.uint16(discriminant, this._segment, position);
+            };
+        {/gt}
+
+    {/.discriminantCount}
+
+    {#.fields}
+        {!
+         ! Policy of upgrading on dereference implies that the parent structure
+         ! has data underlying all of the compile-time positions, so there's no
+         ! need to check bounds on any of the fields.
+         !}
+
+        {@ne key=.discriminantValue value=65535}
+            {! Anonymous union member !}
+            Structure.prototype.{@fieldIser name=.name/} = function () {
+                return this.which() === {.discriminantValue};
+            };
+
+            Structure.prototype.{@constant name=.name/} = {.discriminantValue};
+        {/ne}
+
+        {?.meta}
+            {@eq key=.meta value="enum"}
+                {>"builders/dataField"
+                    default=.defaultValue
+                    decoder="reader.fields"
+                    encoder="builder.fields"
+                    method="uint16"
+                    byteCount="2"/}
+            {:else}
+                {@eq key=.meta value="struct"}
+                    var Builder_{.name} = scope['{.id}'];
+
+                    Structure.prototype.{@fieldIniter name=.name/} = function () {
+                        {>"builders/setDiscriminant"/}
+
+                        var pointer = {
+                            segment : this._segment,
+                            position : this._pointersSection +
+                                {@math key=.offset method="multiply" operand="8"/}
+                        };
+
+                        return Builder_{.name}.init(
+                            this._arena,
+                            pointer,
+                            this._depth + 1
+                        );
+                    };
+                {/eq}
+                {@eq key=.meta value="list"}
+                    var Builder_{.name} = {>"builders/list"/};
+
+                    Structure.prototype.{@fieldIniter name=.name/} = function (cardinality) {
+                        {>"builders/setDiscriminant"/}
+
+                        var pointer = {
+                            segment : this._segment,
+                            position : this._pointersSection +
+                                {@math key=.offset method="multiply" operand="8"/}
+                        };
+
+                        return Builder_{.name}.init(
+                            this._arena,
+                            pointer,
+                            cardinality,
+                            this._depth + 1
+                        );
+                    };
+                {/eq}
+
+                Structure.prototype.{@fieldGetter name=.name/} = function () {
+                    {>throwOnInactive error="Attempted to access an inactive union member"/}
+
+                    var pointer = {
+                        segment : this._segment,
+                        position : this._pointersSection +
+                            {@math key=.offset method="multiply" operand="8"/}
+                    };
+
+                    if (reader.isNull(this._segment, position)) {
+                        builder.copy.pointer.deep(
+                            this._defaults.{.name},
+                            this._arena,
+                            pointer
+                        );
+                    }
+
+                    return Builder_{.name}.deref(
+                        this._arena,
+                        pointer,
+                        this._depth + 1
+                    );
+                };
+
+                Structure.prototype.{@fieldSetter name=.name/} = function (reader) {
+                    {>"builders/setDiscriminant"/}
+
+                    var pointer = {
+                        segment : this._segment,
+                        position : this._pointersSection + 
+                            {@math key=.offset method="multiply" operand="8"/}
+                    };
+
+{! Shouldn't this be a safe version? (if reader._arena !== this._arena) !}
+{! Didn't you forget to record traversal depth for break-on-64? !}
+                    copy.pointer.deep(
+                        reader,
+                        this._arena,
+                        pointer
+                    );
+                };
+
+                Structure.prototype.{@fieldHaser name=.name/} = function () {
+                    {!
+                     ! For union members, field inactivity disqualifies it from
+                     ! is-set status.
+                     !}
+                    var position = this._pointersSection +
+                        {@math key=.offset method="multiply" operand="8"/};
+
+                    return (
+                        {@ne key=.discriminantValue value=65535}
+                            this.{@fieldIser name=.name/}()
+                            &&
+                        {/ne}
+                        !reader.isNull(this._segment, position)
+                    );
+                };
+            {/eq}
+        {:else}
+            {@eq key=.type value="group"}
+                var Group_{.name} = {>"builders/structure"/};
+                Structure.prototype.{@fieldGetter name=.name/} = function () {
+                    {!
+                     ! On getting the parent structure, the underlying fields
+                     ! were already upgraded to the current version if needed,
+                     ! so the data underlying the group is up-to-date (or
+                     ! better).
+                     !}
+
+                    {>throwOnInactive error="Attempted to access an inactive union member"/}
+
+                    return new Group_{@fieldGetter name=.name/}(
+                        this._arena,
+                        this._depth,
+                        this._layout()
+                    );
+                };
+
+                Structure.prototype.{@fieldIniter name=.name/} = function () {
+                    {>"builders/setDiscriminant"/}
+
+                    return new Builder_{.name}(
+                        this._arena,
+                        this._depth + 1,
+                        this._layout()
+                    );
+                };
+            {/eq}
+            {@eq key=.type value="Data"}{>"builders/listField"/}{/eq}
+            {@eq key=.type value="Text"}{>"builders/listField"/}{/eq}
+            {@eq key=.type value="AnyPointer"}
+                Structure.prototype.{@fieldGetter name=.name/} = function () {
+{! TODO: migrate throwOnInactive templates to `shared` !}
+                    {>throwOnInactive error="Attempted to access an inactive union member"/}
+
+                    var pointer = {
+                        segment : this._segment,
+                        position : this._pointersSection +
+                            {@math key=.offset method="multiply" operand="8"/}
+                    };
+
+                    return builder.AnyPointer.deref(
+                        this._arena,
+                        pointer,
+                        this._depth + 1
+                    );
+                };
+
+                Structure.prototype.{@fieldSetter name=.name/} = function (reader) {
+                    {>"builders/setDiscriminant"/}
+
+                    var pointer = {
+                        segment : this._segment,
+                        position : this._pointersSection +
+                            {@math key=.offset method="multiply" operand="8"/}
+                    };
+
+                    if (reader._TYPE === builder.AnyPointer._TYPE) {
+                        builder.copy.pointer.any(
+                            reader._arena,
+                            reader._pointer,
+                            this._arena, pointer
+                        );
+                    } else {
+{! Okay for orphans (?) (constrain even if unnecessary?) (presumably from another arena, since `adopt` would be less expensive) !}
+                        builder.copy.pointer.deep(reader, this._arena, pointer);
+                    }
+                };
+            {/eq}
+
+            {@eq key=.type value="Void"}
+                Structure.prototype.{@fieldGetter name=.name/} = function () {
+                    {>throwOnInactive error="Attempted to access an inactive union member"/}
+
+                    return null;
+                };
+
+                Structure.prototype.{@fieldSetter name=.name/} = function () {
+                    {>"builders/setDiscriminant"/}
+                };
+            {/eq}
+
+            {@eq key=.type value="Bool"}
+                Structure.prototype.{@fieldGetter name=.name/} = function () {
+                    {>throwOnInactive error="Attempted to access an inactive union member"/}
+
+                    var position = this._dataSection + {@boolOffset offset=.offset/};
+
+                    return reader.fields.bool(
+                        {.defaultValue},
+                        this._segment,
+                        position,
+                        {@boolMask offset=.offset/}
+                    );
+                };
+
+                Structure.prototype.{@fieldSetter name=.name/} = function (value) {
+                    {>"builders/setDiscriminant"/}
+
+                    var position = this._dataSection + {@boolOffset offset=.offset/};
+
+                    reader.fields.bool(
+                        value,
+                        {.defaultValue},
+                        this._segment,
+                        position,
+                        {@boolMask offset=.offset/}
+                    );
+                };
+            {/eq}
+
+            {#. decoder="reader.fields" encoder="builder.fields"}
+                {@eq key=.type value="Int8"}{>"builders/dataField"  default=.defaultValue method="int8"  byteCount="1"/}{/eq}
+                {@eq key=.type value="Int16"}{>"builders/dataField" default=.defaultValue method="int16" byteCount="2"/}{/eq}
+                {@eq key=.type value="Int32"}{>"builders/dataField" default=.defaultValue method="int32" byteCount="4"/}{/eq}
+                {@eq key=.type value="Int64"}{>"builders/dataField" default=.defaultValue method="int64" byteCount="8"/}{/eq}
+                {@eq key=.type value="UInt8"}{>"builders/dataField"  default=.defaultValue method="uint8"  byteCount="1"/}{/eq}
+                {@eq key=.type value="UInt16"}{>"builders/dataField" default=.defaultValue method="uint16" byteCount="2"/}{/eq}
+                {@eq key=.type value="UInt32"}{>"builders/dataField" default=.defaultValue method="uint32" byteCount="4"/}{/eq}
+                {@eq key=.type value="UInt64"}{>"builders/dataField" default=.defaultValue method="uint64" byteCount="8"/}{/eq}
+                {@eq key=.type value="Float32"}{>"builders/floatField" method="float32" byteCount="4"/}{/eq}
+                {@eq key=.type value="Float64"}{>"builders/floatField" method="float64" byteCount="8"/}{/eq}
+            {/.}
+        {/.meta}
+    {/.fields}
+
+    return Structure;
+})()

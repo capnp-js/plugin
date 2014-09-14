@@ -1,0 +1,9 @@
+{?.type.meta}
+    {#.type}
+        {! Update context for recursion. !}
+        {@eq key=.meta value="list"}builder.lists.pointer({>"builders/list"/}){/eq}
+        {@eq key=.meta value="struct"}builder.lists.structure(scope['{.id}']){/eq}
+    {/.type}
+{:else}
+    builder.lists.{.type}
+{/.type.meta}

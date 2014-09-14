@@ -3,7 +3,11 @@
     var Structure =
         {^.meta}
             {! Group case !}
-            reader.structure();
+            reader.structure({
+                meta : 0,
+                dataBytes : {@math key=.dataWordCount method="multiply" operand=8/},
+                pointersBytes : {@math key=.pointerCount method="multiply" operand=8/}
+            });
         {:else}
             {@eq key=.meta value="struct"}
                 scope['{.id}'];
@@ -31,11 +35,7 @@
                     {@math key=.discriminantOffset method="multiply" operand="2"/};
 
                 if (position < this._pointersSection) {
-                    return reader.fields.uint16(
-                        0,
-                        this._segment,
-                        position
-                    );
+                    return reader.primitives.uint16(this._segment, position);
                 } else {
                     return 0;
                 }
@@ -43,54 +43,51 @@
         {/gt}
     {/.discriminantCount}
 
+    Structure.prototype._defaults = {};
     {#.fields}
         {@ne key=.discriminantValue value=65535}
-            {! Anonymous union member !}
+            {! Union member !}
+            Structure.{@constant name=.name/} = Structure.prototype.{@constant name=.name/} = {.discriminantValue};
             Structure.prototype.{@fieldIser name=.name/} = function () {
                 return this.which() === {.discriminantValue};
             };
         {/ne}
 
-        {?.defaultSegments}
-            {! There exists a default pointer type !}
-            var defaultArena_{@fieldGetter name=.name/} = new Arena(
-                ['{@join array=.defaultSegments interpolator="','"/}']
-                    .map(function (b64) { return fromBase64(b64); }),
-                +Infinity,
-                +Infinity
-            );
-        {/.defaultSegments}
-
         {?.meta}
             {@eq key=.meta value="enum"}
-                {>"readers/dataField" default=.defaultValue decoder="reader.fields.uint16" byteCount="2"/}
+                {>"readers/dataField" default=.defaultValue decoder="reader.fields" method="uint16" byteCount="2"/}
             {:else}
                 {@eq key=.meta value="struct"}
-                    var Decode_{@fieldGetter name=.name/} = scope['{.id}'];
-                {/eq}
-                {@eq key=.meta value="list"}
-                    var Decode_{@fieldGetter name=.name/} = {>list/};
+                    var Reader_{.name} = scope['{.id}'];
+                    var defaultArena_{.name} = new Arena(
+                        [fromBase64("{.defaultValue}")],
+                        +Infinity,
+                        +Infinity
+                    );
                 {/eq}
 
-                var default_{@fieldGetter name=.name/} = Decode_{@fieldGetter name=.name/}.deref(
-                    defaultArena_{@fieldGetter name=.name/},
+                {@eq key=.meta value="list"}
+                    var Reader_{name} = {>"readers/list"/};
+                    var defaultArena_{.name} = {>"readers/listDefaultArena"/};
+                {/eq}
+
+                Structure.prototype._defaults.{.name} = Reader_{.name}.deref(
+                    defaultArena_{.name},
                     {
-                        segment : defaultArena_{@fieldGetter name=.name/}.getSegment({.defaultSegment}),
-                        position : {.defaultPosition}
+                        segment : defaultArena_{.name}.getSegment(0),
+                        position : 0
                     },
                     0
                 );
 
-                Structure._default_{@fieldGetter name=.name/} = default_{@fieldGetter name=.name/};
-
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
-                    {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
+                    {>throwOnInactive error="Attempted to access an inactive union member"/}
 
                     var position = this._pointersSection +
                         {@math key=.offset method="multiply" operand="8"/};
 
                     if (position < this._end && !reader.isNull(this._segment, position)) {
-                        return Decode_{@fieldGetter name=.name/}.deref(
+                        return Reader_{.name}.deref(
                             this._arena,
                             {
                                 segment : this._segment,
@@ -99,12 +96,12 @@
                             this._depth + 1
                         );
                     } else {
-                        return default_{@fieldGetter name=.name/};
+                        return this._defaults.{.name};
                     }
                 };
 
                 Structure.prototype.{@fieldHaser name=.name/} = function () {
-                    {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
+                    {>throwOnInactive error="Attempted to access an inactive union member"/}
 
                     var position = this._pointersSection +
                         {@math key=.offset method="multiply" operand="8"/};
@@ -114,29 +111,34 @@
             {/eq}
         {:else}
             {@eq key=.type value="group"}
-                var Group_{@fieldGetter name=.name/} = {>"readers/structure"/};
+                var Group_{.name} = {>"readers/structure"/};
 
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
-                    {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
+                    {>throwOnInactive error="Attempted to access an inactive union member"/}
 
-                    return new Group_{@fieldGetter name=.name/}.inject(this);
+                    return new Group_{.name}(
+                        this._arena,
+                        this._depth,
+                        this._layout()
+                    );
                 };
             {/eq}
             {@eq key=.type value="Data"}{>"readers/listField"/}{/eq}
             {@eq key=.type value="Text"}{>"readers/listField"/}{/eq}
             {@eq key=.type value="AnyPointer"}
-                var Decode_{@fieldGetter name=.name/} = reader.AnyPointer;
-                var default_{@fieldGetter name=.name/} = Decode_{@fieldGetter name=.name/}.deref(
-                    defaultArena_{@fieldGetter name=.name/},
+                var defaultArena_{.name} = {>"readers/listDefaultArena"/};
+
+                Structure.prototype._defaults.{.name} = reader.AnyPointer.deref(
+                    defaultArena_{.name},
                     {
-                        segment : defaultArena_{@fieldGetter name=.name/}.getSegment({.defaultSegment}),
-                        position : {.defaultPosition}
+                        segment : defaultArena_{.name}.getSegment(0),
+                        position : 0
                     },
                     0
                 );
 
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
-                    {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
+                    {>throwOnInactive error="Attempted to access an inactive union member"/}
 
                     var position = this._pointersSection +
                         {@math key=.offset method="multiply" operand="8"/};
@@ -145,10 +147,10 @@
                         {!
                          ! Defer null pointer checking to `cast` (casting a null
                          ! pointer to a structure should yield an instance that
-                         ! returns default fields.  Non-structure instances
-                         ! should throw (a type byte of 0 implies a structure).
+                         ! returns default fields, with non-structure instances
+                         ! throwing).
                          !}
-                        return Decode_{@fieldGetter name=.name/}.deref(
+                        return reader.AnyPointer.deref(
                             this._arena,
                             {
                                 segment : this._segment,
@@ -157,14 +159,14 @@
                             this._depth + 1
                         );
                     } else {
-                        return default_{@fieldGetter name=.name/};
+                        return this._defaults.{.name};
                     }
                 };
             {/eq}
 
             {@eq key=.type value="Void"}
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
-                    {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
+                    {>throwOnInactive error="Attempted to access an inactive union member"/}
 
                     return null;
                 };
@@ -172,7 +174,7 @@
 
             {@eq key=.type value="Bool"}
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
-                    {>"readers/throwOnInactive" error="Attempted to access an inactive union member"/}
+                    {>throwOnInactive error="Attempted to access an inactive union member"/}
 
                     var position = this._dataSection + {@boolOffset offset=.offset/};
 
@@ -184,21 +186,23 @@
                             {@boolMask offset=.offset/}
                         );
                     } else {
-                        return {.defaultValue};
+                        return !!{.defaultValue};
                     }
                 };
             {/eq}
 
-            {@eq key=.type value="Int8"}{>"readers/dataField"  default=.defaultValue decoder="reader.fields.int8"  byteCount="1"/}{/eq}
-            {@eq key=.type value="Int16"}{>"readers/dataField" default=.defaultValue decoder="reader.fields.int16" byteCount="2"/}{/eq}
-            {@eq key=.type value="Int32"}{>"readers/dataField" default=.defaultValue decoder="reader.fields.int32" byteCount="4"/}{/eq}
-            {@eq key=.type value="Int64"}{>"readers/dataField" default=.defaultValue decoder="reader.fields.int64" byteCount="8"/}{/eq}
-            {@eq key=.type value="UInt8"}{>"readers/dataField"  default=.defaultValue decoder="reader.fields.uint8"  byteCount="1"/}{/eq}
-            {@eq key=.type value="UInt16"}{>"readers/dataField" default=.defaultValue decoder="reader.fields.uint16" byteCount="2"/}{/eq}
-            {@eq key=.type value="UInt32"}{>"readers/dataField" default=.defaultValue decoder="reader.fields.uint32" byteCount="4"/}{/eq}
-            {@eq key=.type value="UInt64"}{>"readers/dataField" default=.defaultValue decoder="reader.fields.uint64" byteCount="8"/}{/eq}
-            {@eq key=.type value="Float32"}{>"readers/floatField" decoder="reader.fields.float32" byteCount="4"/}{/eq}
-            {@eq key=.type value="Float64"}{>"readers/floatField" decoder="reader.fields.float64" byteCount="8"/}{/eq}
+            {#. decoder="reader.fields"}
+                {@eq key=.type value="Int8"}{>"readers/dataField"  default=.defaultValue method="int8"  byteCount="1"/}{/eq}
+                {@eq key=.type value="Int16"}{>"readers/dataField" default=.defaultValue method="int16" byteCount="2"/}{/eq}
+                {@eq key=.type value="Int32"}{>"readers/dataField" default=.defaultValue method="int32" byteCount="4"/}{/eq}
+                {@eq key=.type value="Int64"}{>"readers/dataField" default=.defaultValue method="int64" byteCount="8"/}{/eq}
+                {@eq key=.type value="UInt8"}{>"readers/dataField"  default=.defaultValue method="uint8"  byteCount="1"/}{/eq}
+                {@eq key=.type value="UInt16"}{>"readers/dataField" default=.defaultValue method="uint16" byteCount="2"/}{/eq}
+                {@eq key=.type value="UInt32"}{>"readers/dataField" default=.defaultValue method="uint32" byteCount="4"/}{/eq}
+                {@eq key=.type value="UInt64"}{>"readers/dataField" default=.defaultValue method="uint64" byteCount="8"/}{/eq}
+                {@eq key=.type value="Float32"}{>"readers/floatField" method="float32" byteCount="4"/}{/eq}
+                {@eq key=.type value="Float64"}{>"readers/floatField" method="float64" byteCount="8"/}{/eq}
+            {/.}
         {/.meta}
     {/.fields}
 

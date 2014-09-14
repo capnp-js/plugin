@@ -1,0 +1,17 @@
+{@eq key=.defaultValue value="AAAAAAAAAAA="}
+    {@provide}
+        new Arena(
+            [fromBase64("{.encoding}")],
+            +Infinity,
+            +Infinity
+        )
+    {:encoding}
+        {@nullListPointer type=.type/}
+    {/provide}
+{:else}
+    new Arena(
+        [fromBase64("{.defaultValue}")],
+        +Infinity,
+        +Infinity
+    )
+{/eq}

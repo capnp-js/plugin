@@ -1,0 +1,19 @@
+{! Zero a union's full scope. !}
+
+{@partial}
+    builders/union/bit
+{:bits}
+    {@unionBits fields=.fields/}
+{/partial}
+
+{@partial}
+    builders/union/nonbit
+{:bytes}
+    {@unionBytes fields=.fields/}
+{/partial}
+
+{@partial}
+    builders/union/pointer
+{:pointers}
+    {@unionPointers fields=.fields/}
+{/partial}

@@ -1,0 +1,15 @@
+{!
+ ! Build a sequence of pointer section, union members of the form `a,b,c,d,`,
+ ! where `a` is the byte offset to a pointer's beginning (the caller must handle
+ ! the trailing comma).
+ !}
+
+{#pointers}
+    {zero}.pointer(
+        this._arena,
+        {
+            segment : this._segment,
+            position : this._pointersSection + {.}
+        }
+    );
+{/pointers}

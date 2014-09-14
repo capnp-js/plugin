@@ -1,0 +1,5 @@
+{! Set a field's discriminant if the field is a union member !}
+
+{@ne key=.discriminantValue value=65535}
+    this._setWhich({.discriminantValue});
+{/ne}

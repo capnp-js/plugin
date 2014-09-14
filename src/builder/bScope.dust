@@ -1,0 +1,33 @@
+define(['./bTypes'{?.files},{/.files}{! {#.files}'../{.name}.d/bTypes'{/.files}{@sep}, {/sep} !}], function (
+            types {?.files},{/.files} {! {#.files}file{.id}{/.files}{@sep}, {/sep}!}) {
+
+    {!
+     ! Every member of the `resources` fields gets incorporated into this file's
+     ! export:
+     ! {
+     !     files : [{
+     !         id : 129,
+     !         name : 'name used to import (prefix `../` for code generation)',
+     !         resources : [id1, id2, id3, ...]
+     !     }, ...]
+     ! }
+     !}
+    {!
+     ! Could just merge file{id} instead of enumerating the precise imports.
+     ! Check how difficult either strategy is before deciding.
+    !}
+    var scope = {
+        {#.files}
+            {#.resources fileId=.id}
+                {.id} : file{fileId}.{.}{@sep},{/sep}
+            {/.resources}
+            {@sep},{/sep}
+        {/.files}
+    };
+
+    for (var id in types) {
+        scope[id] = types[id];
+    }
+
+    return scope;
+});
