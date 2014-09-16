@@ -25,19 +25,19 @@ gulp.task('watch', function () {
     gulp.watch([
          'src/template/decode/**/*',
         '!src/template/decode/script{,/**}'
-    ], ['reader']);
+    ], ['exportReader']);
 });
 
 gulp.task('build', ['cgr', 'context']);
 
-gulp.task('reader', ['buildReader'], function () {
+gulp.task('exportReader', ['buildReader'], function () {
     return gulp.src('src/reader/script/**/*.js')
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
         .pipe(gulp.dest('lib/reader'));
 });
 
-gulp.task('builder', ['buildBuilder'], function () {
+gulp.task('exportBuilder', ['buildBuilder'], function () {
     return gulp.src('src/builder/script/**/*.js')
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
@@ -46,12 +46,12 @@ gulp.task('builder', ['buildBuilder'], function () {
 
 gulp.task('buildReader', ['sharedTemplates'], function () {
     return gulp.src('src/reader/gulpfile.js', { read : false })
-        .pipe(chug({ tasks : ['build'] }))
+        .pipe(chug({ tasks : ['build'] }));
 });
 
 gulp.task('buildBuilder', ['sharedTemplates'], function () {
     return gulp.src('src/builder/gulpfile.js', { read : false })
-        .pipe(chug({ tasks : ['build'] }))
+        .pipe(chug({ tasks : ['build'] }));
 });
 
 //gulp.task('ci', function () {
@@ -70,7 +70,12 @@ gulp.task('clean', ['cleanReader'], function () {
 
 gulp.task('cleanReader', function () {
     return gulp.src('src/reader/gulpfile.js')
-        .pipe(chug({ tasks : ['clean'] }))
+        .pipe(chug({ tasks : ['clean'] }));
+});
+
+gulp.task('cleanBuilder', function () {
+    return gulp.src('src/builder/gulpfile.js')
+        .pipe(chug({ tasks : ['clean'] }));
 });
 
 gulp.task('sharedTemplates', function () {
@@ -83,12 +88,12 @@ gulp.task('sharedTemplates', function () {
         .pipe(gulp.dest('src/builder/script'));
 });
 
-gulp.task('cgr', ['rTypes', 'rScope', 'constants', 'readers']);
-
-gulp.task('nonscope', ['rTypes', 'constants', 'readers']);
+gulp.task('cgr', ['cgrReader', 'cgrBuilder']);
+gulp.task('cgrReader', ['rTypes', 'rScope', 'constants', 'readers', 'context']);
+gulp.task('cgrBuilder', ['bTypes', 'bScope', 'builders', 'context']);
 
 ['constants', 'readers', 'rTypes'].forEach(function (processor) {
-    gulp.task(processor, ['reader'], function () {
+    gulp.task(processor, ['exportReader'], function () {
         return gulp.src('schema/nodes.json')
             .pipe(render(
                 require('./lib/reader/' + processor)
@@ -103,7 +108,7 @@ gulp.task('nonscope', ['rTypes', 'constants', 'readers']);
 });
 
 ['builders', 'bTypes'].forEach(function (processor) {
-    gulp.task(processor, ['builder'], function () {
+    gulp.task(processor, ['exportBuilder'], function () {
         return gulp.src('schema/nodes.json')
             .pipe(render(
                 require('./lib/builder/' + processor)
@@ -117,13 +122,26 @@ gulp.task('nonscope', ['rTypes', 'constants', 'readers']);
     });
 });
 
-gulp.task('rScope', ['reader'], function () {
+gulp.task('rScope', ['exportReader'], function () {
     return gulp.src('schema/files.json')
         .pipe(render(
             require('./lib/reader/rScope')
         ))
         .pipe(uglify())
         .pipe(rename('rScope.js'))
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(nodefy())
+        .pipe(gulp.dest('lib/cgr'));
+});
+
+gulp.task('bScope', ['exportBuilder'], function () {
+    return gulp.src('schema/files.json')
+        .pipe(render(
+            require('./lib/builder/bScope')
+        ))
+        .pipe(uglify())
+        .pipe(rename('bScope.js'))
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
         .pipe(nodefy())
