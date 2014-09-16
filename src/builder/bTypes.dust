@@ -1,12 +1,12 @@
-define(['capnp-js/builder/index'], function (base) {
+define(['capnp-js/builder/index', './rTypes'], function (
+                  builder,           rTypes) {
 
     var types = {};
 
     {! Populate id's only--pet-names come later in the pipeline. !}
 
     {#.nodes}
-        {>"types/structure"/}
-        {>"types/enumeration" recurTarget="struct"/}
+        {>"bTypes/structure"/}
     {/.nodes}
 
     return types;
