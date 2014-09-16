@@ -16,6 +16,6 @@
     );
 
     {#.nodes}
-        {>"types/structure"/}
+        {>"rTypes/structure"/}
     {/.nodes}
 {/eq}

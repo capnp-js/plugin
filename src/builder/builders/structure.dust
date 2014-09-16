@@ -33,7 +33,7 @@
                 return reader.primitives.uint16(
                     this._segment,
                     this._dataSection +
-                        {@math key=.discriminantOffset method="multiply" operand="2"/};
+                        {@math key=.discriminantOffset method="multiply" operand="2"/}
                 );
             };
 
