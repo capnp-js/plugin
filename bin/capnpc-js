@@ -2,12 +2,12 @@
 
 var fs = require('fs');
 var path = require('path');
-//var spawn = require('child_process').spawn;
-var Buffers = require('buffers');
-var render = require('../index');
 
-//var file = process.argv[process.argv.length-1];
-//var capnp = spawn('capnpc', ['-ocat', path.resolve(file)]);
+var Buffers = require('buffers');
+var mkdirSync = require('mkdirp').sync;
+var beautify = require("js-beautify").js_beautify;
+
+var render = require('../index');
 
 var n;
 var buffers = new Buffers();
@@ -74,10 +74,17 @@ process.stdin.on('end', function() {
     trees.forEach(function (tree) {
         var dir = tree.name + '.d';
 
-        // Leave existing permissions unaltered
-        if (!fs.existsSync(dir))
+        if (fs.existsSync(dir)) {
+            // Leave existing permissions unaltered.
+            if (!(fs.statSync(dir).mode & 128)) {
+                // No write permission exists on a pre-existing directory.
+                process.stderr.write('Unwritable directory: ' + dir + '\n');
+                return;
+            }
+        } else {
             // 111101101 (rx for all)
-            fs.mkdirSync(dir, 493);
+            mkdirSync(dir, 493);
+        }
 
         files.forEach(function (file) {
             var filename = dir + '/' + file + '.js';
@@ -88,7 +95,11 @@ process.stdin.on('end', function() {
                         fs.unlinkSync(filename);
 
                     // 100100100 (r for all)
-                    fs.writeFileSync(filename, rendering, { mode : 292 });
+                    fs.writeFileSync(
+                        filename,
+                        beautify(rendering, {}),
+                        { mode : 292 }
+                    );
                 },
                 function (err) {
                     process.stderr.write('Dust rendering error: ' + err + '\n');

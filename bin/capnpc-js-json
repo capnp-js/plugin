@@ -1,62 +1,71 @@
 #!/usr/bin/env node
 
+var fs = require('fs');
 var path = require('path');
-var spawn = require('child_process').spawn;
+var Buffers = require('buffers');
+var render = require('../index');
 
-var file = process.argv[process.argv.length-1];
-var capnp = spawn('capnpc', ['-ostdout', path.resolve(file)]);
-
-var repl = require('repl');
-
-var nSegments = 0;
-var sizes = [];
-var segments = [];
-
-function start(nSegments) {
-    var begin = 4 * (nSegments + 1);
-    begin += begin%8 ? 4 : 0;
-    return begin;
-}
-
-var begin;
-var end;
-var next = [];
-capnp.stdout.on('readable', function() {
+var n;
+var buffers = new Buffers();
+var sizes=[];
+var start;
+process.stdin.on('readable', function() {
     var chunk;
-    while (null !== (chunk=capnp.stdout.read())) {
-        if (!nSegments) {
-            nSegments = chunk.readUInt32LE(0) + 1;
-            for (var i=0; i<nSegments; ++i) {
-                sizes.push(chunk.readUInt32LE(4*(i+1)));
+    var segment;
+    while (null !== (chunk=process.stdin.read())) {
+        if (n === undefined) {
+            n = chunk.readUInt32LE(0) + 1;
+            for (var i=0; i<n; ++i) {
+                var size = 8*chunk.readUInt32LE(4*(i+1));
+                sizes.push(size);
             }
 
-            begin = start(nSegments);
-            end = begin + sizes[0];
+            start = 4*n + (n%2 ? 4 : 8);
         }
 
-        while (end <= chunk.length) {
-            // Populate segments until we run off the end.
-            next.push(chunk.slice(begin, end));
-            segments.push(new Uint8Array(Buffer.concat(next, sizes.shift())));
-
-            next = [chunk.slice(end)];
-            begin = end;
-            end = sizes[0] - (chunk.length - begin);
-        }
-
-        next.push(chunk.slice(begin))
-        end -= (chunk.length - begin);
-
-        begin=0;
+        buffers.push(chunk);
     }
 });
 
-var CapnpJS = require('../');
-var generator = CapnpJS.generator;
-capnp.stdout.on('end', function() {
-    var request = generator.CodeGeneratorRequest.deref(segments, segments[0], 0);
-    var repl = require('repl');
-    var prompt = repl.start("> ");
-    prompt.context.request = request;
-    prompt.context.obj = require('capnp-js').objectify;
+process.stdin.on('end', function() {
+    var CGR = require('../lib/cgr/readers');
+    var context = require('../lib/context');
+
+    var segments = [];
+    for (var i=0; i<sizes.length; ++i) {
+        segments.push(new Uint8Array(buffers.slice(start, start+sizes[i])));
+        start += sizes[i];
+    }
+
+    if (start !== buffers.length) {
+        throw new Error('All data has not been included');
+    }
+
+    var Arena = require('capnp-js/reader/Arena');
+    var arena = new Arena(segments, +Infinity, +Infinity);
+
+    var request = CGR.CodeGeneratorRequest.deref(
+        arena,
+        {
+            segment : arena.getSegment(0),
+            position : 0
+        },
+        0
+    );
+
+    var files = request.getRequestedFiles();
+    var nodes = request.getNodes();
+    var trees = files.map(function (f) { return context(f, nodes); });
+
+    trees.forEach(function (tree) {
+        var filename = tree.name + '.json';
+        if (fs.existsSync(filename))
+            fs.unlinkSync(filename);
+
+        fs.writeFileSync(
+            filename,
+            JSON.stringify(tree, undefined, 4),
+            { mode : 292 }
+        );
+    });
 });
