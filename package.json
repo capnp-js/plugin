@@ -39,17 +39,14 @@
     "gulp-rimraf": "^0.1.0",
     "gulp-uglify": "^0.3.1",
     "mocha": "^1.18.2",
-    "node-bitarray": "0.0.2",
     "nodefy": "^0.2.2",
-    "pegjs": "^0.8.0",
-    "vinyl-source-stream": "^0.1.1"
+    "pegjs": "^0.8.0"
   },
   "dependencies": {
-    "base64-js": "0.0.7",
     "buffers": "^0.1.1",
-    "dustjs-linkedin": "^2.4.0",
+    "js-beautify": "^1.5.1",
+    "mkdirp": "^0.5.0",
     "text-encoding": "0.0.0",
-    "traverse": "^0.6.6",
     "when": "^3.1.0"
   }
 }
