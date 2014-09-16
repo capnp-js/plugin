@@ -1,7 +1,7 @@
 {@eq key=.meta value="enum"}
     types['{.id}'] = {
         {#.enumerants}
-            {.name} : {$idx}
+            {@constant name=.name/} : {$idx}
             {@sep},{/sep}
         {/.enumerants}
     };
