@@ -1,11 +1,11 @@
 {@eq key=.meta value="struct"}
-    types['{.id}'] = base.structure({
+    types['{.id}'] = reader.structure({
         meta : 0,
         dataBytes : {@math key=.dataWordCount method="multiply" operand=8/},
         pointersBytes : {@math key=.pointerCount method="multiply" operand=8/}
     });
 
-    types['{.id}']._LIST = base.lists.structure(
+    types['{.id}']._LIST = reader.lists.structure(
         types['{.id}'],
         {
             meta : 1,

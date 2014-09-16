@@ -1,4 +1,4 @@
-define(['capnp-js/reader/index'], function (base) {
+define(['capnp-js/reader/index'], function (reader) {
 
     var types = {};
 
