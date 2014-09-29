@@ -4,14 +4,17 @@ Structure.prototype.{@fieldGetter name=.name/} = function () {
     var position = this._dataSection +
         {@math key=.offset method="multiply" operand=byteCount/};
 
-    return {decoder}.{method}({default}, this._segment, position);
+    return {decoder}.{method}({default|js}, this._segment, position);
 };
 
 Structure.prototype.{@fieldSetter name=.name/} = function (value) {
     {>"builders/setDiscriminant"/}
 
-    var position = this._dataSection +
-        {@math key=.offset method="multiply" operand=byteCount/};
-
-    {encoder}.{method}(value, {default}, this._segment, position);
+    {encoder}.{method}(
+        value,
+        {default|js},
+        this._segment,
+        this._dataSection +
+            {@math key=.offset method="multiply" operand=byteCount/}
+    );
 };

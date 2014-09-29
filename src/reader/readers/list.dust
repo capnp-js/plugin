@@ -1,8 +1,9 @@
 {?.type.meta}
     {#.type}
         {! Update context for recursion. !}
-        {@eq key=.meta value="list"}reader.lists.pointer({>"readers/list"/}){/eq}
-        {@eq key=.meta value="struct"}scope['{.id}']._LIST{/eq}
+        {@eq key=.meta value="list"}reader.lists.list({>"readers/list"/}){/eq}
+        {@eq key=.meta value="struct"}reader.lists.structure(scope['{.id}']){/eq}
+        {@eq key=.meta value="enum"}reader.lists.UInt16{/eq}
     {/.type}
 {:else}
     reader.lists.{.type}

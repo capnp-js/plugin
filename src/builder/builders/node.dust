@@ -1,3 +1,0 @@
-{@eq key=.meta value="struct"}{>"builders/structure"/}{/eq}
-{@eq key=.meta value="enum"}scope['{.id}']{/eq}
-{@eq key=.meta value="const"}constants['{.id}']{/eq}

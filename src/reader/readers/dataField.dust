@@ -5,11 +5,7 @@ Structure.prototype.{@fieldGetter name=.name/} = function () {
         {@math key=.offset method="multiply" operand=byteCount/};
 
     if (position < this._pointersSection) {
-        return {decoder}.{method}(
-            {default|js},
-            this._segment,
-            position
-        );
+        return {decoder}.{method}({default|js}, this._segment, position);
     } else {
         return {default|js};
     }

@@ -1,29 +1,25 @@
-(function () {
+{! Building a group requires a `Parent`. !}
+(function ({^.meta}Parent{/.meta}) {
 
-    var Structure =
-        {^.meta}
-            {! Group case !}
-            builder.structure();
-        {:else}
-            {@eq key=.meta value="struct"}
-                scope['{.id}'];
-            {/eq}
-        {/.meta}
-
-    Structure._Reader = rScope['{.id}'];
-    Structure.prototype._defaults = Structure._Reader.prototype._defaults;
+    {?.meta}
+        {@eq key=.meta value="struct"}
+            var Structure = scope["{.id}"];
+        {/eq}
+    {:else}
+        var Structure = builder.structure(Parent._READER.Group_{.name});
+    {/.meta}
 
     {#.nodes}
         {@eq key=.meta value="struct"}
-            Structure.{.name} = {>"builders/node"/};
+            Structure.{.name} = {>"builders/structure"/}();
         {/eq}
 
         {@eq key=.meta value="enum"}
-            Structure.{.name} = {>"builders/node"/};
+            Structure.{.name} = Structure._READER.{.name};
         {/eq}
 
         {@eq key=.meta value="const"}
-            Structure.prototype.{@constant name=.name/} = Structure.{@constant name=.name/} = {>"builders/node"/};
+            Structure.{@constant name=.name/} = Structure.prototype.{@constant name=.name/} = Structure._READER.{@constant name=.name/};
         {/eq}
     {/.nodes}
 
@@ -46,7 +42,6 @@
                 builder.primitives.uint16(discriminant, this._segment, position);
             };
         {/gt}
-
     {/.discriminantCount}
 
     {#.fields}
@@ -62,7 +57,7 @@
                 return this.which() === {.discriminantValue};
             };
 
-            Structure.prototype.{@constant name=.name/} = {.discriminantValue};
+            Structure.{@constant name=.name/} = Structure.prototype.{@constant name=.name/} = {.discriminantValue};
         {/ne}
 
         {?.meta}
@@ -75,7 +70,7 @@
                     byteCount="2"/}
             {:else}
                 {@eq key=.meta value="struct"}
-                    var Builder_{.name} = scope['{.id}'];
+                    var Builder_{.name} = scope["{.id}"];
 
                     Structure.prototype.{@fieldIniter name=.name/} = function () {
                         {>"builders/setDiscriminant"/}
@@ -86,17 +81,66 @@
                                 {@math key=.offset method="multiply" operand="8"/}
                         };
 
-                        return Builder_{.name}.init(
+                        return Builder_{.name}._init(
                             this._arena,
                             pointer,
                             this._depth + 1
                         );
                     };
+
+                    Structure.prototype.{@fieldSetter name=.name/} = function (value) {
+                        var pointer = {
+                            segment : this._segment,
+                            position : this._pointersSection +
+                                {@math key=.offset method="multiply" operand="8"/}
+                        };
+
+                        Builder_{.name}._set(this._arena, pointer, value);
+
+                        {>"builders/setDiscriminant"/}
+                    };
+
+                    Structure.prototype.{@fieldAdopter name=.name/} = function (value) {
+                        if (Builder_{.name}._TYPE !== value._TYPE) {
+                            throw new TypeError();
+                        }
+
+                        Builder_{.name}._adopt(
+                            this._arena,
+                            {
+                                segment : this._segment,
+                                position : this._pointersSection +
+                                    {@math key=.offset method="multiply" operand="8"/}
+                            },
+                            value
+                        );
+                    };
+
+                    Structure.prototype.{@fieldDisowner name=.name/} = function () {
+                        var pointer = {
+                            segment : this._segment,
+                            position : this._pointersSection +
+                                {@math key=.offset method="multiply" operand="8"/}
+                        };
+
+                        if (reader.isNull(pointer)) {
+                            return Builder_{.name}._initOrphan(this._arena);
+                        } else {
+                            var instance = Builder_{.name}._deref(
+                                this._arena,
+                                pointer
+                            );
+                            this._arena._zero(pointer, 8);
+                            instance._isDisowned = true;
+
+                            return instance;
+                        }
+                    };
                 {/eq}
                 {@eq key=.meta value="list"}
                     var Builder_{.name} = {>"builders/list"/};
 
-                    Structure.prototype.{@fieldIniter name=.name/} = function (cardinality) {
+                    Structure.prototype.{@fieldIniter name=.name/} = function (n) {
                         {>"builders/setDiscriminant"/}
 
                         var pointer = {
@@ -105,12 +149,19 @@
                                 {@math key=.offset method="multiply" operand="8"/}
                         };
 
-                        return Builder_{.name}.init(
-                            this._arena,
-                            pointer,
-                            cardinality,
-                            this._depth + 1
-                        );
+                        return Builder_{.name}._init(this._arena, pointer, n);
+                    };
+
+                    Structure.prototype.{@fieldSetter name=.name/} = function (value) {
+                        var pointer = {
+                            segment : this._segment,
+                            position : this._pointersSection +
+                                {@math key=.offset method="multiply" operand="8"/}
+                        };
+
+                        Builder_{.name}._set(this._arena, pointer, value);
+
+                        {>"builders/setDiscriminant"/}
                     };
                 {/eq}
 
@@ -123,7 +174,7 @@
                             {@math key=.offset method="multiply" operand="8"/}
                     };
 
-                    if (reader.isNull(this._segment, position)) {
+                    if (reader.isNull(pointer)) {
                         builder.copy.pointer.deep(
                             this._defaults.{.name},
                             this._arena,
@@ -131,26 +182,7 @@
                         );
                     }
 
-                    return Builder_{.name}.deref(
-                        this._arena,
-                        pointer,
-                        this._depth + 1
-                    );
-                };
-
-                Structure.prototype.{@fieldSetter name=.name/} = function (reader) {
-                    {>"builders/setDiscriminant"/}
-
-                    var pointer = {
-                        segment : this._segment,
-                        position : this._pointersSection + 
-                            {@math key=.offset method="multiply" operand="8"/}
-                    };
-
-{! Shouldn't this be a safe version? (if reader._arena !== this._arena) !}
-{! Didn't you forget to record traversal depth for break-on-64? !}
-                    copy.pointer.deep(
-                        reader,
+                    return Builder_{.name}._deref(
                         this._arena,
                         pointer
                     );
@@ -161,21 +193,24 @@
                      ! For union members, field inactivity disqualifies it from
                      ! is-set status.
                      !}
-                    var position = this._pointersSection +
-                        {@math key=.offset method="multiply" operand="8"/};
+                    var pointer = {
+                        segment : this._segment,
+                        position : this._pointersSection +
+                            {@math key=.offset method="multiply" operand="8"/}
+                    };
 
                     return (
                         {@ne key=.discriminantValue value=65535}
                             this.{@fieldIser name=.name/}()
                             &&
                         {/ne}
-                        !reader.isNull(this._segment, position)
+                        !reader.isNull(pointer)
                     );
                 };
             {/eq}
         {:else}
             {@eq key=.type value="group"}
-                var Group_{.name} = {>"builders/structure"/};
+                Structure.Group_{.name} = {>"builders/structure"/}(Structure);
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {!
                      ! On getting the parent structure, the underlying fields
@@ -186,7 +221,7 @@
 
                     {>throwOnInactive error="Attempted to access an inactive union member"/}
 
-                    return new Group_{@fieldGetter name=.name/}(
+                    return new Structure.Group_{.name}(
                         this._arena,
                         this._depth,
                         this._layout()
@@ -196,7 +231,7 @@
                 Structure.prototype.{@fieldIniter name=.name/} = function () {
                     {>"builders/setDiscriminant"/}
 
-                    return new Builder_{.name}(
+                    return new Structure.Group_{.name}(
                         this._arena,
                         this._depth + 1,
                         this._layout()
@@ -207,7 +242,6 @@
             {@eq key=.type value="Text"}{>"builders/listField"/}{/eq}
             {@eq key=.type value="AnyPointer"}
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
-{! TODO: migrate throwOnInactive templates to `shared` !}
                     {>throwOnInactive error="Attempted to access an inactive union member"/}
 
                     var pointer = {
@@ -216,16 +250,13 @@
                             {@math key=.offset method="multiply" operand="8"/}
                     };
 
-                    return builder.AnyPointer.deref(
+                    return builder.AnyPointer._deref(
                         this._arena,
-                        pointer,
-                        this._depth + 1
+                        pointer
                     );
                 };
 
                 Structure.prototype.{@fieldSetter name=.name/} = function (reader) {
-                    {>"builders/setDiscriminant"/}
-
                     var pointer = {
                         segment : this._segment,
                         position : this._pointersSection +
@@ -242,6 +273,8 @@
 {! Okay for orphans (?) (constrain even if unnecessary?) (presumably from another arena, since `adopt` would be less expensive) !}
                         builder.copy.pointer.deep(reader, this._arena, pointer);
                     }
+
+                    {>"builders/setDiscriminant"/}
                 };
             {/eq}
 
@@ -272,17 +305,17 @@
                 };
 
                 Structure.prototype.{@fieldSetter name=.name/} = function (value) {
-                    {>"builders/setDiscriminant"/}
-
                     var position = this._dataSection + {@boolOffset offset=.offset/};
 
-                    reader.fields.bool(
+                    builder.fields.bool(
                         value,
                         {.defaultValue},
                         this._segment,
                         position,
                         {@boolMask offset=.offset/}
                     );
+
+                    {>"builders/setDiscriminant"/}
                 };
             {/eq}
 
@@ -301,5 +334,7 @@
         {/.meta}
     {/.fields}
 
+    Structure.prototype._defaults = Structure._READER.prototype._defaults;
+
     return Structure;
-})()
+})

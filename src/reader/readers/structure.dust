@@ -1,18 +1,13 @@
 (function () {
 
-    var Structure =
-        {^.meta}
-            {! Group case !}
-            reader.structure({
-                meta : 0,
-                dataBytes : {@math key=.dataWordCount method="multiply" operand=8/},
-                pointersBytes : {@math key=.pointerCount method="multiply" operand=8/}
-            });
-        {:else}
-            {@eq key=.meta value="struct"}
-                scope['{.id}'];
-            {/eq}
-        {/.meta}
+    {^.meta}
+        {! Group case !}
+        var Structure = reader.group();
+    {:else}
+        {@eq key=.meta value="struct"}
+            var Structure = scope["{.id}"];
+        {/eq}
+    {/.meta}
 
     {#.nodes}
         {@eq key=.meta value="struct"}
@@ -24,7 +19,7 @@
         {/eq}
 
         {@eq key=.meta value="const"}
-            Structure.prototype.{@constant name=.name/} = Structure.{@constant name=.name/} = constants['{.id}'];
+            Structure.prototype.{@constant name=.name/} = Structure.{@constant name=.name/} = constants["{.id}"];
         {/eq}
     {/.nodes}
 
@@ -43,7 +38,6 @@
         {/gt}
     {/.discriminantCount}
 
-    Structure.prototype._defaults = {};
     {#.fields}
         {@ne key=.discriminantValue value=65535}
             {! Union member !}
@@ -57,105 +51,77 @@
             {@eq key=.meta value="enum"}
                 {>"readers/dataField" default=.defaultValue decoder="reader.fields" method="uint16" byteCount="2"/}
             {:else}
-                {@eq key=.meta value="struct"}
-                    var Reader_{.name} = scope['{.id}'];
-                    var defaultArena_{.name} = new Arena(
-                        [fromBase64("{.defaultValue}")],
-                        +Infinity,
-                        +Infinity
-                    );
-                {/eq}
+                Structure.prototype.{@fieldGetter name=.name/} = (function() {
 
-                {@eq key=.meta value="list"}
-                    var Reader_{name} = {>"readers/list"/};
-                    var defaultArena_{.name} = {>"readers/listDefaultArena"/};
-                {/eq}
+                    {@eq key=.meta value="struct"}
+                        var Reader = scope["{.id}"];
+                    {/eq}
 
-                Structure.prototype._defaults.{.name} = Reader_{.name}.deref(
-                    defaultArena_{.name},
-                    {
-                        segment : defaultArena_{.name}.getSegment(0),
-                        position : 0
-                    },
-                    0
-                );
+                    {@eq key=.meta value="list"}
+                        var Reader = {>"readers/list"/};
+                    {/eq}
 
-                Structure.prototype.{@fieldGetter name=.name/} = function () {
-                    {>throwOnInactive error="Attempted to access an inactive union member"/}
+                    return function () {
+                        {>throwOnInactive error="Attempted to access an inactive union member"/}
 
-                    var position = this._pointersSection +
-                        {@math key=.offset method="multiply" operand="8"/};
+                        var pointer = {
+                            segment : this._segment,
+                            position : this._pointersSection +
+                                {@math key=.offset method="multiply" operand="8"/}
+                        };
 
-                    if (position < this._end && !reader.isNull(this._segment, position)) {
-                        return Reader_{.name}.deref(
-                            this._arena,
-                            {
-                                segment : this._segment,
-                                position : position
-                            },
-                            this._depth + 1
-                        );
-                    } else {
-                        return this._defaults.{.name};
-                    }
-                };
+                        if (pointer.position < this._end && !reader.isNull(pointer)) {
+                            return Reader._deref(this._arena, pointer, this._depth+1);
+                        } else {
+                            return this._defaults.{.name};
+                        }
+                    };
+                })();
 
                 Structure.prototype.{@fieldHaser name=.name/} = function () {
                     {>throwOnInactive error="Attempted to access an inactive union member"/}
 
-                    var position = this._pointersSection +
-                        {@math key=.offset method="multiply" operand="8"/};
+                    var pointer = {
+                        segment : this._segment,
+                        position : this._pointersSection +
+                            {@math key=.offset method="multiply" operand="8"/}
+                    };
 
-                    return position < this._end && !reader.isNull(this._segment, position);
+                    return pointer.position < this._end && !reader.isNull(pointer);
                 };
             {/eq}
         {:else}
             {@eq key=.type value="group"}
-                var Group_{.name} = {>"readers/structure"/};
+                Structure.Group_{.name} = {>"readers/structure"/}();
 
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>throwOnInactive error="Attempted to access an inactive union member"/}
 
-                    return new Group_{.name}(
-                        this._arena,
-                        this._depth,
-                        this._layout()
-                    );
+                    return new Structure.Group_{.name}(this);
                 };
             {/eq}
             {@eq key=.type value="Data"}{>"readers/listField"/}{/eq}
             {@eq key=.type value="Text"}{>"readers/listField"/}{/eq}
             {@eq key=.type value="AnyPointer"}
-                var defaultArena_{.name} = {>"readers/listDefaultArena"/};
-
-                Structure.prototype._defaults.{.name} = reader.AnyPointer.deref(
-                    defaultArena_{.name},
-                    {
-                        segment : defaultArena_{.name}.getSegment(0),
-                        position : 0
-                    },
-                    0
-                );
-
                 Structure.prototype.{@fieldGetter name=.name/} = function () {
                     {>throwOnInactive error="Attempted to access an inactive union member"/}
 
-                    var position = this._pointersSection +
-                        {@math key=.offset method="multiply" operand="8"/};
+                    var pointer = {
+                        segment : this._segment,
+                        position : this._pointersSection +
+                            {@math key=.offset method="multiply" operand="8"/}
+                    };
 
-                    if (position < this._end) {
+                    if (pointer.position < this._end && !reader.isNull(pointer)) {
                         {!
                          ! Defer null pointer checking to `cast` (casting a null
                          ! pointer to a structure should yield an instance that
                          ! returns default fields, with non-structure instances
                          ! throwing).
                          !}
-                        return reader.AnyPointer.deref(
+                        return reader.AnyPointer._deref(
                             this._arena,
-                            {
-                                segment : this._segment,
-                                position : position
-                            },
+                            pointer,
                             this._depth + 1
                         );
                     } else {
@@ -206,5 +172,67 @@
         {/.meta}
     {/.fields}
 
+    Structure.prototype._defaults = {
+        {@provide}
+            {#.bytes}
+                {.name} : (function () {
+                    {?.meta}
+                        {@eq key=.meta value="struct"}
+                            var Reader = scope["{.id}"];
+                            var arena = allocator._fromBase64("{.defaultValue}").asReader();
+                            return {deref};
+                        {/eq}
+
+                        {@eq key=.meta value="list"}
+                            var Reader = {>"readers/list"/};
+                            var arena = {>"readers/listDefaultArena"/};
+                            return {deref};
+                        {/eq}
+                    {:else}
+                        {@eq key=.type value="AnyPointer"}
+                            var Reader = reader.AnyPointer;
+                            var arena = allocator._fromBase64("{.defaultValue}").asReader();
+                            return {deref};
+                        {/eq}
+
+                        {@eq key=.type value="Text"}
+                            var Reader = reader.Text;
+                            var arena = {>"readers/listDefaultArena"/};
+                            return {deref};
+                        {/eq}
+
+                        {@eq key=.type value="Data"}
+                            var Reader = reader.Data;
+                            var arena = {>"readers/listDefaultArena"/};
+                            return {deref};
+                        {/eq}
+
+                        {@eq key=.type value="Float32"}
+                            return allocator._fromBase64("{.defaultBytes}").getSegment(0);
+                        {/eq}
+
+                        {@eq key=.type value="Float64"}
+                            return allocator._fromBase64("{.defaultBytes}").getSegment(0);
+                        {/eq}
+                    {/.meta}
+                })()
+                {@sep},{/sep}
+            {/.bytes}
+        {:deref}
+            {@verbatim}
+                Reader._deref(
+                    arena,
+                    {
+                        segment : arena.getSegment(0),
+                        position : 0
+                    },
+                    0
+                )
+            {/verbatim}
+        {:bytes}
+            {@bytesFields fields=.fields/}
+        {/provide}
+    };
+
     return Structure;
-})()
+})

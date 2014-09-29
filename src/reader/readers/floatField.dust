@@ -1,5 +1,3 @@
-var default_{.name} = fromBase64("{.defaultBytes}");
-
 Structure.prototype.{@fieldGetter name=.name/} = function () {
     {>throwOnInactive error="Attempted to access an inactive union member"/}
 
@@ -8,7 +6,7 @@ Structure.prototype.{@fieldGetter name=.name/} = function () {
 
     if (position < this._pointersSection) {
         return {decoder}.{method}(
-            default_{.name},
+            this._defaults.{.name},
             this._segment,
             position
         );

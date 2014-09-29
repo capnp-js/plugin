@@ -1,7 +1,8 @@
-define(['capnp-js/reader/Arena', './rScope'], function (
-                         Arena,      scope) {
+define(['capnp-js/builder/Allocator', 'capnp-js/reader/index', './rScope'], function (
+                          Allocator,            reader,            scope) {
 
     var constants = {};
+    var allocator = new Allocator();
 
     {#.nodes}
         {>"constants/node" recurTarget="struct"/}

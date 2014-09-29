@@ -1,5 +1,5 @@
-define(['capnp-js/builder/index', 'capnp-js/reader/index', './rScope', './bScope', './constants', './readers'], function (
-                  builder,                  reader,           rScope,      scope,     constants) {
+define(['capnp-js/builder/Allocator', 'capnp-js/builder/index', 'capnp-js/reader/index', './bScope', './readers'], function (
+                          Allocator,            builder,                  reader,            scope,     readers) {
 
     /*
      * Loading `readers` guarantees that reader prototypes have been populated.
@@ -13,15 +13,20 @@ define(['capnp-js/builder/index', 'capnp-js/reader/index', './rScope', './bScope
      ! methods).  The `./rpcMethods.js` file gets imported by `./rpc.js`.
      !}
 
-    {! Populate prototypes and assign pet-names. !}
-
     var builders = {};
+    var allocator = new Allocator();
 
     {#.nodes}
         {@eq key=.meta value="const"}
-            builders.{@constant name=.name/} = {>"builders/node"/};
-        {:else}
-            builders.{.name} = {>"builders/node"/};
+            builders.{@constant name=.name/} = readers.{@constant name=.name/};
+        {/eq}
+
+        {@eq key=.meta value="enum"}
+            builders.{.name} = readers.{.name};
+        {/eq}
+
+        {@eq key=.meta value="struct"}
+            builders.{.name} = {>"builders/structure"/}();
         {/eq}
     {/.nodes}
 

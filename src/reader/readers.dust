@@ -1,5 +1,5 @@
-define(['capnp-js/reader/Arena', 'capnp-js/reader/fromBase64', 'capnp-js/reader/index', './rScope', './constants'], function (
-                         Arena,                   fromBase64,            reader,            scope,     constants) {
+define(['capnp-js/builder/Allocator', 'capnp-js/reader/index', './rScope', './constants'], function (
+                          Allocator,            reader,            scope,     constants) {
 
     {!
      ! TODO: Bring in the `readers.js` files from other directories that contain
@@ -15,6 +15,7 @@ define(['capnp-js/reader/Arena', 'capnp-js/reader/fromBase64', 'capnp-js/reader/
     {! Populate prototypes and assign pet-names. !}
 
     var readers = {};
+    var allocator = new Allocator();
 
     {#.nodes}
         {@eq key=.meta value="const"}
