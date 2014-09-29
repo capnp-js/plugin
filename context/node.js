@@ -1,10 +1,17 @@
-define(['capnp-js-Uint8', 'capnp-js/builder/primitives', 'capnp-js/builder/Arena', 'capnp-js/builder/copy/index', 'capnp-js/wordAlign', './toBase64', './joinId'], function (
-              Allocator,            builder,                               Arena,                    copy,                  wordAlign,     toBase64,     joinId) {
+define(['capnp-js/builder/primitives', 'capnp-js/builder/Allocator', 'capnp-js/builder/copy/index', 'capnp-js/wordAlign', './toBase64', './joinId'], function (
+                  builder,                               Allocator,                    copy,                  wordAlign,     toBase64,     joinId) {
 
-    var allocator = new Allocator(Arena);
+    var allocator = new Allocator();
 
     var bytes = function (n) {
+        // @if TARGET_ENV='browser'
         var data = new Uint8Array(n);
+        // @endif
+
+        // @if TARGET_ENV='node'
+        var data = new Buffer(n);
+        // @endif
+
         data._id = 0;
         data._position = n;
 
@@ -165,7 +172,7 @@ define(['capnp-js-Uint8', 'capnp-js/builder/primitives', 'capnp-js/builder/Arena
     };
 
     var any = function (instance) {
-        var arena = allocator.createArena(instance._bytes());
+        var arena = allocator.createArena(8 + instance._bytes());
 
         /*
          * Admit installation of non-structures to the arena's root.  The arena
@@ -183,7 +190,7 @@ define(['capnp-js-Uint8', 'capnp-js/builder/primitives', 'capnp-js/builder/Arena
     };
 
     var blob = function (instance) {
-        var arena = allocator.createArena(wordAlign(instance._length));
+        var arena = allocator.createArena(wordAlign(8 + instance._length));
         copy.pointer.deep(instance, arena, arena._root());
 
         return toBase64(arena._segments[0]);
@@ -194,7 +201,7 @@ define(['capnp-js-Uint8', 'capnp-js/builder/primitives', 'capnp-js/builder/Arena
             return { defaultValue : value };
         }
 
-        var zero = { defaultValue : 'AAAAAAAAAAA=' };
+        var zero = f("AAAAAAAAAAA=");
         var value, data;
 
         switch (v.which()) {
