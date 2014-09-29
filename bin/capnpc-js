@@ -37,7 +37,7 @@ process.stdin.on('end', function() {
 
     var segments = [];
     for (var i=0; i<sizes.length; ++i) {
-        segments.push(new Uint8Array(buffers.slice(start, start+sizes[i])));
+        segments.push(new Buffer(buffers.slice(start, start+sizes[i])));
         start += sizes[i];
     }
 
@@ -48,7 +48,7 @@ process.stdin.on('end', function() {
     var Arena = require('capnp-js/reader/Arena');
     var arena = new Arena(segments, +Infinity, +Infinity);
 
-    var request = CGR.CodeGeneratorRequest.deref(
+    var request = CGR.CodeGeneratorRequest._deref(
         arena,
         {
             segment : arena.getSegment(0),
