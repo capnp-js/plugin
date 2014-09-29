@@ -1,12 +1,12 @@
 {
     "name" : "schema.capnp",
     "meta" : "file",
-    "id" : "12195682960037147353",
+    "id" : "0xa93fc509624c72d9",
     "imports" : [],
     "nodes" : [{
         "name" : "Node",
         "meta" : "struct",
-        "id" : "16610026722781537303",
+        "id" : "0xe682ab4cf923a417",
         "dataWordCount" : 5,
         "pointerCount" : 5,
         "preferredListEncoding" : 7,
@@ -41,7 +41,7 @@
             "meta" : "list",
             "type" : {
                 "meta" : "struct",
-                "id" : "16050641862814319170"
+                "id" : "0xdebf55bbfa0fc242"
             },
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
@@ -51,7 +51,7 @@
             "meta" : "list",
             "type" : {
                 "meta" : "struct",
-                "id" : "17422339044421236034"
+                "id" : "0xf1c8950dab257542"
             },
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
@@ -85,7 +85,7 @@
             }, {
                 "name" : "preferredListEncoding",
                 "meta" : "enum",
-                "id" : "15102134695616452902",
+                "id" : "0xd1958f7dba521926",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 13
@@ -112,7 +112,7 @@
                 "meta" : "list",
                 "type" : {
                     "meta" : "struct",
-                    "id" : "11145653318641710175"
+                    "id" : "0x9aad50a41f4af45f"
                 },
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
@@ -131,7 +131,7 @@
                 "meta" : "list",
                 "type" : {
                     "meta" : "struct",
-                    "id" : "10919677598968879693"
+                    "id" : "0x978a7cebdc549a4d"
                 },
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
@@ -150,7 +150,7 @@
                 "meta" : "list",
                 "type" : {
                     "meta" : "struct",
-                    "id" : "10736806783679155584"
+                    "id" : "0x9500cce23b334d80"
                 },
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
@@ -174,14 +174,14 @@
             "fields" : [{
                 "name" : "type",
                 "meta" : "struct",
-                "id" : "15020482145304562784",
+                "id" : "0xd07378ede1f9cc60",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 3
             }, {
                 "name" : "value",
                 "meta" : "struct",
-                "id" : "14853958794117909659",
+                "id" : "0xce23dcd2d7b00c9b",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 4
@@ -197,7 +197,7 @@
             "fields" : [{
                 "name" : "type",
                 "meta" : "struct",
-                "id" : "15020482145304562784",
+                "id" : "0xd07378ede1f9cc60",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 3
@@ -278,7 +278,7 @@
         "nodes" : [{
             "name" : "NestedNode",
             "meta" : "struct",
-            "id" : "16050641862814319170",
+            "id" : "0xdebf55bbfa0fc242",
             "dataWordCount" : 1,
             "pointerCount" : 1,
             "preferredListEncoding" : 7,
@@ -300,7 +300,7 @@
     }, {
         "name" : "Field",
         "meta" : "struct",
-        "id" : "11145653318641710175",
+        "id" : "0x9aad50a41f4af45f",
         "dataWordCount" : 3,
         "pointerCount" : 4,
         "preferredListEncoding" : 7,
@@ -323,7 +323,7 @@
             "meta" : "list",
             "type" : {
                 "meta" : "struct",
-                "id" : "17422339044421236034"
+                "id" : "0xf1c8950dab257542"
             },
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
@@ -351,14 +351,14 @@
             }, {
                 "name" : "type",
                 "meta" : "struct",
-                "id" : "15020482145304562784",
+                "id" : "0xd07378ede1f9cc60",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 2
             }, {
                 "name" : "defaultValue",
                 "meta" : "struct",
-                "id" : "14853958794117909659",
+                "id" : "0xce23dcd2d7b00c9b",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 3
@@ -410,7 +410,7 @@
         "nodes" : [{
             "name" : "noDiscriminant",
             "meta" : "const",
-            "id" : "10930602151629473554",
+            "id" : "0x97b14cbe7cfec712",
             "datum" : {
                 "type" : "UInt16",
                 "value" : 65535
@@ -419,7 +419,7 @@
     }, {
         "name" : "Enumerant",
         "meta" : "struct",
-        "id" : "10919677598968879693",
+        "id" : "0x978a7cebdc549a4d",
         "dataWordCount" : 1,
         "pointerCount" : 2,
         "preferredListEncoding" : 7,
@@ -441,7 +441,7 @@
             "meta" : "list",
             "type" : {
                 "meta" : "struct",
-                "id" : "17422339044421236034"
+                "id" : "0xf1c8950dab257542"
             },
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
@@ -450,7 +450,7 @@
     }, {
         "name" : "Method",
         "meta" : "struct",
-        "id" : "10736806783679155584",
+        "id" : "0x9500cce23b334d80",
         "dataWordCount" : 3,
         "pointerCount" : 2,
         "preferredListEncoding" : 7,
@@ -484,7 +484,7 @@
             "meta" : "list",
             "type" : {
                 "meta" : "struct",
-                "id" : "17422339044421236034"
+                "id" : "0xf1c8950dab257542"
             },
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
@@ -493,7 +493,7 @@
     }, {
         "name" : "Type",
         "meta" : "struct",
-        "id" : "15020482145304562784",
+        "id" : "0xd07378ede1f9cc60",
         "dataWordCount" : 2,
         "pointerCount" : 1,
         "preferredListEncoding" : 7,
@@ -594,7 +594,7 @@
             "fields" : [{
                 "name" : "elementType",
                 "meta" : "struct",
-                "id" : "15020482145304562784",
+                "id" : "0xd07378ede1f9cc60",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 0
@@ -654,7 +654,7 @@
     }, {
         "name" : "Value",
         "meta" : "struct",
-        "id" : "14853958794117909659",
+        "id" : "0xce23dcd2d7b00c9b",
         "dataWordCount" : 2,
         "pointerCount" : 1,
         "preferredListEncoding" : 7,
@@ -780,7 +780,7 @@
     }, {
         "name" : "Annotation",
         "meta" : "struct",
-        "id" : "17422339044421236034",
+        "id" : "0xf1c8950dab257542",
         "dataWordCount" : 1,
         "pointerCount" : 1,
         "preferredListEncoding" : 7,
@@ -794,7 +794,7 @@
         }, {
             "name" : "value",
             "meta" : "struct",
-            "id" : "14853958794117909659",
+            "id" : "0xce23dcd2d7b00c9b",
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 0
@@ -802,7 +802,7 @@
     }, {
         "name" : "ElementSize",
         "meta" : "enum",
-        "id" : "15102134695616452902",
+        "id" : "0xd1958f7dba521926",
         "enumerants" : [{
             "name" : "empty"
         }, {
@@ -823,7 +823,7 @@
     }, {
         "name" : "CodeGeneratorRequest",
         "meta" : "struct",
-        "id" : "13818529054586492878",
+        "id" : "0xbfc546f6210ad7ce",
         "dataWordCount" : 0,
         "pointerCount" : 2,
         "preferredListEncoding" : 7,
@@ -833,7 +833,7 @@
             "meta" : "list",
             "type" : {
                 "meta" : "struct",
-                "id" : "16610026722781537303"
+                "id" : "0xe682ab4cf923a417"
             },
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
@@ -843,7 +843,7 @@
             "meta" : "list",
             "type" : {
                 "meta" : "struct",
-                "id" : "14981803260258615394"
+                "id" : "0xcfea0eb02e810062"
             },
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
@@ -852,7 +852,7 @@
         "nodes" : [{
             "name" : "RequestedFile",
             "meta" : "struct",
-            "id" : "14981803260258615394",
+            "id" : "0xcfea0eb02e810062",
             "dataWordCount" : 1,
             "pointerCount" : 2,
             "preferredListEncoding" : 7,
@@ -874,7 +874,7 @@
                 "meta" : "list",
                 "type" : {
                     "meta" : "struct",
-                    "id" : "12560611460656617445"
+                    "id" : "0xae504193122357e5"
                 },
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
@@ -883,7 +883,7 @@
             "nodes" : [{
                 "name" : "Import",
                 "meta" : "struct",
-                "id" : "12560611460656617445",
+                "id" : "0xae504193122357e5",
                 "dataWordCount" : 1,
                 "pointerCount" : 1,
                 "preferredListEncoding" : 7,
