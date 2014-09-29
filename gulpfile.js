@@ -7,6 +7,7 @@ var concat = require('gulp-concat');
 var insert = require('gulp-insert');
 var jshint = require('gulp-jshint');
 var nodefy = require('gulp-nodefy');
+var preprocess = require('gulp-preprocess');
 var rename = require('gulp-rename');
 var render = require('gulp-dust-render');
 var uglify_ = require('gulp-uglify');
@@ -150,6 +151,9 @@ gulp.task('bScope', ['exportBuilder'], function () {
 
 gulp.task('context', function () {
     gulp.src('context/**/*.js')
+        .pipe(preprocess({ context : {
+            TARGET_ENV : 'node'
+        }}))
         .pipe(uglify())
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
