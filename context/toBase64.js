@@ -1,5 +1,7 @@
 define([], function() {
 
+    // @if TARGET_ENV='browser'
+
     /*
      * Lifted from MDN:
      * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Base64_encoding_and_decoding.
@@ -39,4 +41,11 @@ define([], function() {
         return sB64Enc.substr(0, sB64Enc.length - 2 + nMod3) +
             (nMod3 === 2 ? '' : nMod3 === 1 ? '=' : '==');
     };
+    // @endif
+
+    // @if TARGET_ENV='node'
+    return function (buffer) {
+        return buffer.toString('base64');
+    };
+    // @endif
 });
