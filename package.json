@@ -1,21 +1,20 @@
 {
   "name": "capnp-js-plugin",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Yet another Capnproto implementation for Javascript.",
   "main": "index",
   "bin": [
-    "bin/capnp-js",
-    "bin/capnp-json"
+    "bin/capnpc-js",
+    "bin/capnpc-json"
   ],
   "scripts": {
-    "test": "./node_modules/.bin/gulp ci",
     "build": "./node_modules/.bin/gulp build",
-    "rebuild": "npm run clean && npm run build",
-    "clean": "./node_modules/.bin/gulp clean"
+    "clean": "./node_modules/.bin/gulp clean",
+    "rebuild": "npm run clean && npm run build"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/popham/capnp-js.git"
+    "url": "https://github.com/popham/capnp-js-plugin.git"
   },
   "keywords": [
     "capnproto",
