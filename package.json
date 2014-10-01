@@ -1,6 +1,6 @@
 {
   "name": "capnp-js-plugin",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Yet another Capnproto implementation for Javascript.",
   "main": "index",
   "scripts": {
@@ -14,7 +14,9 @@
     "url": "https://github.com/popham/capnp-js.git"
   },
   "keywords": [
-    "capnproto"
+    "capnproto",
+    "capnp",
+    "capnpc"
   ],
   "author": "Tim Popham",
   "license": "MIT",
