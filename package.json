@@ -1,11 +1,11 @@
 {
   "name": "capnp-js-plugin",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Yet another Capnproto implementation for Javascript.",
   "main": "index",
   "bin": [
     "bin/capnpc-js",
-    "bin/capnpc-json"
+    "bin/capnpc-js-json"
   ],
   "scripts": {
     "build": "./node_modules/.bin/gulp build",
