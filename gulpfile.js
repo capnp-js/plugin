@@ -95,7 +95,7 @@ gulp.task('cgrBuilder', ['bTypes', 'bScope', 'builders', 'context']);
 
 ['constants', 'readers', 'rTypes'].forEach(function (processor) {
     gulp.task(processor, ['exportReader'], function () {
-        return gulp.src('schema/nodes.json')
+        return gulp.src('schema.json')
             .pipe(render(
                 require('./lib/reader/' + processor)
             ))
@@ -110,7 +110,7 @@ gulp.task('cgrBuilder', ['bTypes', 'bScope', 'builders', 'context']);
 
 ['builders', 'bTypes'].forEach(function (processor) {
     gulp.task(processor, ['exportBuilder'], function () {
-        return gulp.src('schema/nodes.json')
+        return gulp.src('schema.json')
             .pipe(render(
                 require('./lib/builder/' + processor)
             ))
@@ -124,7 +124,7 @@ gulp.task('cgrBuilder', ['bTypes', 'bScope', 'builders', 'context']);
 });
 
 gulp.task('rScope', ['exportReader'], function () {
-    return gulp.src('schema/files.json')
+    return gulp.src('schema.json')
         .pipe(render(
             require('./lib/reader/rScope')
         ))
@@ -137,7 +137,7 @@ gulp.task('rScope', ['exportReader'], function () {
 });
 
 gulp.task('bScope', ['exportBuilder'], function () {
-    return gulp.src('schema/files.json')
+    return gulp.src('schema.json')
         .pipe(render(
             require('./lib/builder/bScope')
         ))

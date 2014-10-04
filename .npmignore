@@ -1,2 +1,4 @@
 ./src/
+./test/
 ./gulpfile.js
+./schema.json
