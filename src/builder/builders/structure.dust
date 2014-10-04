@@ -1,12 +1,13 @@
 {! Building a group requires a `Parent`. !}
 (function ({^.meta}Parent{/.meta}) {
 
-    {?.meta}
+    {^.meta}
+        {! Group case !}
+        var Structure = builder.group(Parent._READER.Group_{.name});
+    {:else}
         {@eq key=.meta value="struct"}
             var Structure = scope["{.id}"];
         {/eq}
-    {:else}
-        var Structure = builder.structure(Parent._READER.Group_{.name});
     {/.meta}
 
     {#.nodes}
@@ -221,21 +222,13 @@
 
                     {>throwOnInactive error="Attempted to access an inactive union member"/}
 
-                    return new Structure.Group_{.name}(
-                        this._arena,
-                        this._depth,
-                        this._layout()
-                    );
+                    return new Structure.Group_{.name}(this);
                 };
 
                 Structure.prototype.{@fieldIniter name=.name/} = function () {
                     {>"builders/setDiscriminant"/}
 
-                    return new Structure.Group_{.name}(
-                        this._arena,
-                        this._depth + 1,
-                        this._layout()
-                    );
+                    return new Structure.Group_{.name}(this);
                 };
             {/eq}
             {@eq key=.type value="Data"}{>"builders/listField"/}{/eq}
