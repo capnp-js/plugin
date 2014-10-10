@@ -19,7 +19,6 @@ define(['./node', './joinId'], function (
             name : requestedFile.getFilename().asString(),
             meta : "file",
             id : id,
-            imports : imports,
             nodes : children
         };
     };
