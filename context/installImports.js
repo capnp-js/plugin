@@ -50,6 +50,7 @@ define(['path', 'traverse', 'lodash', './joinId'], function (
         // Find all of the types (ids) defined in the tree's file.
         var localTypes = trees.map(function (tree) {
             return traverse(tree).reduce(function(acc, node) {
+                if (typeof node !== 'object') return acc;
                 var end = this.path.length;
                 if (end > 1
                  && this.path[end-2] === 'nodes'
@@ -74,7 +75,8 @@ define(['path', 'traverse', 'lodash', './joinId'], function (
         // Find all of the field types (ids) embedded in the tree's file.
         var fieldIds = trees.map(function (tree) {
             return traverse(tree).reduce(function (acc, node) {
-                if (node.meta === 'struct' || node.meta === 'enum') {
+                if (typeof node !== 'object') return acc;
+                if (node.meta==='struct' || node.meta==='enum') {
                     for (var i=this.path.length-2; i>1; --i) {
                         // Backtrack in case the type is nested under a list.
                         if (this.path[i] === 'fields') {
@@ -92,7 +94,8 @@ define(['path', 'traverse', 'lodash', './joinId'], function (
         // Find all of the contant types (ids) embedded in the tree's file.
         var constIds = trees.map(function (tree) {
             return traverse(tree).reduce(function (acc, node) {
-                if (node.meta === 'struct' || node.meta === 'enum') {
+                if (typeof node !== 'object') return acc;
+                if (node.meta==='struct' || node.meta==='enum') {
                     for (var i=this.path.length-2; i>1; --i) {
                         // Backtrack in case the type is nested under a list.
                         if (this.path[i] === 'fields') {
