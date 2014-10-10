@@ -2,17 +2,16 @@ define(['./bTypes'{?.imports},{@imports file="bTypes"/}{/.imports}], function (
             types {?.imports},{#.imports}file{$idx}{@sep},{/sep}{/.imports}{/.imports}) {
 
     var scope = {};
-    var id;
 
-    {#.imports}
-        for (id in file{$idx}) {
-            scope[id] = file{$idx}[id];
-        }
-    {/.imports}
-
-    for (id in types) {
+    for (var id in types) {
         scope[id] = types[id];
     }
+
+    {#.imports}
+        {#.typeIds fileId=$idx}
+            scope["{.}"] = file{fileId}["{.}"];
+        {/.typeIds}
+    {/.imports}
 
     return scope;
 });
