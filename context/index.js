@@ -1,21 +1,29 @@
-define(['./node', './joinId'], function (
-           node,     joinId) {
+define(['./node', './joinId', './imports'], function (
+           node,     joinId,     imports) {
 
-    return function (requestedFile, nodes) {
-        var index = {};
-        nodes.forEach(function (n) { index[joinId(n.getId())] = n; });
+    return function (requestedFiles, nodes) {
+        var is = imports(requestedFiles, nodes);
 
-        var id = joinId(requestedFile.getId());
+        var trees = [];
+        requestedFiles.forEach(function (file) {
+            var index = {};
+            nodes.forEach(function (n) { index[joinId(n.getId())] = n; });
 
-        var children = index[id].getNestedNodes().map(function (c) {
-            return node(c, index);
+            var id = joinId(file.getId());
+
+            var children = index[id].getNestedNodes().map(function (c) {
+                return node(c, index);
+            });
+
+            trees.push({
+                name : file.getFilename().asString(),
+                meta : "file",
+                imports : is[id],
+                id : id,
+                nodes : children
+            });
         });
 
-        return {
-            name : requestedFile.getFilename().asString(),
-            meta : "file",
-            id : id,
-            nodes : children
-        };
+        return trees;
     };
 });
