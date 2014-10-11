@@ -95,8 +95,8 @@ define(['./joinId'], function (
 
         var usedTypes = {}; // fileId -> typeIds
         nodes.forEach(function (node) {
-            var id = joinId(node.getId());
             if (node.isFile()) {
+                var id = joinId(node.getId());
                 usedTypes[id] = Object.keys(usedIds(index, node));
             }
         });
@@ -112,11 +112,14 @@ define(['./joinId'], function (
 
             var imports = {};
             usedTypes[importerId].forEach(function (typeId) {
-                var filePath = importPaths[fileIds[typeId]];
-                if (imports[filePath] === undefined) {
-                    imports[filePath] = [];
+                var parentFileId = fileIds[typeId];
+                var filePath = importPaths[parentFileId];
+                if (parentFileId !== importerId) {
+                    if (imports[filePath] === undefined) {
+                        imports[filePath] = [];
+                    }
+                    imports[filePath].push(typeId);
                 }
-                imports[filePath].push(typeId);
             });
 
             importers[importerId] = [];
