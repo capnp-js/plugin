@@ -7,10 +7,6 @@ define(['./node', './joinId'], function (
 
         var id = joinId(requestedFile.getId());
 
-        var imports = requestedFile.getImports().map(function (i) {
-            return i.getName().asString();
-        });
-
         var children = index[id].getNestedNodes().map(function (c) {
             return node(c, index);
         });
