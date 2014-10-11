@@ -50,7 +50,6 @@
     "capnp-js": "0.0.6",
     "capnp-js-plugin-dust": "0.0.3",
     "js-beautify": "^1.5.1",
-    "lodash": "^2.4.1",
     "mkdirp": "^0.5.0",
     "traverse": "^0.6.6",
     "when": "^3.1.0"
