@@ -45,7 +45,13 @@ define(['./joinId'], function (
         if (root.isSlot()) {
             return typeId(root.getSlot().getType());
         } else if (root.isGroup()) {
-            return fieldIds(index, index[joinId(root.getGroup().getTypeId())]);
+            var node = index[joinId(root.getGroup().getTypeId())];
+            var types = {};
+            node.getStruct().getFields().forEach(function (field) {
+                merge(types, fieldIds(index, field));
+            });
+
+            return types;
         }
     };
 
