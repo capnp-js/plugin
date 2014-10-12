@@ -1,5 +1,5 @@
 define(['capnp-js/builder/Allocator', 'capnp-js/reader/index', './rScope', './constants'{?.imports},{@imports file="readers"/}{/.imports}], function (
-                          Allocator,            reader,            scope,     constants) {
+                          Allocator,            reader,            scope,     constants{?.imports},{#.imports}file{$idx}{@sep},{/sep}{/.imports}{/.imports}) {
 
     {! Import builders to assure that the prototypes get populated. !}
 
