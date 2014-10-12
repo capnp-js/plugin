@@ -1,18 +1,12 @@
-define(['capnp-js/builder/Allocator', 'capnp-js/reader/index', './rScope', './constants'], function (
+define(['capnp-js/builder/Allocator', 'capnp-js/reader/index', './rScope', './constants'{?.imports},{@imports file="readers"/}{/.imports}], function (
                           Allocator,            reader,            scope,     constants) {
 
-    {!
-     ! TODO: Bring in the `readers.js` files from other directories that contain
-     ! this file's imports to assure that the corresponding prototype methods
-     ! get installed.
-     !}
+    {! Import builders to assure that the prototypes get populated. !}
 
     {!
      ! Compiler dumps `./rpc.js` and `./rpcMethods.js.stub` (stubbed out RPC
      ! methods).  The `./rpcMethods.js` file gets imported by `./rpc.js`.
      !}
-
-    {! Populate prototypes and assign pet-names. !}
 
     var readers = {};
     var allocator = new Allocator();

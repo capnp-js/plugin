@@ -1,12 +1,7 @@
-define(['capnp-js/builder/Allocator', 'capnp-js/builder/index', 'capnp-js/reader/index', './bScope', './readers'], function (
+define(['capnp-js/builder/Allocator', 'capnp-js/builder/index', 'capnp-js/reader/index', './bScope', './readers'{?.imports},{@imports file="builders"/}{/.imports}], function (
                           Allocator,            builder,                  reader,            scope,     readers) {
 
-    /*
-     * Loading `readers` guarantees that reader prototypes have been populated.
-     * Imagine using a builder, `b`:  If the underlying data is shared read-only
-     * by `b.asReader()`, then the prototype of this reader would not have been
-     * initialized unless some external code imported `readers`.
-     */
+    {! Import builders to assure that the prototypes get populated. !}
 
     {!
      ! Compiler dumps `./rpc.js` and `./rpcMethods.js.stub` (stubbed out RPC
