@@ -90,6 +90,8 @@
                     };
 
                     Structure.prototype.{@fieldSetter name=.name/} = function (value) {
+                        {>"builders/setDiscriminant"/}
+
                         var pointer = {
                             segment : this._segment,
                             position : this._pointersSection +
@@ -97,8 +99,6 @@
                         };
 
                         Builder_{.name}._set(this._arena, pointer, value);
-
-                        {>"builders/setDiscriminant"/}
                     };
 
                     Structure.prototype.{@fieldAdopter name=.name/} = function (value) {
@@ -154,6 +154,8 @@
                     };
 
                     Structure.prototype.{@fieldSetter name=.name/} = function (value) {
+                        {>"builders/setDiscriminant"/}
+
                         var pointer = {
                             segment : this._segment,
                             position : this._pointersSection +
@@ -161,8 +163,6 @@
                         };
 
                         Builder_{.name}._set(this._arena, pointer, value);
-
-                        {>"builders/setDiscriminant"/}
                     };
                 {/eq}
 
@@ -250,6 +250,8 @@
                 };
 
                 Structure.prototype.{@fieldSetter name=.name/} = function (reader) {
+                    {>"builders/setDiscriminant"/}
+
                     var pointer = {
                         segment : this._segment,
                         position : this._pointersSection +
@@ -266,8 +268,6 @@
 {! Okay for orphans (?) (constrain even if unnecessary?) (presumably from another arena, since `adopt` would be less expensive) !}
                         builder.copy.pointer.deep(reader, this._arena, pointer);
                     }
-
-                    {>"builders/setDiscriminant"/}
                 };
             {/eq}
 
@@ -298,6 +298,8 @@
                 };
 
                 Structure.prototype.{@fieldSetter name=.name/} = function (value) {
+                    {>"builders/setDiscriminant"/}
+
                     var position = this._dataSection + {@boolOffset offset=.offset/};
 
                     builder.fields.bool(
@@ -307,8 +309,6 @@
                         position,
                         {@boolMask offset=.offset/}
                     );
-
-                    {>"builders/setDiscriminant"/}
                 };
             {/eq}
 
