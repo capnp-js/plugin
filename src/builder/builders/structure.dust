@@ -90,6 +90,10 @@
                     };
 
                     Structure.prototype.{@fieldSetter name=.name/} = function (value) {
+                        if (Builder_{.name}._TYPE !== value._TYPE) {
+                            throw new TypeError();
+                        }
+
                         {>"builders/setDiscriminant"/}
 
                         var pointer = {
@@ -106,6 +110,8 @@
                             throw new TypeError();
                         }
 
+                        {>"builders/setDiscriminant"/}
+
                         Builder_{.name}._adopt(
                             this._arena,
                             {
@@ -118,6 +124,8 @@
                     };
 
                     Structure.prototype.{@fieldDisowner name=.name/} = function () {
+                        {>throwOnInactive error="Attempted to access an inactive union member"/}
+
                         var pointer = {
                             segment : this._segment,
                             position : this._pointersSection +
@@ -154,6 +162,10 @@
                     };
 
                     Structure.prototype.{@fieldSetter name=.name/} = function (value) {
+                        if (Builder_{.name}._TYPE !== value._TYPE) {
+                            throw new TypeError();
+                        }
+
                         {>"builders/setDiscriminant"/}
 
                         var pointer = {

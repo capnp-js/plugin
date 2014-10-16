@@ -22,6 +22,10 @@ Structure.prototype.{@fieldGetter name=.name/} = function () {
 };
 
 Structure.prototype.{@fieldSetter name=.name/} = function (value) {
+    if (builder.{.type}._TYPE !== value._TYPE) {
+        throw new TypeError();
+    }
+
     {>"builders/setDiscriminant"/}
 
     var pointer = {
@@ -50,6 +54,10 @@ Structure.prototype.{@fieldHaser name=.name/} = function () {
 };
 
 Structure.prototype.{@fieldAdopter name=.name/} = function (value) {
+    if (builder.{.type}._TYPE !== value._TYPE) {
+        throw new TypeError();
+    }
+
     builder.{.type}._adopt(
         this._arena,
         {
