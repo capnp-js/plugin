@@ -262,6 +262,8 @@
                 };
 
                 Structure.prototype.{@fieldSetter name=.name/} = function (reader) {
+                    // TODO: Type checking
+
                     {>"builders/setDiscriminant"/}
 
                     var pointer = {
