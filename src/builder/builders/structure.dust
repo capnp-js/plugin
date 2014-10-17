@@ -262,7 +262,7 @@
                 };
 
                 Structure.prototype.{@fieldSetter name=.name/} = function (reader) {
-                    // TODO: Type checking
+                    /* TODO: Type checking */
 
                     {>"builders/setDiscriminant"/}
 
