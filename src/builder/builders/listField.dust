@@ -22,9 +22,7 @@ Structure.prototype.{@fieldGetter name=.name/} = function () {
 };
 
 Structure.prototype.{@fieldSetter name=.name/} = function (value) {
-    if (builder.{.type}._TYPE !== value._TYPE) {
-        throw new TypeError();
-    }
+    var params = builder.{.type}._setParams(value);
 
     {>"builders/setDiscriminant"/}
 
@@ -34,7 +32,7 @@ Structure.prototype.{@fieldSetter name=.name/} = function (value) {
             {@math key=.offset method="multiply" operand="8"/}
     };
 
-    builder.{.type}._set(this._arena, pointer, value);
+    builder.{.type}._set(this._arena, pointer, params);
 };
 
 Structure.prototype.{@fieldHaser name=.name/} = function () {
@@ -57,6 +55,8 @@ Structure.prototype.{@fieldAdopter name=.name/} = function (value) {
     if (builder.{.type}._TYPE !== value._TYPE) {
         throw new TypeError();
     }
+
+    {>"builders/setDiscriminant"/}
 
     builder.{.type}._adopt(
         this._arena,
