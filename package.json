@@ -1,6 +1,6 @@
 {
   "name": "capnp-js-plugin",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "description": "Yet another Capnproto implementation for Javascript.",
   "main": "index",
   "bin": [
