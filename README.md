@@ -5,7 +5,7 @@ Generate Javascript serialization classes for [Capnproto](http://kentonv.github.
 
 # Installation
 * This plugin requires `capnp` (see the Capnproto [installation page](http://kentonv.github.io/capnproto/install.html)).
-* Install the plugin: `npm install capnp-js-plugin`.
+* Install the plugin: `npm install capnp-js-plugin` (probably with a --save-dev option).
   I don't want root access to anybody's system, so please refrain from `npm install -g capnp-js-plugin` unless you have your system set up to sandbox such installs.
 
 # Usage
