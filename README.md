@@ -41,10 +41,10 @@ These files facilitate circular reference resolution by creating types and accum
 
 # Absolute Imports
 The Javascript plugin maps absolute imports to absolute AMD paths.
-Consider the [messaging example](https://github.com/popham/rtc-github/tree/gh-pages/example/messages/) from my [rtc-github](https://github.com/popham/rtc-github/) repository.
-The [capnp/server.capnp](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/capnp/server.capnp) schema lists an absolute import: `using import "/rtc-github-protocol/user.capnp".User;`.
-The Javascript plugin maps absolute imports to absolute AMD paths, so the [package](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/package.json)'s `capnp compile -ojs -I ./node_modules/ capnp/*.capnp` yields [capnp/server.capnp.d/readers.js](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/capnp/server.capnp.d/readers.js#L1), amongst others.
-So now I just need to point my AMD loader at *rtc-github-protocol*, e.g. [index.htm](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/index.htm#L17).
+Consider the [messaging example](https://github.com/popham/rtc-github/tree/gh-pages/example/messages/) from my [rtc-github](https://github.com/popham/rtc-github/) repository:
+* Its [capnp/server.capnp](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/capnp/server.capnp) schema lists an absolute import: `using import "/rtc-github-protocol/user.capnp".User;`.
+* The [package](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/package.json)'s `capnp compile -ojs -I ./node_modules/ capnp/*.capnp` yields absolute paths in [capnp/server.capnp.d/readers.js](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/capnp/server.capnp.d/readers.js#L1), amongst others.
+* Now I just need to point my AMD loader at *rtc-github-protocol*, e.g. [index.htm](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/index.htm#L17).
 
 So why the */rtc-github-protocol* prefix?
 Why not `using import "/user.capnp".User;`, `capnp compile -ojs -I ./node_modules/rtc-github-protocol/ capnp/*.capnp`, and then provide a *user.capnp.d* path to the AMD loader?
