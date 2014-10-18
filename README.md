@@ -31,20 +31,13 @@ Javascript implementation of structure builders from *someSchema.capnp* plus any
 See [Builders](http://kentonv.github.io/capnproto/cxx.html#structs) from the reference implementation documentation.
 
 ## Internal Files
-The following files exist under *someSchema.capnp.d/*, but should not be imported by user code:
-* **someSchema.capnp.d/rTypes.js**:
-  Structure reader types defined in *someSchema.capnp*, but without populated prototypes.
-  This file exists to facilitate circular reference resolution in AMD loaders and Node.
+The following files exist under *someSchema.capnp.d/*, but should not be imported by user code.
+These files facilitate circular reference resolution by creating types and accumulating them, without calling any prototype methods.
+* **someSchema.capnp.d/rTypes.js**: Structure reader types defined in *someSchema.capnp*.
 * **someSchema.capnp.d/bTypes.js**: Analogous to *rTypes.js*.
-* **someSchema.capnp.d/rScope.js**:
-  Merge all structure reader types imported by *someSchema.capnp* with those from *rTypes.js*.
-  None of the types have populated prototypes yet.
-  This file exists to facilitate circular reference resolution in AMD loaders and Node.
+* **someSchema.capnp.d/rScope.js**: Merge all structure reader types imported by *someSchema.capnp* with those created within *someSchema.capnp*.
 * **someSchema.capnp.d/bScope.js**: Analogous to *rScope.js*.
-* **someSchema.capnp.d/constants.js**:
-  All of the constants from *someSchema.capnp*, accessible by internal identifier (not name).
-  None of the structure types have populated prototypes yet.
-  This file exists to facilitate circular reference resolution in AMD loaders and Node.
+* **someSchema.capnp.d/constants.js**: All of the constants from *someSchema.capnp*, accessible by internal identifier (not name).
 
 # Absolute Imports
 See the [messaging example](https://github.com/popham/rtc-github/tree/gh-pages/example/messages/) from my [rtc-github](https://github.com/popham/rtc-github/) repository.
