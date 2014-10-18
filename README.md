@@ -33,12 +33,10 @@ See [Builders](http://kentonv.github.io/capnproto/cxx.html#structs) from the ref
 ## Internal Files
 The following files exist under *someSchema.capnp.d/*, but should not be imported by user code:
 * **someSchema.capnp.d/rTypes.js**:
-  Not for importing.
   Structure reader types defined in *someSchema.capnp*, but without populated prototypes.
   This file exists to facilitate circular reference resolution in AMD loaders and Node.
 * **someSchema.capnp.d/bTypes.js`: Analogous to *rTypes.js*.
 * **someSchema.capnp.d/rScope.js**:
-  Not for importing.
   Merge all structure reader types imported by *someSchema.capnp* with those from *rTypes.js*.
   None of the types have populated prototypes yet.
   This file exists to facilitate circular reference resolution in AMD loaders and Node.
