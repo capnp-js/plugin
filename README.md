@@ -21,12 +21,17 @@ Generate Javascript serialization classes for [Capnproto](http://kentonv.github.
 # Serialization Classes
 This plugin generates serialization classes that very similar to those of the [c++ reference implementation](http://kentonv.github.io/capnproto/cxx.html#types).
 Given a schema *someSchema.capnp*, `capnp compile -ojs someSchema.capnp` will generate *someSchema.capnp.d/readers*, *someSchema.capnp.d/builders*, and some internal files:
-* **someSchema.capnp.d/readers.js**:
-  Javascript implementation of structure readers from *someSchema.capnp* plus any constants and enumerations.
-  See [Readers](http://kentonv.github.io/capnproto/cxx.html#structs) from the reference implementation documentation.
-* **someSchema.capnp.d/builders.js**:
-  Javascript implementation of structure builders from *someSchema.capnp* plus any constants and enumerations.
-  See [Builders](http://kentonv.github.io/capnproto/cxx.html#structs) from the reference implementation documentation.
+
+## Readers (*someSchema.capnp.d/readers.js*)
+Javascript implementation of structure readers from *someSchema.capnp* plus any constants and enumerations.
+See [Readers](http://kentonv.github.io/capnproto/cxx.html#structs) from the reference implementation documentation.
+
+## Builders (*someSchema.capnp.d/builders.js*)
+Javascript implementation of structure builders from *someSchema.capnp* plus any constants and enumerations.
+See [Builders](http://kentonv.github.io/capnproto/cxx.html#structs) from the reference implementation documentation.
+
+## Internal Files
+The following files exist under *someSchema.capnp.d/*, but should not be imported by user code:
 * **someSchema.capnp.d/rTypes.js**:
   Not for importing.
   Structure reader types defined in *someSchema.capnp*, but without populated prototypes.
