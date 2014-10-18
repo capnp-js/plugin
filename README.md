@@ -9,19 +9,19 @@ Generate Javascript serialization classes for [Capnproto](http://kentonv.github.
   I don't want root access to anybody's system, so please refrain from `npm install -g capnp-js-plugin` unless you have your system set up to sandbox such installs.
 
 # Usage
-The compiler is invoked with `capnp compile -ojs someSchema.capnp` to generate a `someSchema.capnp.d` directory containing the schema's AMD files.
-Run `capnp help compile` for additional options.
-Under the recommended installation, `npm install capnp-js-plugin`, the compiler will need a path hint to find the plugin, e.g.
+* The compiler is invoked with `capnp compile -ojs someSchema.capnp` to generate a `someSchema.capnp.d` directory containing the schema's AMD files.
+* Run `capnp help compile` for additional options.
+* Under the recommended installation, `npm install capnp-js-plugin`, the compiler will need a path hint to find the plugin, e.g.
 
 ```
 PATH=$PATH:node_modules/.bin capnp compile -ojs someSchema.capnp
 ```
 
-Thankfully, `npm run compileMySchema` will perform this path manipulation before executing the `compileMySchema` script from `package.json`.
-See this [compileMySchema script](https://github.com/popham/rtc-github-protocol/blob/master/package.json#L7) for an example.
+  Thankfully, `npm run compileMySchema` will perform this path manipulation before executing the `compileMySchema` script from `package.json`.
+  See this [compileMySchema script](https://github.com/popham/rtc-github-protocol/blob/master/package.json#L7) for an example.
 
-To obtain Node modules, I use [Nodefy](https://github.com/millermedeiros/nodefy/) (see this [nodefy script](https://github.com/popham/rtc-github-protocol/blob/master/package.json#L8) for an example).
-I suspect that [AMDefine](https://github.com/jrburke/amdefine) provides an alternate solution, but until I personally abandon Nodefy for AMDefine, I won't chase any upstream bugs.
+* To obtain Node modules, I use [Nodefy](https://github.com/millermedeiros/nodefy/) (see this [nodefy script](https://github.com/popham/rtc-github-protocol/blob/master/package.json#L8) for an example).
+  I suspect that [AMDefine](https://github.com/jrburke/amdefine) provides an alternate solution, but until I personally abandon Nodefy for AMDefine, I won't chase any upstream bugs related to the use of AMDefine.
 
 # Serialization Classes
 This plugin generates serialization classes that imitate those of the [c++ reference implementation](http://kentonv.github.io/capnproto/cxx.html#types).
