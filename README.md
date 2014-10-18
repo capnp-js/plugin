@@ -12,11 +12,9 @@ Generate Javascript serialization classes for [Capnproto](http://kentonv.github.
 * The compiler is invoked with `capnp compile -ojs someSchema.capnp` to generate a `someSchema.capnp.d` directory containing the schema's AMD files.
 * Run `capnp help compile` for additional options.
 * Under the recommended installation, `npm install capnp-js-plugin`, the compiler will need a path hint to find the plugin, e.g.
-
 ```
 PATH=$PATH:node_modules/.bin capnp compile -ojs someSchema.capnp
 ```
-
   Thankfully, `npm run compileMySchema` will perform this path manipulation before executing the `compileMySchema` script from `package.json`.
   See this [compileMySchema script](https://github.com/popham/rtc-github-protocol/blob/master/package.json#L7) for an example.
 
