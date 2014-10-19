@@ -19,7 +19,7 @@ Generate Javascript serialization classes for [Capnproto](http://kentonv.github.
   I suspect that [AMDefine](https://github.com/jrburke/amdefine) provides an alternate solution, but until I personally abandon Nodefy for AMDefine, I won't chase any upstream bugs related to the use of AMDefine.
 
 # Serialization Classes
-This plugin generates serialization classes that very similar to those of the [c++ reference implementation](http://kentonv.github.io/capnproto/cxx.html#types).
+This plugin generates serialization classes similar to those of the [c++ reference implementation](http://kentonv.github.io/capnproto/cxx.html#types).
 Given a schema *someSchema.capnp*, `capnp compile -ojs someSchema.capnp` will generate *someSchema.capnp.d/readers*, *someSchema.capnp.d/builders*, and some internal files:
 
 ## Readers (*someSchema.capnp.d/readers.js*)
