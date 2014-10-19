@@ -20,7 +20,7 @@ Generate Javascript serialization classes for [Capnproto](http://kentonv.github.
 
 # Serialization Classes
 This plugin generates serialization classes similar to those of the [c++ reference implementation](http://kentonv.github.io/capnproto/cxx.html#types).
-Given a schema *someSchema.capnp*, `capnp compile -ojs someSchema.capnp` will generate *someSchema.capnp.d/readers*, *someSchema.capnp.d/builders*, and some internal files:
+Given a schema *someSchema.capnp*, `capnp compile -ojs someSchema.capnp` will generate *someSchema.capnp.d/readers.js*, *someSchema.capnp.d/builders.js*, and some internal files:
 
 ## Readers (*someSchema.capnp.d/readers.js*)
 Javascript implementation of structure readers from *someSchema.capnp* plus any constants and enumerations.
