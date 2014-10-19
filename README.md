@@ -24,11 +24,11 @@ Given a schema *someSchema.capnp*, `capnp compile -ojs someSchema.capnp` will ge
 
 ## Readers (*someSchema.capnp.d/readers.js*)
 Javascript implementation of structure readers from *someSchema.capnp* plus any constants and enumerations.
-See [Readers](http://kentonv.github.io/capnproto/cxx.html#structs) from the reference implementation documentation.
+See [Readers](http://kentonv.github.io/capnproto/cxx.html#structs) from the reference implementation's documentation.
 
 ## Builders (*someSchema.capnp.d/builders.js*)
 Javascript implementation of structure builders from *someSchema.capnp* plus any constants and enumerations.
-See [Builders](http://kentonv.github.io/capnproto/cxx.html#structs) from the reference implementation documentation.
+See [Builders](http://kentonv.github.io/capnproto/cxx.html#structs) from the reference implementation's documentation.
 
 ## Internal Files
 The following files exist under *someSchema.capnp.d/*, but should not be imported by user code.
