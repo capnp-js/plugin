@@ -53,4 +53,4 @@ Why not `using import "/user.capnp".User;`, `capnp compile -ojs -I ./node_module
 Nodefy doesn't remap absolute names.
 If I need to use [capnp/server.capnp](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/capnp/server.capnp) in a Node module, then every absolute path's root will need a corresponding entry under *node_modules/*.
 This is no big deal if you're using `npm link` for these modules, but if you want to distribute under `npm`'s official public registry (and don't want dependencies that point at git repositories), then publishing *user.capnp.d* seems wrong.
-The schemas under */rtc-github-protocol* are used by a [RTC signaling server](https://github.com/popham/rtc-github/blob/master/lib/server.js) that will probably appear on `npm`'s official public registry someday, hence the */rtc-github-protocol* prefix.
+The schemas under */rtc-github-protocol* are used by an [RTC signaling server](https://github.com/popham/rtc-github/blob/master/lib/server.js) that will probably appear on `npm`'s official public registry someday, hence the */rtc-github-protocol* prefix.
