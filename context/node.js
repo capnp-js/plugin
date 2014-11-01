@@ -1,5 +1,5 @@
-define(['capnp-js/builder/primitives', 'capnp-js/builder/Allocator', 'capnp-js/builder/copy/index', 'capnp-js/wordAlign', './toBase64', './joinId'], function (
-                  builder,                               Allocator,                    copy,                  wordAlign,     toBase64,     joinId) {
+define(['capnp-js/builder/copy/deep', 'capnp-js/builder/primitives', 'capnp-js/builder/Allocator', 'capnp-js/wordAlign', './toBase64', './joinId', './size'], function (
+                          copy,                 builder,                               Allocator,            wordAlign,     toBase64,     joinId,     size) {
 
     var allocator = new Allocator();
 
@@ -172,26 +172,34 @@ define(['capnp-js/builder/primitives', 'capnp-js/builder/Allocator', 'capnp-js/b
     };
 
     var any = function (instance) {
-        var arena = allocator.createArena(8 + instance._bytes());
+        var layout = instance._layout();
+        var arena = allocator.createArena(8 + size(layout));
 
-        /*
-         * Admit installation of non-structures to the arena's root.  The arena
-         * is sized to hold all data on a single segment, yielding a canonical
-         * serialization for javascript.
-         */
-        copy.pointer.any(
-            instance._arena, instance._pointer,
-            arena,           arena._root()
+        // Admit installation of non-structures to the arena's root.
+        var copier;
+        switch (layout.meta) {
+        case 0: copier = copy.setStructurePointer; break;
+        case 1: copier = copy.setListPointer;      break;
+        }
+
+        copier(
+            instance._arena,
+            layout,
+            arena,
+            arena._root()
         );
 
-        if (arena._segments.length > 1) throw new Error('Failed to allocate onto a single segment');
-
-        return toBase64(arena._segments[0]);
+        return toBase64(arena.getSegment(0));
     };
 
     var blob = function (instance) {
         var arena = allocator.createArena(wordAlign(8 + instance._length));
-        copy.pointer.deep(instance, arena, arena._root());
+        copy.setListPointer(
+            instance.arena,
+            instance._layout(),
+            arena,
+            arena._root()
+        );
 
         return toBase64(arena._segments[0]);
     };
