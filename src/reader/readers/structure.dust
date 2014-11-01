@@ -113,17 +113,7 @@
                     };
 
                     if (pointer.position < this._end && !reader.isNull(pointer)) {
-                        {!
-                         ! Defer null pointer checking to `cast` (casting a null
-                         ! pointer to a structure should yield an instance that
-                         ! returns default fields, with non-structure instances
-                         ! throwing).
-                         !}
-                        return reader.AnyPointer._deref(
-                            this._arena,
-                            pointer,
-                            this._depth + 1
-                        );
+                        return reader.AnyPointer._deref(this._arena, pointer, this._depth+1);
                     } else {
                         return this._defaults.{.name};
                     }
@@ -220,14 +210,7 @@
             {/.bytes}
         {:deref}
             {@verbatim}
-                Reader._deref(
-                    arena,
-                    {
-                        segment : arena.getSegment(0),
-                        position : 0
-                    },
-                    0
-                )
+                Reader._deref(arena, arena._root(), 0)
             {/verbatim}
         {:bytes}
             {@bytesFields fields=.fields/}
