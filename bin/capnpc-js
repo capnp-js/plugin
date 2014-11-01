@@ -15,7 +15,6 @@ var sizes=[];
 var start;
 process.stdin.on('readable', function() {
     var chunk;
-    var segment;
     while (null !== (chunk=process.stdin.read())) {
         if (n === undefined) {
             n = chunk.readUInt32LE(0) + 1;
