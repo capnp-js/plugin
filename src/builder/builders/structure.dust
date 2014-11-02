@@ -255,15 +255,10 @@
                             {@math key=.offset method="multiply" operand="8"/}
                     };
 
-                    return builder.AnyPointer._deref(
-                        this._arena,
-                        pointer
-                    );
+                    return builder.AnyPointer._deref(this._arena, pointer);
                 };
 
-                Structure.prototype.{@fieldSetter name=.name/} = function (reader) {
-                    /* TODO: Type checking */
-
+                Structure.prototype.{@fieldSetter name=.name/} = function (value) {
                     {>"builders/setDiscriminant"/}
 
                     var pointer = {
@@ -272,16 +267,44 @@
                             {@math key=.offset method="multiply" operand="8"/}
                     };
 
-                    if (reader._TYPE === builder.AnyPointer._TYPE) {
-                        builder.copy.pointer.any(
-                            reader._arena,
-                            reader._pointer,
-                            this._arena, pointer
-                        );
-                    } else {
-{! Okay for orphans (?) (constrain even if unnecessary?) (presumably from another arena, since `adopt` would be less expensive) !}
-                        builder.copy.pointer.deep(reader, this._arena, pointer);
+                    builder.AnyPointer._set(this._arena, pointer, value);
+                };
+
+                Structure.prototype.{@fieldAdopter name=.name/} = function (value) {
+                    if (builder.AnyPointerBlob._TYPE !== value._TYPE) {
+                        throw new TypeError();
                     }
+
+                    if (!value._isDisowned) {
+                        throw new ValueError('Attempted to adopt an AnyPointerBlob a second time');
+                    }
+
+                    {>"builders/setDiscriminant"/}
+
+                    builder.AnyPointerBlob._adopt(
+                        this._arena,
+                        {
+                            segment : this._segment,
+                            position : this._pointersSection +
+                                {@math key=.offset method="multiply" operand="8"/}
+                        },
+                        value
+                    );
+                };
+
+                Structure.prototype.{@fieldDisowner name=.name/} = function () {
+                    {>throwOnInactive error="Attempted to access an inactive union member"/}
+
+                    var pointer = {
+                        segment : this._segment,
+                        position : this._pointersSection +
+                            {@math key=.offset method="multiply" operand="8"/}
+                    };
+
+                    var instance = new builder.AnyPointerBlob(this._arena, pointer);
+                    if (!reader.isNull(pointer)) this._arena._zero(pointer, 8);
+
+                    return instance;
                 };
             {/eq}
 
