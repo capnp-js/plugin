@@ -1,5 +1,5 @@
-define(['capnp-js/reader/layout/any', 'capnp-js/reader/layout/structure', 'capnp-js/reader/list/meta', 'capnp-js/builder/AnyPointerBlob', 'capnp-js/wordAlign'], function (
-                                any,                          structure,                        meta,                    AnyPointerBlob,            wordAlign) {
+define(['capnp-js/reader/layout/any', 'capnp-js/reader/layout/structure', 'capnp-js/reader/list/meta', 'capnp-js/wordAlign'], function (
+                                any,                          structure,                        meta,            wordAlign) {
 
     var targeted = function (arena, iStart, iEnd) {
         var bytes = 0;
@@ -70,8 +70,5 @@ define(['capnp-js/reader/layout/any', 'capnp-js/reader/layout/structure', 'capnp
         }
     };
 
-    return function (arena, pointer) {
-        var apb = new AnyPointerBlob(arena, pointer);
-        return blob(arena, apb._layout());
-    };
+    return blob;
 });
