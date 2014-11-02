@@ -1,5 +1,5 @@
-define(['capnp-js/builder/copy/deep', 'capnp-js/builder/primitives', 'capnp-js/builder/Allocator', 'capnp-js/wordAlign', './toBase64', './joinId', './size'], function (
-                          copy,                 builder,                               Allocator,            wordAlign,     toBase64,     joinId,     size) {
+define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-js/builder/Allocator', 'capnp-js/wordAlign', './toBase64', './joinId', './size'], function (
+                          copy,                    builder,                               Allocator,            wordAlign,     toBase64,     joinId,     size) {
 
     var allocator = new Allocator();
 
@@ -172,36 +172,19 @@ define(['capnp-js/builder/copy/deep', 'capnp-js/builder/primitives', 'capnp-js/b
     };
 
     var any = function (instance) {
-        var layout = instance._layout();
-        var arena = allocator.createArena(8 + size(layout));
+        var arena = allocator.createArena(8 + size(instance._arena, instance._pointer));
 
         // Admit installation of non-structures to the arena's root.
-        var copier;
-        switch (layout.meta) {
-        case 0: copier = copy.setStructurePointer; break;
-        case 1: copier = copy.setListPointer;      break;
-        }
-
-        copier(
-            instance._arena,
-            layout,
-            arena,
-            arena._root()
-        );
+        copy.deep(instance, arena, arena._root());
 
         return toBase64(arena.getSegment(0));
     };
 
     var blob = function (instance) {
         var arena = allocator.createArena(wordAlign(8 + instance._length));
-        copy.setListPointer(
-            instance.arena,
-            instance._layout(),
-            arena,
-            arena._root()
-        );
+        copy.deep(instance, arena, arena._root());
 
-        return toBase64(arena._segments[0]);
+        return toBase64(arena.getSegment(0));
     };
 
     var defaultValueF = function (v, index) {
