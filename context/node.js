@@ -1,5 +1,5 @@
-define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-js/builder/Allocator', 'capnp-js/builder/AnyPointerBlob', 'capnp-js/wordAlign', './toBase64', './joinId', './size'], function (
-                          copy,                    builder,                               Allocator,                    AnyPointerBlob,            wordAlign,     toBase64,     joinId,     size) {
+define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-js/builder/Allocator', 'capnp-js/reader/layout/any', 'capnp-js/wordAlign', './toBase64', './joinId', './size'], function (
+                          copy,                    builder,                               Allocator,                   layout,                wordAlign,     toBase64,     joinId,     size) {
 
     var allocator = new Allocator();
 
@@ -172,18 +172,31 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
     };
 
     var any = function (instance) {
-        var apb = new AnyPointerBlob(instance._arena, instance._pointer);
-        var arena = allocator.createArena(8 + size(instance._arena, apb._layout()));
+        var bytes = size(
+            instance._arena,
+            layout.unsafe(instance._arena, instance._pointer)
+        );
+        var arena = allocator.createArena(8 + bytes);
 
         // Admit installation of non-structures to the arena's root.
-        copy.deep(apb, arena, arena._root());
+        copy.setAnyPointer(
+            instance._arena,
+            instance._pointer,
+            arena,
+            arena._root()
+        );
 
         return toBase64(arena.getSegment(0));
     };
 
     var blob = function (instance) {
         var arena = allocator.createArena(wordAlign(8 + instance._length));
-        copy.deep(instance, arena, arena._root());
+        copy.setListPointer(
+            instance._arena,
+            instance._layout(),
+            arena,
+            arena._root()
+        );
 
         return toBase64(arena.getSegment(0));
     };

@@ -1,13 +1,10 @@
-define(['capnp-js/reader/layout/any', 'capnp-js/reader/layout/structure', 'capnp-js/reader/list/meta', 'capnp-js/wordAlign'], function (
-                                any,                          structure,                        meta,            wordAlign) {
+define(['capnp-js/reader/layout/any', 'capnp-js/reader/list/meta', 'capnp-js/wordAlign'], function (
+                                any,                        meta,            wordAlign) {
 
     var targeted = function (arena, iStart, iEnd) {
         var bytes = 0;
         for (; iStart.position<iEnd.position; iStart.position += 8) {
-            bytes += blob(
-                arena,
-                any.unsafe(arena, iStart)
-            );
+            bytes += blob(arena, any.unsafe(arena, iStart));
         }
 
         return bytes;
@@ -18,8 +15,7 @@ define(['capnp-js/reader/layout/any', 'capnp-js/reader/layout/structure', 'capnp
         switch (layout.meta) {
         case 0:
             // Locals
-            bytes = structure.dataBytes(pointer);
-            bytes += structure.pointersBytes(pointer);
+            bytes = layout.end - layout.dataSection;
 
             // Follow pointers
             bytes += targeted(
@@ -27,14 +23,12 @@ define(['capnp-js/reader/layout/any', 'capnp-js/reader/layout/structure', 'capnp
                 {
                     segment : layout.segment,
                     position : layout.pointersSection
-                },
-                {
+                }, {
                     segment : layout.segment,
                     position : layout.end
                 }
             );
-
-            return bytes;
+            break;
         case 1:
             // Locals
             var m = meta(layout);
@@ -65,9 +59,10 @@ define(['capnp-js/reader/layout/any', 'capnp-js/reader/layout/structure', 'capnp
                     });
                 }
             }
-
-            return bytes;
+            break;
         }
+
+        return bytes
     };
 
     return blob;
