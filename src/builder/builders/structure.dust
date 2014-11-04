@@ -73,6 +73,30 @@
                 {@eq key=.meta value="struct"}
                     var Builder_{.name} = scope["{.id}"];
 
+                    Structure.prototype.{@fieldGetter name=.name/} = function () {
+                        {>throwOnInactive error="Attempted to access an inactive union member"/}
+
+                        var pointer = {
+                            segment : this._segment,
+                            position : this._pointersSection +
+                                {@math key=.offset method="multiply" operand="8"/}
+                        };
+
+                        if (reader.isNull(pointer)) {
+                            builder.copy.pointer.setStructPointer(
+                                this._defaults.{.name}._arena,
+                                this._defaults.{.name}._layout(),
+                                this._arena,
+                                pointer
+                            );
+                        }
+
+                        return Builder_{.name}._deref(
+                            this._arena,
+                            pointer
+                        );
+                    };
+
                     Structure.prototype.{@fieldIniter name=.name/} = function () {
                         {>"builders/setDiscriminant"/}
 
@@ -149,6 +173,30 @@
                 {@eq key=.meta value="list"}
                     var Builder_{.name} = {>"builders/list"/};
 
+                    Structure.prototype.{@fieldGetter name=.name/} = function () {
+                        {>throwOnInactive error="Attempted to access an inactive union member"/}
+
+                        var pointer = {
+                            segment : this._segment,
+                            position : this._pointersSection +
+                                {@math key=.offset method="multiply" operand="8"/}
+                        };
+
+                        if (reader.isNull(pointer)) {
+                            builder.copy.pointer.setListPointer(
+                                this._defaults.{.name}._arena,
+                                this._defaults.{.name}._layout(),
+                                this._arena,
+                                pointer
+                            );
+                        }
+
+                        return Builder_{.name}._deref(
+                            this._arena,
+                            pointer
+                        );
+                    };
+
                     Structure.prototype.{@fieldIniter name=.name/} = function (n) {
                         {>"builders/setDiscriminant"/}
 
@@ -177,29 +225,6 @@
                         Builder_{.name}._set(this._arena, pointer, value);
                     };
                 {/eq}
-
-                Structure.prototype.{@fieldGetter name=.name/} = function () {
-                    {>throwOnInactive error="Attempted to access an inactive union member"/}
-
-                    var pointer = {
-                        segment : this._segment,
-                        position : this._pointersSection +
-                            {@math key=.offset method="multiply" operand="8"/}
-                    };
-
-                    if (reader.isNull(pointer)) {
-                        builder.copy.pointer.deep(
-                            this._defaults.{.name},
-                            this._arena,
-                            pointer
-                        );
-                    }
-
-                    return Builder_{.name}._deref(
-                        this._arena,
-                        pointer
-                    );
-                };
 
                 Structure.prototype.{@fieldHaser name=.name/} = function () {
                     {!
