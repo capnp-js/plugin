@@ -43,7 +43,7 @@
     "gulp-rimraf": "^0.1.0",
     "gulp-uglify": "^0.3.1",
     "mocha": "^1.18.2",
-    "nodefy": "^0.2.2"
+    "nodefy": "git://github.com/popham/nodefy#circular_refs"
   },
   "dependencies": {
     "buffers": "^0.1.1",
