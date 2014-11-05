@@ -8,8 +8,9 @@ Structure.prototype.{@fieldGetter name=.name/} = function () {
     };
 
     if (reader.isNull(pointer)) {
-        builder.copy.pointer.deep(
-            this._defaults.{.name},
+        builder.copy.pointer.setListPointer(
+            this._defaults.{.name}._arena,
+            this._defaults.{.name}._layout(),
             this._arena,
             pointer
         );
