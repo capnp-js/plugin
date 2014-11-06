@@ -327,7 +327,7 @@
                     };
 
                     var instance = new builder.AnyPointerBlob(this._arena, pointer);
-                    if (!reader.isNull(pointer)) this._arena._zero(pointer, 8);
+                    this._arena._zero(pointer, 8);
 
                     return instance;
                 };
