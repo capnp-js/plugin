@@ -55,11 +55,6 @@ gulp.task('buildBuilder', ['sharedTemplates'], function () {
         .pipe(chug({ tasks : ['build'] }));
 });
 
-//gulp.task('ci', function () {
-//    return gulp.src('./src/reader/gulpfile.js', { read : false })
-//        .pipe(chug({ tasks : ['ci'] }));
-//});
-
 gulp.task('clean', ['cleanReader'], function () {
     return gulp.src([
         'lib',
