@@ -127,8 +127,10 @@
                         return Builder_{.name}._deref(this._arena, pointer);
                     };
                 {:setter}
-                    {@eq key=.meta value="struct"}setStructPointer{/eq}
-                    {@eq key=.meta value="list"}setListPointer{/eq}
+                    {@verbatim}
+                        {@eq key=.meta value="struct"}setStructPointer{/eq}
+                        {@eq key=.meta value="list"}setListPointer{/eq}
+                    {/verbatim}
                 {/provide}
 
                 Structure.prototype.{@fieldSetter name=.name/} = function (value) {
