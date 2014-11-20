@@ -73,30 +73,6 @@
                 {@eq key=.meta value="struct"}
                     var Builder_{.name} = scope["{.id}"];
 
-                    Structure.prototype.{@fieldGetter name=.name/} = function () {
-                        {>throwOnInactive error="Attempted to access an inactive union member"/}
-
-                        var pointer = {
-                            segment : this._segment,
-                            position : this._pointersSection +
-                                {@math key=.offset method="multiply" operand="8"/}
-                        };
-
-                        if (reader.isNull(pointer)) {
-                            builder.copy.pointer.setStructPointer(
-                                this._defaults.{.name}._arena,
-                                this._defaults.{.name}._layout(),
-                                this._arena,
-                                pointer
-                            );
-                        }
-
-                        return Builder_{.name}._deref(
-                            this._arena,
-                            pointer
-                        );
-                    };
-
                     Structure.prototype.{@fieldIniter name=.name/} = function () {
                         {>"builders/setDiscriminant"/}
 
@@ -112,90 +88,9 @@
                             this._depth + 1
                         );
                     };
-
-                    Structure.prototype.{@fieldSetter name=.name/} = function (value) {
-                        if (Builder_{.name}._TYPE !== value._TYPE) {
-                            throw new TypeError();
-                        }
-
-                        {>"builders/setDiscriminant"/}
-
-                        var pointer = {
-                            segment : this._segment,
-                            position : this._pointersSection +
-                                {@math key=.offset method="multiply" operand="8"/}
-                        };
-
-                        Builder_{.name}._set(this._arena, pointer, value);
-                    };
-
-                    Structure.prototype.{@fieldAdopter name=.name/} = function (value) {
-                        if (Builder_{.name}._TYPE !== value._TYPE) {
-                            throw new TypeError();
-                        }
-
-                        {>"builders/setDiscriminant"/}
-
-                        Builder_{.name}._adopt(
-                            this._arena,
-                            {
-                                segment : this._segment,
-                                position : this._pointersSection +
-                                    {@math key=.offset method="multiply" operand="8"/}
-                            },
-                            value
-                        );
-                    };
-
-                    Structure.prototype.{@fieldDisowner name=.name/} = function () {
-                        {>throwOnInactive error="Attempted to access an inactive union member"/}
-
-                        var pointer = {
-                            segment : this._segment,
-                            position : this._pointersSection +
-                                {@math key=.offset method="multiply" operand="8"/}
-                        };
-
-                        if (reader.isNull(pointer)) {
-                            return Builder_{.name}._initOrphan(this._arena);
-                        } else {
-                            var instance = Builder_{.name}._deref(
-                                this._arena,
-                                pointer
-                            );
-                            this._arena._zero(pointer, 8);
-                            instance._isDisowned = true;
-
-                            return instance;
-                        }
-                    };
                 {/eq}
                 {@eq key=.meta value="list"}
                     var Builder_{.name} = {>"builders/list"/};
-
-                    Structure.prototype.{@fieldGetter name=.name/} = function () {
-                        {>throwOnInactive error="Attempted to access an inactive union member"/}
-
-                        var pointer = {
-                            segment : this._segment,
-                            position : this._pointersSection +
-                                {@math key=.offset method="multiply" operand="8"/}
-                        };
-
-                        if (reader.isNull(pointer)) {
-                            builder.copy.pointer.setListPointer(
-                                this._defaults.{.name}._arena,
-                                this._defaults.{.name}._layout(),
-                                this._arena,
-                                pointer
-                            );
-                        }
-
-                        return Builder_{.name}._deref(
-                            this._arena,
-                            pointer
-                        );
-                    };
 
                     Structure.prototype.{@fieldIniter name=.name/} = function (n) {
                         {>"builders/setDiscriminant"/}
@@ -208,13 +103,11 @@
 
                         return Builder_{.name}._init(this._arena, pointer, n);
                     };
+                {/eq}
 
-                    Structure.prototype.{@fieldSetter name=.name/} = function (value) {
-                        if (Builder_{.name}._TYPE !== value._TYPE) {
-                            throw new TypeError();
-                        }
-
-                        {>"builders/setDiscriminant"/}
+                {@provide}
+                    Structure.prototype.{@fieldGetter name=.name/} = function () {
+                        {>throwOnInactive error="Attempted to access an inactive union member"/}
 
                         var pointer = {
                             segment : this._segment,
@@ -222,9 +115,107 @@
                                 {@math key=.offset method="multiply" operand="8"/}
                         };
 
-                        Builder_{.name}._set(this._arena, pointer, value);
+                        if (reader.isNull(pointer)) {
+                            builder.copy.pointer.{.setter}(
+                                this._defaults.{.name}._arena,
+                                this._defaults.{.name}._layout(),
+                                this._arena,
+                                pointer
+                            );
+                        }
+
+                        return Builder_{.name}._deref(this._arena, pointer);
                     };
-                {/eq}
+                {:setter}
+                    {@eq key=.meta value="struct"}setStructPointer{/eq}
+                    {@eq key=.meta value="list"}setListPointer{/eq}
+                {/provide}
+
+                Structure.prototype.{@fieldSetter name=.name/} = function (value) {
+                    if (Builder_{.name}._TYPE !== value._TYPE)
+                        throw new TypeError();
+
+                    {>"builders/setDiscriminant"/}
+
+                    var pointer = {
+                        segment : this._segment,
+                        position : this._pointersSection +
+                            {@math key=.offset method="multiply" operand="8"/}
+                    };
+
+                    if (value._arena === null) {
+                        console.warn('Setting with a vacuous value');
+                        this._arena._zero(pointer, 8);
+                    } else {
+                        Builder_{.name}._set(this._arena, pointer, value);
+                    }
+                };
+
+                Structure.prototype.{@fieldAdopter name=.name/} = function (value) {
+                    if (Builder_{.name}._TYPE !== value._TYPE)
+                        throw new TypeError();
+
+                    if (!value._isOrphan)
+                        throw new ValueError('Cannot adopt non-orphans');
+
+                    {>"builders/setDiscriminant"/}
+
+                    var pointer = {
+                        segment : this._segment,
+                        position : this._pointersSection +
+                            {@math key=.offset method="multiply" operand="8"/}
+                    };
+
+                    if (value._arena === null) {
+                        console.warn('Adopting with a vacuous value');
+                        this._arena._zero(pointer, 8);
+                    } else {
+                        Builder_{.name}._adopt(this._arena, pointer, value);
+                    }
+                };
+
+                Structure.prototype.{@fieldDisowner name=.name/} = function () {
+                    {>throwOnInactive error="Attempted to access an inactive union member"/}
+
+                    var pointer = {
+                        segment : this._segment,
+                        position : this._pointersSection +
+                            {@math key=.offset method="multiply" operand="8"/}
+                    };
+
+                    if (reader.isNull(pointer)) {
+                        return Builder_{.name}._initOrphan(this._arena);
+                    } else {
+                        var instance = Builder_{.name}._deref(
+                            this._arena,
+                            pointer
+                        );
+                        this._arena._zero(pointer, 8);
+                        instance._isOrphan = true;
+
+                        return instance;
+                    }
+                };
+
+                Structure.prototype.{@fieldReaderDisowner name=.name/} = function () {
+                    {>throwOnInactive error="Attempted to access an inactive union member"/}
+
+                    var pointer = {
+                        segment : this._segment,
+                        position : this._pointersSection +
+                            {@math key=.offset method="multiply" operand="8"/}
+                    };
+
+                    var instance = Builder_{.name}._READER._deref(
+                        this._arena,
+                        pointer
+                    );
+
+                    this._arena._zero(pointer, 8);
+                    instance._isOrphan = true;
+
+                    return instance;
+                };
 
                 Structure.prototype.{@fieldHaser name=.name/} = function () {
                     {!
