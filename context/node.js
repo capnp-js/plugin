@@ -43,7 +43,7 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
     };
 
     var enumerantF = function (node, index) {
-        return { name : node.getName().asString() };
+        return { name : node.getName().toString() };
     };
 
     var enumerationF = function (node, index) {
@@ -77,7 +77,7 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
 
     var fieldF = function (field, index) {
         var base = {
-            name : field.getName().asString(),
+            name : field.getName().toString(),
             discriminantValue : field.getDiscriminantValue()
         };
 
@@ -311,7 +311,7 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
     };
 
     var nodeF = function (node, index) {
-        var name = { name : node.getName().asString() };
+        var name = { name : node.getName().toString() };
         node = index[joinId(node.getId())];
 
         switch (node.which()) {
