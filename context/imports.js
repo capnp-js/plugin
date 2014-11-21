@@ -105,7 +105,7 @@ define(['./joinId'], function (
         requestedFiles.forEach(function (file) {
             var importPaths = {};
             file.getImports().forEach(function (i) {
-                importPaths[joinId(i.getId())] = i.getName().asString();
+                importPaths[joinId(i.getId())] = i.getName().toString();
             });
 
             var importerId = joinId(file.getId());
