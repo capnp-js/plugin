@@ -16,7 +16,7 @@ define(['./node', './joinId', './imports'], function (
             });
 
             trees.push({
-                name : file.getFilename().asString(),
+                name : file.getFilename().toString(),
                 meta : "file",
                 imports : is[id],
                 id : id,
