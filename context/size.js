@@ -62,7 +62,7 @@ define(['capnp-js/reader/layout/any', 'capnp-js/reader/list/meta', 'capnp-js/wor
             break;
         }
 
-        return bytes
+        return bytes;
     };
 
     return blob;
