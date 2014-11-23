@@ -37,6 +37,22 @@
             "defaultValue" : [0,0],
             "offset" : 2
         }, {
+            "name" : "parameters",
+            "meta" : "list",
+            "type" : {
+                "meta" : "struct",
+                "id" : "0xb9521bccf10fa3b1"
+            },
+            "discriminantValue" : 65535,
+            "defaultValue" : "AAAAAAAAAAA=",
+            "offset" : 5
+        }, {
+            "name" : "isGeneric",
+            "type" : "Bool",
+            "discriminantValue" : 65535,
+            "defaultValue" : 0,
+            "offset" : 288
+        }, {
             "name" : "nestedNodes",
             "meta" : "list",
             "type" : {
@@ -156,9 +172,12 @@
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 3
             }, {
-                "name" : "extends",
+                "name" : "superclasses",
                 "meta" : "list",
-                "type" : "UInt64",
+                "type" : {
+                    "meta" : "struct",
+                    "id" : "0xa9962a9ed0a4d7f8"
+                },
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 4
@@ -276,6 +295,21 @@
             }]
         }],
         "nodes" : [{
+            "name" : "Parameter",
+            "meta" : "struct",
+            "id" : "0xb9521bccf10fa3b1",
+            "dataWordCount" : 0,
+            "pointerCount" : 1,
+            "preferredListEncoding" : 7,
+            "discriminantCount" : 0,
+            "fields" : [{
+                "name" : "name",
+                "type" : "Text",
+                "discriminantValue" : 65535,
+                "defaultValue" : "AAAAAAAAAAA=",
+                "offset" : 0
+            }]
+        }, {
             "name" : "NestedNode",
             "meta" : "struct",
             "id" : "0xdebf55bbfa0fc242",
@@ -448,6 +482,28 @@
             "offset" : 1
         }]
     }, {
+        "name" : "Superclass",
+        "meta" : "struct",
+        "id" : "0xa9962a9ed0a4d7f8",
+        "dataWordCount" : 1,
+        "pointerCount" : 1,
+        "preferredListEncoding" : 7,
+        "discriminantCount" : 0,
+        "fields" : [{
+            "name" : "id",
+            "type" : "UInt64",
+            "discriminantValue" : 65535,
+            "defaultValue" : [0,0],
+            "offset" : 0
+        }, {
+            "name" : "brand",
+            "meta" : "struct",
+            "id" : "0x903455f06065422b",
+            "discriminantValue" : 65535,
+            "defaultValue" : "AAAAAAAAAAA=",
+            "offset" : 0
+        }]
+    }, {
         "name" : "Method",
         "meta" : "struct",
         "id" : "0x9500cce23b334d80",
@@ -468,17 +524,41 @@
             "defaultValue" : 0,
             "offset" : 0
         }, {
+            "name" : "implicitParameters",
+            "meta" : "list",
+            "type" : {
+                "meta" : "struct",
+                "id" : "0xb9521bccf10fa3b1"
+            },
+            "discriminantValue" : 65535,
+            "defaultValue" : "AAAAAAAAAAA=",
+            "offset" : 4
+        }, {
             "name" : "paramStructType",
             "type" : "UInt64",
             "discriminantValue" : 65535,
             "defaultValue" : [0,0],
             "offset" : 1
         }, {
+            "name" : "paramBrand",
+            "meta" : "struct",
+            "id" : "0x903455f06065422b",
+            "discriminantValue" : 65535,
+            "defaultValue" : "AAAAAAAAAAA=",
+            "offset" : 2
+        }, {
             "name" : "resultStructType",
             "type" : "UInt64",
             "discriminantValue" : 65535,
             "defaultValue" : [0,0],
             "offset" : 2
+        }, {
+            "name" : "resultBrand",
+            "meta" : "struct",
+            "id" : "0x903455f06065422b",
+            "discriminantValue" : 65535,
+            "defaultValue" : "AAAAAAAAAAA=",
+            "offset" : 3
         }, {
             "name" : "annotations",
             "meta" : "list",
@@ -613,6 +693,13 @@
                 "discriminantValue" : 65535,
                 "defaultValue" : [0,0],
                 "offset" : 1
+            }, {
+                "name" : "brand",
+                "meta" : "struct",
+                "id" : "0x903455f06065422b",
+                "discriminantValue" : 65535,
+                "defaultValue" : "AAAAAAAAAAA=",
+                "offset" : 0
             }]
         }, {
             "name" : "struct",
@@ -628,6 +715,13 @@
                 "discriminantValue" : 65535,
                 "defaultValue" : [0,0],
                 "offset" : 1
+            }, {
+                "name" : "brand",
+                "meta" : "struct",
+                "id" : "0x903455f06065422b",
+                "discriminantValue" : 65535,
+                "defaultValue" : "AAAAAAAAAAA=",
+                "offset" : 0
             }]
         }, {
             "name" : "interface",
@@ -643,13 +737,141 @@
                 "discriminantValue" : 65535,
                 "defaultValue" : [0,0],
                 "offset" : 1
+            }, {
+                "name" : "brand",
+                "meta" : "struct",
+                "id" : "0x903455f06065422b",
+                "discriminantValue" : 65535,
+                "defaultValue" : "AAAAAAAAAAA=",
+                "offset" : 0
             }]
         }, {
             "name" : "anyPointer",
-            "type" : "Void",
+            "type" : "group",
+            "dataWordCount" : 2,
+            "pointerCount" : 1,
+            "preferredListEncoding" : 7,
             "discriminantValue" : 18,
-            "defaultValue" : null,
+            "discriminantCount" : 3,
+            "discriminantOffset" : 4,
+            "fields" : [{
+                "name" : "unconstrained",
+                "type" : "Void",
+                "discriminantValue" : 0,
+                "defaultValue" : null,
+                "offset" : 0
+            }, {
+                "name" : "parameter",
+                "type" : "group",
+                "dataWordCount" : 2,
+                "pointerCount" : 1,
+                "preferredListEncoding" : 7,
+                "discriminantValue" : 1,
+                "discriminantCount" : 0,
+                "fields" : [{
+                    "name" : "scopeId",
+                    "type" : "UInt64",
+                    "discriminantValue" : 65535,
+                    "defaultValue" : [0,0],
+                    "offset" : 2
+                }, {
+                    "name" : "parameterIndex",
+                    "type" : "UInt16",
+                    "discriminantValue" : 65535,
+                    "defaultValue" : 0,
+                    "offset" : 5
+                }]
+            }, {
+                "name" : "implicitMethodParameter",
+                "type" : "group",
+                "dataWordCount" : 2,
+                "pointerCount" : 1,
+                "preferredListEncoding" : 7,
+                "discriminantValue" : 2,
+                "discriminantCount" : 0,
+                "fields" : [{
+                    "name" : "parameterIndex",
+                    "type" : "UInt16",
+                    "discriminantValue" : 65535,
+                    "defaultValue" : 0,
+                    "offset" : 5
+                }]
+            }]
+        }]
+    }, {
+        "name" : "Brand",
+        "meta" : "struct",
+        "id" : "0x903455f06065422b",
+        "dataWordCount" : 0,
+        "pointerCount" : 1,
+        "preferredListEncoding" : 7,
+        "discriminantCount" : 0,
+        "fields" : [{
+            "name" : "scopes",
+            "meta" : "list",
+            "type" : {
+                "meta" : "struct",
+                "id" : "0xabd73485a9636bc9"
+            },
+            "discriminantValue" : 65535,
+            "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 0
+        }],
+        "nodes" : [{
+            "name" : "Scope",
+            "meta" : "struct",
+            "id" : "0xabd73485a9636bc9",
+            "dataWordCount" : 2,
+            "pointerCount" : 1,
+            "preferredListEncoding" : 7,
+            "discriminantCount" : 2,
+            "discriminantOffset" : 4,
+            "fields" : [{
+                "name" : "scopeId",
+                "type" : "UInt64",
+                "discriminantValue" : 65535,
+                "defaultValue" : [0,0],
+                "offset" : 0
+            }, {
+                "name" : "bind",
+                "meta" : "list",
+                "type" : {
+                    "meta" : "struct",
+                    "id" : "0xc863cd16969ee7fc"
+                },
+                "discriminantValue" : 0,
+                "defaultValue" : "AAAAAAAAAAA=",
+                "offset" : 0
+            }, {
+                "name" : "inherit",
+                "type" : "Void",
+                "discriminantValue" : 1,
+                "defaultValue" : null,
+                "offset" : 0
+            }]
+        }, {
+            "name" : "Binding",
+            "meta" : "struct",
+            "id" : "0xc863cd16969ee7fc",
+            "dataWordCount" : 1,
+            "pointerCount" : 1,
+            "preferredListEncoding" : 7,
+            "discriminantCount" : 2,
+            "discriminantOffset" : 0,
+            "fields" : [{
+                "name" : "unbound",
+                "type" : "Void",
+                "discriminantValue" : 0,
+                "defaultValue" : null,
+                "offset" : 0
+            }, {
+                "name" : "type",
+                "meta" : "struct",
+                "id" : "0xd07378ede1f9cc60",
+                "discriminantValue" : 1,
+                "defaultValue" : "AAAAAAAAAAA=",
+                "offset" : 0
+            }]
         }]
     }, {
         "name" : "Value",
@@ -791,6 +1013,13 @@
             "discriminantValue" : 65535,
             "defaultValue" : [0,0],
             "offset" : 0
+        }, {
+            "name" : "brand",
+            "meta" : "struct",
+            "id" : "0x903455f06065422b",
+            "discriminantValue" : 65535,
+            "defaultValue" : "AAAAAAAAAAA=",
+            "offset" : 1
         }, {
             "name" : "value",
             "meta" : "struct",
