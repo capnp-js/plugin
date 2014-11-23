@@ -145,12 +145,7 @@
                             {@math key=.offset method="multiply" operand="8"/}
                     };
 
-                    if (value._arena === null) {
-                        console.warn('Setting with a vacuous value');
-                        this._arena._zero(pointer, 8);
-                    } else {
-                        Builder_{.name}._set(this._arena, pointer, value);
-                    }
+                    Builder_{.name}._set(this._arena, pointer, value);
                 };
 
                 Structure.prototype.{@fieldAdopter name=.name/} = function (value) {
@@ -168,12 +163,7 @@
                             {@math key=.offset method="multiply" operand="8"/}
                     };
 
-                    if (value._arena === null) {
-                        console.warn('Adopting with a vacuous value');
-                        this._arena._zero(pointer, 8);
-                    } else {
-                        Builder_{.name}._adopt(this._arena, pointer, value);
-                    }
+                    Builder_{.name}._adopt(this._arena, pointer, value);
                 };
 
                 Structure.prototype.{@fieldDisowner name=.name/} = function () {
