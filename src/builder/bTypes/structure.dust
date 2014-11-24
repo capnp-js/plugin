@@ -1,5 +1,9 @@
 {@eq key=.meta value="struct"}
-    types['{.id}'] = builder.structure(rTypes['{.id}']);
+    {^.type.parameters}
+        types['{.id}'] = builder.structure(rTypes['{.id}']);
+    {:else}
+        types['{.id}'] = builder.metastructure(rTypes['{.id}']);
+    {/.type.parameters}
 
     {#.nodes}
         {>"bTypes/structure"/}
