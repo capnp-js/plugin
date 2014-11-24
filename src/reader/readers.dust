@@ -3,11 +3,6 @@ define(['capnp-js/builder/Allocator', 'capnp-js/reader/index', './rScope', './co
 
     {! Import readers to assure that the prototypes get populated. !}
 
-    {!
-     ! Compiler dumps `./rpc.js` and `./rpcMethods.js.stub` (stubbed out RPC
-     ! methods).  The `./rpcMethods.js` file gets imported by `./rpc.js`.
-     !}
-
     var readers = {};
     var allocator = new Allocator();
 
