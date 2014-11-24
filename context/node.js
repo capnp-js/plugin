@@ -128,47 +128,87 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
         return n;
     };
 
+    var brandF = function (typeId, brand, index) {
+        var f = { id : joinId(typeId)  };
+
+        var scopes = {};
+        brand.getScopes().forEach(function (s) {
+            if (s.isBind()) scopes[joinId(s.getScopeId())] = s.getBind();
+        });
+
+        if (f.id in scopes) {
+            f.parameters = scopes[f.id].map(function (binding) {
+                if (binding.isUnbound()) {
+                    return 'AnyPointer'
+                } else {
+                    return typeF(binding.getType(), index);
+                }
+            });
+        } else {
+            f.parameters = index[f.id].getParameters().map(function (p) {
+                return 'AnyPointer';
+            });
+        }
+
+        return f;
+    };
+
     var typeF = function (t, index) {
+        var f = {};
         switch (t.which()) {
-        case t.VOID: return { type : "Void" };
-        case t.BOOL: return { type : "Bool" };
-        case t.INT8: return { type : "Int8" };
-        case t.INT16: return { type : "Int16" };
-        case t.INT32: return { type : "Int32" };
-        case t.INT64: return { type : "Int64" };
-        case t.UINT8: return { type : "UInt8" };
-        case t.UINT16: return { type : "UInt16" };
-        case t.UINT32: return { type : "UInt32" };
-        case t.UINT64: return { type : "UInt64" };
-        case t.FLOAT32: return { type : "Float32" };
-        case t.FLOAT64: return { type : "Float64" };
-        case t.DATA: return { type : "Data" };
-        case t.TEXT: return { type : "Text" };
-        case t.ANY_POINTER: return { type : "AnyPointer" };
-        case t.ENUM: return {
-            meta : "enum",
-            id : joinId(t.getEnum().getTypeId())
-        };
-
+        case t.VOID: f.type = "Void"; break;
+        case t.BOOL: f.type = "Bool"; break;
+        case t.INT8: f.type = "Int8"; break;
+        case t.INT16: f.type = "Int16"; break;
+        case t.INT32: f.type = "Int32"; break;
+        case t.INT64: f.type = "Int64"; break;
+        case t.UINT8: f.type = "UInt8"; break;
+        case t.UINT16: f.type = "UInt16"; break;
+        case t.UINT32: f.type = "UInt32"; break;
+        case t.UINT64: f.type = "UInt64"; break;
+        case t.FLOAT32: f.type = "Float32"; break;
+        case t.FLOAT64: f.type = "Float64"; break;
+        case t.DATA: f.type = "Data"; break;
+        case t.TEXT: f.type = "Text"; break;
+        case t.ANY_POINTER:
+            t = t.getAnyPointer();
+            switch (t.which()) {
+            case t.UNCONSTRAINED:
+                f.type = "AnyPointer";
+                break;
+            case t.PARAMETER:
+                f.type = "parameter";
+                f.index = t.getParameter().getParameterIndex();
+                break;
+            case t.IMPLICIT_METHOD_PARAMETER:
+                f.type = "AnyPointer";
+                break;
+            }
+            break;
+        case t.ENUM:
+            t = t.getEnum();
+            f.meta = "enum";
+            f.type = brandF(t.getTypeId(), t.getBrand(), index);
+            break;
         case t.LIST:
-            var child = typeF(t.getList().getElementType());
-            return {
-                meta : "list",
-                type : child.meta === undefined ? child.type : child
-            };
-
-        case t.STRUCT: return {
-            meta : "struct",
-            id : joinId(t.getStruct().getTypeId())
-        };
-
-        case t.INTERFACE: return {
-            meta : "interface",
-            id : joinId(t.getInterface().getTypeId())
-        };
-
+            var child = typeF(t.getList().getElementType(), index);
+            f.meta = "list";
+            f.type = child.meta === undefined ? child.type : child;
+            break;
+        case t.STRUCT:
+            t = t.getStruct();
+            f.meta = "struct";
+            f.type = brandF(t.getTypeId(), t.getBrand(), index);
+            break;
+        case t.INTERFACE:
+            t = t.getInterface();
+            f.meta = "interface";
+            f.type = brandF(t.getTypeId(), t.getBrand(), index);
+            break;
         default: throw new Error();
         }
+
+        return f;
     };
 
     var any = function (instance) {
@@ -311,16 +351,25 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
     };
 
     var nodeF = function (node, index) {
-        var name = { name : node.getName().toString() };
+        var base = {
+            name : node.getName().toString()
+        };
+
         node = index[joinId(node.getId())];
+
+        if (node.getParameters().length() > 0) {
+            base.parameters = node.getParameters().map(function (p) {
+                return p.getName().toString();
+            });
+        }
 
         switch (node.which()) {
         case node.FILE: throw new Error('Unanticipated layout');
-        case node.STRUCT: return merge(structureF(node, index), name);
-        case node.ENUM: return merge(enumerationF(node, index), name);
+        case node.STRUCT: return merge(structureF(node, index), base);
+        case node.ENUM: return merge(enumerationF(node, index), base);
         case node.INTERFACE: throw new Error('Interfaces are not supported (yet)');
-        case node.CONST: return merge(constantF(node, index), name);
-        case node.ANNOTATION: return merge(annotationF(node, index), name);
+        case node.CONST: return merge(constantF(node, index), base);
+        case node.ANNOTATION: return merge(annotationF(node, index), base);
         default: throw new Error();
         }
     };
