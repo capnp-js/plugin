@@ -1,5 +1,5 @@
-define(['capnp-js/builder/Allocator', 'capnp-js/reader/index', './rScope', './constants'{?.imports},{@imports file="readers"/}{/.imports}], function (
-                          Allocator,            reader,            scope,     constants{?.imports},{#.imports}file{$idx}{@sep},{/sep}{/.imports}{/.imports}) {
+define(['capnp-js/builder/Allocator', 'capnp-js/reader/index', './rScope' {?.imports},{@imports file="readers"/}{/.imports}], function (
+                          Allocator,            reader,            scope {?.imports},{#.imports}file{$idx}{@sep},{/sep}{/.imports}{/.imports}) {
 
     {! Import readers to assure that the prototypes get populated. !}
 
@@ -8,7 +8,7 @@ define(['capnp-js/builder/Allocator', 'capnp-js/reader/index', './rScope', './co
 
     {#.nodes}
         {@eq key=.meta value="const"}
-            readers.{@constant name=.name/} = {>"readers/node"/};
+            readers.{@constant name=.name/} = {>"reader/constant"/};
         {:else}
             readers.{.name} = {>"readers/node"/};
         {/eq}
