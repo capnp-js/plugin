@@ -1,0 +1,15 @@
+{?.parameters}
+    scope["{.id}"].bindParams(
+        {#.parameters}
+            {?.meta}
+                {>"readers/scope"/}
+            {:else}
+                {! Only pointer types can act as parameters. !}
+                reader.{.type}
+            {/.meta}
+            {@sep},{/sep}
+        {/.parameters}
+    )
+{:else}
+    scope["{.id}"]
+{/.parameters}
