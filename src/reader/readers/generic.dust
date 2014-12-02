@@ -1,0 +1,17 @@
+(function (type, parentScope, allocator) {
+    var Generic = scope["{.id}"].bindScope(parentScope);
+
+    Generic._populate = function (Structure) {
+        {#.nodes}{>"readers/node"/}(type, Structure, allocator);{/.nodes}
+        {>"readers/fields" base="Structure"/}
+    };
+
+    Generic.bindParams = function ({#.parameters}{.}{/.parameters}{@sep}, {/sep}) {
+        if ({@lastMember list=.parameters /} === undefined)
+            throw new ValueError('Too few parameters to `bindParams`');
+
+        return Generic._bindParams([{#.parameters}{.}{@sep}, {/sep}{/.parameters}]);
+    };
+
+    parentScope.{.name} = Generic;
+})

@@ -1,15 +1,199 @@
-{?.parameters}
-    scope["{.id}"].bindParams(
-        {#.parameters}
-            {?.meta}
-                {>"readers/scope"/}
-            {:else}
-                {! Only pointer types can act as parameters. !}
-                reader.{.type}
-            {/.meta}
+var reader = reader;
+
+{?.discriminantCount}
+    {@gt key=.discriminantCount value=0}
+        {base}.prototype.which = function () {
+            var position = this._dataSection +
+                {@math key=.discriminantOffset method="multiply" operand="2"/};
+
+            if (position < this._pointersSection) {
+                return reader.primitives.uint16(this._segment, position);
+            } else {
+                return 0;
+            }
+        };
+    {/gt}
+{/.discriminantCount}
+
+{#.fields}
+    {@ne key=.discriminantValue value=65535}
+        {! Union member !}
+        {base}.{@constant name=.name/} = {base}.prototype.{@constant name=.name/} = {.discriminantValue};
+        {base}.prototype.{@fieldIser name=.name/} = function () {
+            return this.which() === {.discriminantValue};
+        };
+    {/ne}
+
+    {?.meta}
+        {@eq key=.meta value="enum"}
+            {>"readers/dataField" default=.defaultValue decoder="reader.fields" method="uint16" byteCount="2"/}
+        {:else}
+            {base}.prototype.{@fieldGetter name=.name/} = (function() {
+
+                {@eq key=.meta value="struct"}
+/* May be generic--lookup particular instantiation if so */
+                    var Reader = scope["{.id}"];
+                {/eq}
+
+                {@eq key=.meta value="list"}
+/* May be generic--lookup particular instantiation if so */
+                    var Reader = {>"readers/list"/};
+                {/eq}
+
+                return function () {
+                    {>throwOnInactive error="Attempted to access an inactive union member"/}
+
+                    var pointer = {
+                        segment : this._segment,
+                        position : this._pointersSection +
+                            {@math key=.offset method="multiply" operand="8"/}
+                    };
+
+                    if (pointer.position < this._end && !reader.isNull(pointer)) {
+                        return Reader._deref(this._arena, pointer, this._depth+1);
+                    } else {
+                        return this._defaults.{.name};
+                    }
+                };
+            })();
+
+            {base}.prototype.{@fieldHaser name=.name/} = function () {
+                {>throwOnInactive error="Attempted to access an inactive union member"/}
+
+                var pointer = {
+                    segment : this._segment,
+                    position : this._pointersSection +
+                        {@math key=.offset method="multiply" operand="8"/}
+                };
+
+                return pointer.position < this._end && !reader.isNull(pointer);
+            };
+        {/eq}
+    {:else}
+        {@eq key=.type value="group"}
+            {base}.Group_{.name} = {>"readers/group"/};
+
+            {base}.prototype.{@fieldGetter name=.name/} = function () {
+                {>throwOnInactive error="Attempted to access an inactive union member"/}
+
+                return new {base}.Group_{.name}(this);
+            };
+        {/eq}
+        {@eq key=.type value="Data"}{>"readers/listField"/}{/eq}
+        {@eq key=.type value="Text"}{>"readers/listField"/}{/eq}
+        {@eq key=.type value="AnyPointer"}
+            {base}.prototype.{@fieldGetter name=.name/} = function () {
+                {>throwOnInactive error="Attempted to access an inactive union member"/}
+
+                var pointer = {
+                    segment : this._segment,
+                    position : this._pointersSection +
+                        {@math key=.offset method="multiply" operand="8"/}
+                };
+
+                if (pointer.position < this._end && !reader.isNull(pointer)) {
+                    return reader.AnyPointer._deref(this._arena, pointer, this._depth+1);
+                } else {
+                    return this._defaults.{.name};
+                }
+            };
+        {/eq}
+
+        {@eq key=.type value="Void"}
+            {base}.prototype.{@fieldGetter name=.name/} = function () {
+                {>throwOnInactive error="Attempted to access an inactive union member"/}
+
+                return null;
+            };
+        {/eq}
+
+        {@eq key=.type value="Bool"}
+            {base}.prototype.{@fieldGetter name=.name/} = function () {
+                {>throwOnInactive error="Attempted to access an inactive union member"/}
+
+                var position = this._dataSection + {@boolOffset offset=.offset/};
+
+                if (position < this._pointersSection) {
+                    return reader.fields.bool(
+                        {.defaultValue},
+                        this._segment,
+                        position,
+                        {@boolMask offset=.offset/}
+                    );
+                } else {
+                    return !!{.defaultValue};
+                }
+            };
+        {/eq}
+
+        {#. decoder="reader.fields"}
+            {@eq key=.type value="Int8"}{>"readers/dataField"  default=.defaultValue method="int8"  byteCount="1"/}{/eq}
+            {@eq key=.type value="Int16"}{>"readers/dataField" default=.defaultValue method="int16" byteCount="2"/}{/eq}
+            {@eq key=.type value="Int32"}{>"readers/dataField" default=.defaultValue method="int32" byteCount="4"/}{/eq}
+            {@eq key=.type value="Int64"}{>"readers/dataField" default=.defaultValue method="int64" byteCount="8"/}{/eq}
+            {@eq key=.type value="UInt8"}{>"readers/dataField"  default=.defaultValue method="uint8"  byteCount="1"/}{/eq}
+            {@eq key=.type value="UInt16"}{>"readers/dataField" default=.defaultValue method="uint16" byteCount="2"/}{/eq}
+            {@eq key=.type value="UInt32"}{>"readers/dataField" default=.defaultValue method="uint32" byteCount="4"/}{/eq}
+            {@eq key=.type value="UInt64"}{>"readers/dataField" default=.defaultValue method="uint64" byteCount="8"/}{/eq}
+            {@eq key=.type value="Float32"}{>"readers/floatField" method="float32" byteCount="4"/}{/eq}
+            {@eq key=.type value="Float64"}{>"readers/floatField" method="float64" byteCount="8"/}{/eq}
+        {/.}
+    {/.meta}
+{/.fields}
+
+{base}.prototype._defaults = {
+    {@provide}
+        {#.bytes}
+            {.name} : (function () {
+                {?.meta}
+                    {@eq key=.meta value="struct"}
+/* Lookup generic types as needed */
+                        var Reader = scope["{.id}"];
+                        var arena = allocator._fromBase64("{.defaultValue}").asReader();
+                        return {deref};
+                    {/eq}
+
+                    {@eq key=.meta value="list"}
+/* Lookup generic types as needed */
+                        var Reader = {>"readers/list"/};
+                        var arena = {>"readers/listDefaultArena"/};
+                        return {deref};
+                    {/eq}
+                {:else}
+                    {@eq key=.type value="AnyPointer"}
+                        var Reader = reader.AnyPointer;
+                        var arena = allocator._fromBase64("{.defaultValue}").asReader();
+                        return {deref};
+                    {/eq}
+
+                    {@eq key=.type value="Text"}
+                        var Reader = reader.Text;
+                        var arena = {>"readers/listDefaultArena"/};
+                        return {deref};
+                    {/eq}
+
+                    {@eq key=.type value="Data"}
+                        var Reader = reader.Data;
+                        var arena = {>"readers/listDefaultArena"/};
+                        return {deref};
+                    {/eq}
+
+                    {@eq key=.type value="Float32"}
+                        return allocator._fromBase64("{.defaultBytes}").getSegment(0);
+                    {/eq}
+
+                    {@eq key=.type value="Float64"}
+                        return allocator._fromBase64("{.defaultBytes}").getSegment(0);
+                    {/eq}
+                {/.meta}
+            })()
             {@sep},{/sep}
-        {/.parameters}
-    )
-{:else}
-    scope["{.id}"]
-{/.parameters}
+        {/.bytes}
+    {:deref}
+        {@verbatim}
+            Reader._deref(arena, arena._root(), 0)
+        {/verbatim}
+    {:bytes}
+        {@bytesFields fields=.fields/}
+    {/provide}
+};
