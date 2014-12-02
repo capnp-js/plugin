@@ -6,13 +6,7 @@ define(['capnp-js/builder/Allocator', 'capnp-js/reader/index', './rScope' {?.imp
     var readers = {};
     var allocator = new Allocator();
 
-    {#.nodes}
-        {@eq key=.meta value="const"}
-            readers.{@constant name=.name/} = {>"reader/constant"/};
-        {:else}
-            readers.{.name} = {>"readers/node"/};
-        {/eq}
-    {/.nodes}
+    {#.nodes}{>"readers/node"/}(scope, readers, allocator);{/.nodes}
 
     return readers;
 });

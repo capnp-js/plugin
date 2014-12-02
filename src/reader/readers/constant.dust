@@ -1,0 +1,82 @@
+(function (types, parentScope, allocator) {
+    parentScope.prototype.{@constant name=.name/} = parentScope.{@constant name=.name/} =
+    {?.meta}
+        {@eq key=.meta value="enum"}
+            {.value};
+        {/eq}
+
+        {@eq key=.meta value="generic"}
+            (function () {
+                var arena = allocator._fromBase64("{.value}").asReader();
+                return types["{.id}"]._memoize({.hash}, {.parameters})._deref(
+                    arena,
+                    {
+                        segment : arena.getSegment(0),
+                        position : 0
+                    },
+                    0
+                );
+            })();
+        {/eq}
+
+        {@eq key=.meta value="struct"}
+            (function () {
+                var arena = allocator._fromBase64("{.value}").asReader();
+                types["{.id}"]._deref(
+                    arena,
+                    {
+                        segment : arena.getSegment(0),
+                        position : 0
+                    },
+                    0
+                );
+            })();
+        {/eq}
+
+        {@eq key=.meta value="list"}
+            (function () {
+                var arena = {>"readers/listArena"/};
+                return {>"readers/list"/}._deref(
+                    arena,
+                    {
+                        segment : arena.getSegment(0),
+                        position : 0
+                    },
+                    0
+                );
+            })();
+        {/eq}
+    {:else}
+        {@provide}
+            {@eq key=.type value="Text"}{blob|s}{/eq}
+            {@eq key=.type value="Data"}{blob|s}{/eq}
+
+            {@eq key=.type value="Void"}null{/eq}
+            {@eq key=.type value="Bool"}{.value}{/eq}
+            {@eq key=.type value="Int8" }{.value}{/eq}
+            {@eq key=.type value="Int16"}{.value}{/eq}
+            {@eq key=.type value="Int32"}{.value}{/eq}
+            {@eq key=.type value="Int64"}{.value|js}{/eq}
+            {@eq key=.type value="UInt8" }{.value}{/eq}
+            {@eq key=.type value="UInt16"}{.value}{/eq}
+            {@eq key=.type value="UInt32"}{.value}{/eq}
+            {@eq key=.type value="UInt64"}{.value|js}{/eq}
+            {@eq key=.type value="Float32"}{.value}{/eq}
+            {@eq key=.type value="Float64"}{.value}{/eq}
+        {:blob}
+            {@verbatim}
+                (function () {
+                    var arena = {>"readers/listArena"/};
+                    return reader.{.type}._deref(
+                        arena,
+                        {
+                            segment : arena.getSegment(0),
+                            position : 0
+                        },
+                        0
+                    );
+                })()
+            {/verbatim}
+        {/provide}
+    {/.meta}
+})
