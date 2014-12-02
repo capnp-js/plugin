@@ -3,6 +3,7 @@
         {.preferredListEncoding},
         {@math key=.dataWordCount method="multiply" operand=8/},
         {@math key=.pointerCount method="multiply" operand=8/},
+        {.id},
         {@size key=.parameters/}
     );
     {#.nodes}{>"rTypes/node"/}{/.nodes}
@@ -12,9 +13,17 @@
     types["{.id}"] = reader.structure(
         {.preferredListEncoding},
         {@math key=.dataWordCount method="multiply" operand=8/},
-        {@math key=.pointerCount method="multiply" operand=8/}
+        {@math key=.pointerCount method="multiply" operand=8/},
+        {.id}
     );
     {#.nodes}{>"rTypes/node"/}{/.nodes}
 {/eq}
 
-{@eq key=.meta value="enum"}{>"rTypes/enumeration"/}{/eq}
+{@eq key=.meta value="enum"}
+    types['{.id}'] = {
+        {#.enumerants}
+            {@constant name=.name/} : {$idx}
+            {@sep},{/sep}
+        {/.enumerants}
+    };
+{/eq}

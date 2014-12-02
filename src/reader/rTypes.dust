@@ -1,13 +1,7 @@
 define(['capnp-js/reader/index'], function (reader) {
 
     var types = {};
-
-    {! Populate id's only--pet-names come later in the pipeline. !}
-
-    {#.nodes}
-        {>"rTypes/structure"/}
-        {>"rTypes/enumeration" recurTarget="struct"/}
-    {/.nodes}
+    {#.nodes}{>"rTypes/node"/}{/.nodes}
 
     return types;
 });
