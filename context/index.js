@@ -10,9 +10,8 @@ define(['./node', './joinId', './imports'], function (
             nodes.forEach(function (n) { index[joinId(n.getId())] = n; });
 
             var id = joinId(file.getId());
-
             var children = index[id].getNestedNodes().map(function (c) {
-                return node(c, index);
+                return node([c], index);
             });
 
             trees.push({
