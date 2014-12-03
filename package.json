@@ -4,13 +4,15 @@
   "description": "Yet another Capnproto implementation for Javascript.",
   "main": "index",
   "bin": [
+    "bin/capnp",
     "bin/capnpc-js",
     "bin/capnpc-js-json"
   ],
   "scripts": {
-    "build": "./node_modules/.bin/gulp build",
-    "clean": "./node_modules/.bin/gulp clean",
-    "rebuild": "npm run clean && npm run build"
+    "build": "gulp build",
+    "clean": "gulp clean & rm bin/capnp & rm -rf compiler",
+    "rebuild": "npm run clean && npm run build",
+    "install": "node ./bin/installCompiler.js"
   },
   "repository": {
     "type": "git",
@@ -36,13 +38,14 @@
     "gulp-insert": "^0.4.0",
     "gulp-jshint": "^1.8.4",
     "gulp-mocha": "^1.0.0",
-    "gulp-nodefy": "0.0.0",
+    "gulp-nfy": "0.0.1",
     "gulp-preprocess": "^1.1.1",
     "gulp-rename": "^1.2.0",
     "gulp-rimraf": "^0.1.0",
     "gulp-uglify": "^0.3.1",
     "mocha": "^1.18.2",
-    "nodefy": "git://github.com/popham/nodefy#circular_refs"
+    "nfy": "0.0.1",
+    "whereis": "^0.4.0"
   },
   "dependencies": {
     "buffers": "^0.1.1",
