@@ -6,7 +6,7 @@ Generate Javascript serialization classes for [Capnproto](http://kentonv.github.
 # Installation
 * This plugin requires `capnp` (see the Capnproto [installation page](http://kentonv.github.io/capnproto/install.html)).
 * Install the plugin: `npm install capnp-js-plugin` (probably with a --save-dev option).
-  I don't want root access to anybody's system, so please refrain from `npm install -g capnp-js-plugin` unless you have your system set up to sandbox such installs.
+  I don't want root access to anybody's system, so please refrain from `sudo npm install -g capnp-js-plugin` unless you have your system set up to allow `npm install -g capnp-js-plugin`.
 
 # Usage
 * The compiler is invoked with `capnp compile -ojs someSchema.capnp` to generate a `someSchema.capnp.d` directory containing the schema's AMD files.
