@@ -1,21 +1,21 @@
-{@eq key=.meta value="generic"}
-    type["{.id}"] = reader.generic(
-        {.preferredListEncoding},
-        {@math key=.dataWordCount method="multiply" operand=8/},
-        {@math key=.pointerCount method="multiply" operand=8/},
-        {.id},
-        {@size key=.parameters/}
-    );
-    {#.nodes}{>"rTypes/node"/}{/.nodes}
-{/eq}
-
 {@eq key=.meta value="struct"}
-    types["{.id}"] = reader.structure(
-        {.preferredListEncoding},
-        {@math key=.dataWordCount method="multiply" operand=8/},
-        {@math key=.pointerCount method="multiply" operand=8/},
-        {.id}
-    );
+    {?.parameters}
+        type["{.id}"] = reader.generic(
+            {.preferredListEncoding},
+            {@math key=.dataWordCount method="multiply" operand=8/},
+            {@math key=.pointerCount method="multiply" operand=8/},
+            {.id},
+            {@size key=.parameters/}
+        );
+    {:else}
+        type["{.id}"] = reader.structure(
+            {.preferredListEncoding},
+            {@math key=.dataWordCount method="multiply" operand=8/},
+            {@math key=.pointerCount method="multiply" operand=8/},
+            {.id}
+        );
+    {/.parameters}
+
     {#.nodes}{>"rTypes/node"/}{/.nodes}
 {/eq}
 
