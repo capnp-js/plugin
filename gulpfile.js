@@ -6,7 +6,7 @@ var compile = require('gulp-dust');
 var concat = require('gulp-concat');
 var insert = require('gulp-insert');
 var jshint = require('gulp-jshint');
-var nodefy = require('gulp-nodefy');
+var nfy = require('gulp-nfy');
 var preprocess = require('gulp-preprocess');
 var rename = require('gulp-rename');
 var render = require('gulp-dust-render');
@@ -85,10 +85,10 @@ gulp.task('sharedTemplates', function () {
 });
 
 gulp.task('cgr', ['cgrReader', 'cgrBuilder']);
-gulp.task('cgrReader', ['rTypes', 'rScope', 'constants', 'readers', 'context']);
+gulp.task('cgrReader', ['rTypes', 'rScope', 'readers', 'context']);
 gulp.task('cgrBuilder', ['bTypes', 'bScope', 'builders', 'context']);
 
-['constants', 'readers', 'rTypes'].forEach(function (processor) {
+['readers', 'rTypes'].forEach(function (processor) {
     gulp.task(processor, ['exportReader'], function () {
         return gulp.src('schema.json')
             .pipe(render(
@@ -98,7 +98,7 @@ gulp.task('cgrBuilder', ['bTypes', 'bScope', 'builders', 'context']);
             .pipe(rename(processor+'.js'))
             .pipe(jshint())
             .pipe(jshint.reporter('default'))
-            .pipe(nodefy())
+            .pipe(nfy())
             .pipe(gulp.dest('lib/cgr'));
     });
 });
@@ -113,7 +113,7 @@ gulp.task('cgrBuilder', ['bTypes', 'bScope', 'builders', 'context']);
             .pipe(rename(processor+'.js'))
             .pipe(jshint())
             .pipe(jshint.reporter('default'))
-            .pipe(nodefy())
+            .pipe(nfy())
             .pipe(gulp.dest('lib/cgr'));
     });
 });
@@ -127,7 +127,7 @@ gulp.task('rScope', ['exportReader'], function () {
         .pipe(rename('rScope.js'))
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
-        .pipe(nodefy())
+        .pipe(nfy())
         .pipe(gulp.dest('lib/cgr'));
 });
 
@@ -140,7 +140,7 @@ gulp.task('bScope', ['exportBuilder'], function () {
         .pipe(rename('bScope.js'))
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
-        .pipe(nodefy())
+        .pipe(nfy())
         .pipe(gulp.dest('lib/cgr'));
 });
 
@@ -152,6 +152,6 @@ gulp.task('context', function () {
         .pipe(uglify())
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
-        .pipe(nodefy())
+        .pipe(nfy())
         .pipe(gulp.dest('lib/context'));
 });
