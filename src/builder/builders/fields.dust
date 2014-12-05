@@ -68,7 +68,7 @@
                     };
                 {/eq}
                 {@eq key=.meta value="list"}
-                    var Builder_{.name} = {>"builders/list"/};
+                    var Builder_{.name} = {>"builders/list" index="types" current="parentScope"/};
 
                     parentScope.prototype.{@fieldIniter name=.name/} = function (n) {
                         {>"builders/setDiscriminant"/}
@@ -234,8 +234,8 @@
                     return new Group_{.name}(this);
                 };
             {/eq}
-            {@eq key=.type value="Data"}{>"builders/listField"/}{/eq}
-            {@eq key=.type value="Text"}{>"builders/listField"/}{/eq}
+            {@eq key=.type value="Data"}{>"builders/listField" current="parentScope"/}{/eq}
+            {@eq key=.type value="Text"}{>"builders/listField" current="parentScope"/}{/eq}
             {@eq key=.type value="AnyPointer"}
                 parentScope.prototype.{@fieldGetter name=.name/} = function () {
                     {>throwOnInactive error="Attempted to access an inactive union member"/}
@@ -341,16 +341,16 @@
             {/eq}
 
             {#. decoder="reader.fields" encoder="builder.fields"}
-                {@eq key=.type value="Int8"}{>"builders/dataField"  default=.defaultValue method="int8"  byteCount="1"/}{/eq}
-                {@eq key=.type value="Int16"}{>"builders/dataField" default=.defaultValue method="int16" byteCount="2"/}{/eq}
-                {@eq key=.type value="Int32"}{>"builders/dataField" default=.defaultValue method="int32" byteCount="4"/}{/eq}
-                {@eq key=.type value="Int64"}{>"builders/dataField" default=.defaultValue method="int64" byteCount="8"/}{/eq}
-                {@eq key=.type value="UInt8"}{>"builders/dataField"  default=.defaultValue method="uint8"  byteCount="1"/}{/eq}
-                {@eq key=.type value="UInt16"}{>"builders/dataField" default=.defaultValue method="uint16" byteCount="2"/}{/eq}
-                {@eq key=.type value="UInt32"}{>"builders/dataField" default=.defaultValue method="uint32" byteCount="4"/}{/eq}
-                {@eq key=.type value="UInt64"}{>"builders/dataField" default=.defaultValue method="uint64" byteCount="8"/}{/eq}
-                {@eq key=.type value="Float32"}{>"builders/floatField" method="float32" byteCount="4"/}{/eq}
-                {@eq key=.type value="Float64"}{>"builders/floatField" method="float64" byteCount="8"/}{/eq}
+                {@eq key=.type value="Int8"}{>"builders/dataField"  current="parentScope" default=.defaultValue method="int8"  byteCount="1"/}{/eq}
+                {@eq key=.type value="Int16"}{>"builders/dataField" current="parentScope" default=.defaultValue method="int16" byteCount="2"/}{/eq}
+                {@eq key=.type value="Int32"}{>"builders/dataField" current="parentScope" default=.defaultValue method="int32" byteCount="4"/}{/eq}
+                {@eq key=.type value="Int64"}{>"builders/dataField" current="parentScope" default=.defaultValue method="int64" byteCount="8"/}{/eq}
+                {@eq key=.type value="UInt8"}{>"builders/dataField"  current="parentScope" default=.defaultValue method="uint8"  byteCount="1"/}{/eq}
+                {@eq key=.type value="UInt16"}{>"builders/dataField" current="parentScope" default=.defaultValue method="uint16" byteCount="2"/}{/eq}
+                {@eq key=.type value="UInt32"}{>"builders/dataField" current="parentScope" default=.defaultValue method="uint32" byteCount="4"/}{/eq}
+                {@eq key=.type value="UInt64"}{>"builders/dataField" current="parentScope" default=.defaultValue method="uint64" byteCount="8"/}{/eq}
+                {@eq key=.type value="Float32"}{>"builders/floatField" current="parentScope" method="float32" byteCount="4"/}{/eq}
+                {@eq key=.type value="Float64"}{>"builders/floatField" current="parentScope" method="float64" byteCount="8"/}{/eq}
             {/.}
         {/.meta}
     {/.fields}
