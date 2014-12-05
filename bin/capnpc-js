@@ -61,7 +61,6 @@ process.stdin.on('end', function() {
     var files = [
         'rTypes',
         'rScope',
-        'constants',
         'readers',
         'bTypes',
         'bScope',
@@ -85,7 +84,6 @@ process.stdin.on('end', function() {
 
         files.forEach(function (file) {
             var filename = dir + '/' + file + '.js';
-
             render[file](tree).done(
                 function (rendering) {
                     if (fs.existsSync(filename))
