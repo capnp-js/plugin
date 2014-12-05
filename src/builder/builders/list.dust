@@ -2,7 +2,7 @@
     {#.type}
         {! Update context for recursion. !}
         {@eq key=.meta value="list"}builder.lists.list({>"builders/list"/}){/eq}
-        {@eq key=.meta value="struct"}builder.lists.structure(scope["{.id}"]){/eq}
+        {@eq key=.meta value="struct"}builder.lists.structure({>"generic/scope" source="builder"/}){/eq}
         {@eq key=.meta value="enum"}builder.lists.UInt16{/eq}
     {/.type}
 {:else}

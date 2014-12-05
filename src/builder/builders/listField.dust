@@ -1,4 +1,4 @@
-Structure.prototype.{@fieldGetter name=.name/} = function () {
+{current}.prototype.{@fieldGetter name=.name/} = function () {
     {>throwOnInactive error="Attempted to access an inactive union member"/}
 
     var pointer = {
@@ -22,7 +22,7 @@ Structure.prototype.{@fieldGetter name=.name/} = function () {
     );
 };
 
-Structure.prototype.{@fieldSetter name=.name/} = function (value) {
+{current}.prototype.{@fieldSetter name=.name/} = function (value) {
     var params = builder.{.type}._setParams(value);
 
     {>"builders/setDiscriminant"/}
@@ -36,7 +36,7 @@ Structure.prototype.{@fieldSetter name=.name/} = function (value) {
     builder.{.type}._set(this._arena, pointer, params);
 };
 
-Structure.prototype.{@fieldIniter name=.name/} = function (n) {
+{current}.prototype.{@fieldIniter name=.name/} = function (n) {
     {>"builders/setDiscriminant"/}
 
     var pointer = {
@@ -56,7 +56,7 @@ Structure.prototype.{@fieldIniter name=.name/} = function (n) {
     );
 };
 
-Structure.prototype.{@fieldHaser name=.name/} = function () {
+{current}.prototype.{@fieldHaser name=.name/} = function () {
     var pointer = {
         segment : this._segment,
         position : this._pointersSection +
@@ -72,7 +72,7 @@ Structure.prototype.{@fieldHaser name=.name/} = function () {
     );
 };
 
-Structure.prototype.{@fieldAdopter name=.name/} = function (value) {
+{current}.prototype.{@fieldAdopter name=.name/} = function (value) {
     if (builder.{.type}._TYPE !== value._TYPE) {
         throw new TypeError();
     }
@@ -90,7 +90,7 @@ Structure.prototype.{@fieldAdopter name=.name/} = function (value) {
     );
 };
 
-Structure.prototype.{@fieldDisowner name=.name/} = function () {
+{current}.prototype.{@fieldDisowner name=.name/} = function () {
     var pointer = {
         segment : this._segment,
         position : this._pointersSection +
