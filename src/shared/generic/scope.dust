@@ -11,14 +11,14 @@
                 {@repeat times=.scopeDistance}._PARENT{/repeat}
                 {#.path}
                     .{.name}
-                    {?.parameters}.{>"readers/bind" parent=current/}{/.parameters}
+                    {?.parameters}.{>"generic/bind" parent=current/}{/.parameters}
                 {/.path}
         {:else}
-            {#.path[0]}{index}["{.id}"].{>"readers/bind" parent="null"/}{/.path[0]}
+            {#.path[0]}{index}["{.id}"].{>"generic/bind" parent="null"/}{/.path[0]}
             {@provide}
                 {#.nonroot}
                     .{name}
-                    {?.parameters}.{>"readers/bind"/}{/.parameters}
+                    {?.parameters}.{>"generic/bind"/}{/.parameters}
                 {/.nonroot}
             {:nonroot}
                 {@slice arr=.path begin=1/}
@@ -30,9 +30,11 @@
         {@eq key=.meta value="struct"}{index}["{.id}"]{/eq}
         {@eq key=.meta value="enum"}{index}["{.id}"]{/eq}
         {@eq key=.meta value="list"}
-            {>"readers/list"/}
+            {@eq key=source value="reader"}{>"readers/list"/}{/eq}
+            {@eq key=source value="builder"}{>"builders/list"/}{/eq}
         {/eq}
     {:else}
-        reader.{.type}
+        {@eq key=source value="reader"}reader.{.type}{/eq}
+        {@eq key=source value="builder"}builder.{.type}{/eq}
     {/.meta}
 {/.generic}
