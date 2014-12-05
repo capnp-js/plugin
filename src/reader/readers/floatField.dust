@@ -1,4 +1,4 @@
-{base}.prototype.{@fieldGetter name=.name/} = function () {
+{current}.prototype.{@fieldGetter name=.name/} = function () {
     {>throwOnInactive error="Attempted to access an inactive union member"/}
 
     var position = this._dataSection +
