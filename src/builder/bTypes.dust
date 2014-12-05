@@ -2,12 +2,7 @@ define(['capnp-js/builder/index', './rTypes'], function (
                   builder,           rTypes) {
 
     var types = {};
-
-    {! Populate id's only--pet-names come later in the pipeline. !}
-
-    {#.nodes}
-        {>"bTypes/structure"/}
-    {/.nodes}
+    {#.nodes}{>"bTypes/node"/}{/.nodes}
 
     return types;
 });
