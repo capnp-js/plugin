@@ -10,7 +10,3 @@
         {>"bTypes/structure"/}
     {/.nodes}
 {/eq}
-
-{@eq key=.meta value="enum"}
-    types['{.id}'] = rTypes['{.id}'];
-{/eq}

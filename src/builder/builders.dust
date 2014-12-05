@@ -1,24 +1,15 @@
-define(['capnp-js/builder/Allocator', 'capnp-js/builder/index', 'capnp-js/reader/index', './bScope', './readers'{?.imports},{@imports file="builders"/}{/.imports}], function (
-                          Allocator,            builder,                  reader,            scope,     readers{?.imports},{#.imports}file{$idx}{@sep},{/sep}{/.imports}{/.imports}) {
+define(['capnp-js/builder/index', 'capnp-js/reader/index', './bScope', './readers'{?.imports},{@imports file="builders"/}{/.imports}], function (
+                  builder,                  reader,            scope,     readers{?.imports},{#.imports}file{$idx}{@sep},{/sep}{/.imports}{/.imports}) {
 
-    {! Import builders to assure that the prototypes get populated. !}
+    {! Import readers and builders to assure that the prototypes get populated. !}
 
-    var builders = {};
-    var allocator = new Allocator();
-
-    {#.nodes}
-        {@eq key=.meta value="const"}
-            builders.{@constant name=.name/} = readers.{@constant name=.name/};
-        {/eq}
-
-        {@eq key=.meta value="enum"}
-            builders.{.name} = readers.{.name};
-        {/eq}
-
-        {@eq key=.meta value="struct"}
-            builders.{.name} = {>"builders/structure"/}();
-        {/eq}
-    {/.nodes}
+    {!
+     ! Attach a `_READER` to file scopes (analogous to struct types).  For any
+     ! builder scope, there exists a parallel reader scope.  This reader scope
+     ! is generally available through the builder scope's `_READER`.
+     !}
+    var builders = { _READER : readers };
+    {#.nodes}{>"builders/node"/}(scope, builders);{/.nodes}
 
     return builders;
 });

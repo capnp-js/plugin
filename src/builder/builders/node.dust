@@ -1,0 +1,21 @@
+{@eq key=.meta value="struct"}
+    {?.parameters}
+        {>"builders/generic"/}
+    {:else}
+        {>"builders/structure"/}
+    {/.parameters}
+{/eq}
+
+{@eq key=.meta value="enum"}
+    (function (types, parentScope) {
+        parentScope.{.name} = parentScope._READER.{.name};
+    })
+{/eq}
+
+{@eq key=.meta value="const"}
+    (function (types, parentScope) {
+        parentScope.{@constant name=.name/} =
+        parentScope.prototype.{@constant name=.name/} =
+        parentScope._READER.{@constant name=.name/};
+    })
+{/eq}
