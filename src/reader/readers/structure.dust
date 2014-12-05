@@ -1,8 +1,9 @@
 (function (types, parentScope, allocator) {
     var Structure = types["{.id}"];
 
+    Structure._PARENT = parentScope;
     {#.nodes}{>"readers/node"/}(types, Structure, allocator);{/.nodes}
-    {>"readers/fields" base="Structure"/}
+    {>"readers/fields"/}(types, Structure, allocator);
 
     parentScope.{.name} = Structure;
 })
