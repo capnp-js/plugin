@@ -1,0 +1,38 @@
+{!
+ ! A call to `_memoize` induces `_memoize` calls for all of the branch's generic
+ ! parameters, even if the initiating call returned a memoized value.  Maybe the
+ ! `parameters` array should be wrapped in a closure to avoid these calls?
+ !}
+
+{?.generic}
+    {#.generic}
+        {?.scopeDistance}
+            {current}
+                {@repeat times=.scopeDistance}._PARENT{/repeat}
+                {#.path}
+                    .{.name}
+                    {?.parameters}.{>"readers/bind" parent=current/}{/.parameters}
+                {/.path}
+        {:else}
+            {#.path[0]}{index}["{.id}"].{>"readers/bind" parent="null"/}{/.path[0]}
+            {@provide}
+                {#.nonroot}
+                    .{name}
+                    {?.parameters}.{>"readers/bind"/}{/.parameters}
+                {/.nonroot}
+            {:nonroot}
+                {@slice arr=.path begin=1/}
+            {/provide}
+        {/.scopeDistance}
+    {/.generic}
+{:else}
+    {?.meta}
+        {@eq key=.meta value="struct"}{index}["{.id}"]{/eq}
+        {@eq key=.meta value="enum"}{index}["{.id}"]{/eq}
+        {@eq key=.meta value="list"}
+            {>"readers/list"/}
+        {/eq}
+    {:else}
+        reader.{.type}
+    {/.meta}
+{/.generic}
