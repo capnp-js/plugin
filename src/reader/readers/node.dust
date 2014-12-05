@@ -1,4 +1,9 @@
-{@eq key=.meta value="generic"}{>"readers/generic"/}{/eq}
-{@eq key=.meta value="struct"}{>"readers/structure"/}{/eq}
+{@eq key=.meta value="struct"}
+    {?.parameters}
+        {>"readers/generic"/}
+    {:else}
+        {>"readers/structure"/}
+    {/.parameters}
+{/eq}
 {@eq key=.meta value="enum"}(function (types, parentScope, allocator) { parentScope.{.name} = types["{.id}"]; }){/eq}
 {@eq key=.meta value="const"}{>"readers/constant"/}{/eq}
