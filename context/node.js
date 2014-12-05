@@ -185,6 +185,10 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
                     return p.getName().toString();
                 })
             }
+
+            if (!index[joinId(node.getScopeId())].getIsGeneric()) {
+                base.hash = joinId(node.getId());
+            }
         }
 
         if (struct.getDiscriminantCount() > 0) {
@@ -196,22 +200,14 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
             dataWordCount : struct.getDataWordCount(),
             pointerCount : struct.getPointerCount(),
             preferredListEncoding : struct.getPreferredListEncoding(),
-            discriminantCount : struct.getDiscriminantCount()
-        });
-
-        var fields = struct.getFields();
-        if (fields.length() > 0) {
-            base.fields = fields.map(function (f) {
-                return pushCall(stack, index, f, fieldF);
-            });
-        }
-
-        var nodes = node.getNestedNodes();
-        if (nodes.length()) {
-            base.nodes = nodes.map(function (n) {
+            discriminantCount : struct.getDiscriminantCount(),
+            nodes : node.getNestedNodes().map(function (n) {
                 return pushCall(stack, index, n, nestedNodeF);
-            });
-        }
+            }),
+            fields : struct.getFields().map(function (f) {
+                return pushCall(stack, index, f, fieldF);
+            })
+        });
 
         return base;
     };
@@ -220,6 +216,14 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
         function defaultChild(id) {
             var params = index[id].getParameters();
             var child = { id : id };
+
+            var parent = index[joinId(index[id].getScopeId())];
+            parent.getNestedNodes().forEach(function (nn) {
+                if (joinId(nn.getId()) === id)
+                    child.name = nn.getName().toString();
+            });
+            if (child.name === undefined)
+                throw new Error('Child name not found');
 
             if (params.length() > 0) {
                 child.parameters = params.map(function (p) {
@@ -230,25 +234,12 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
             return child;
         }
 
-        function nest(specials) {
-            if (specials.length === 0) return null;
-
-            var s = specials[0];
-            for (var i=1; i<specials.length; ++i) {
-                specials[i].child = s;
-                s = specials[i];
-            }
-
-            return s;
-        }
-
         var id;
         var brand = stack.pop();
         id = joinId(top(stack).getTypeId());
         stack.push(brand);
 
-        if (!index[id].getIsGeneric())
-            return { id : id };
+        if (!index[id].getIsGeneric()) return { id : id, hash : id };
 
         /*
          * Accumulate the full specialization chain with AnyPointer
@@ -274,13 +265,10 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
             id = joinId(s.getScopeId());
             if (s.isBind()) {
                 s.getBind().forEach(function (b, i) {
+                    var param;
                     if (b.isType()) {
-                        specials[hash[id]].parameters[i] = pushCall(
-                            stack,
-                            index,
-                            b.getType(),
-                            typeF
-                        );
+                        param = pushCall(stack, index, b.getType(), typeF);
+                        specials[hash[id]].parameters[i] = param;
                     }
                 });
             } else if (s.isInherit()) {
@@ -291,23 +279,48 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
             }
         });
 
-        var scopeD = 0;
-        if (base !== null) {
+        function getParamHash(p) {
+            return p.hash === undefined ? null : p.hash;
+        }
+
+        function getScopeHash(s) {
+            if (s.parameters) {
+                var params = s.parameters.map(getParamHash);
+                if (params.indexOf(null) === -1)
+                    return s.id + '|' + params.join('|');
+                else
+                    return null;
+            } else {
+                return s.id;
+            }
+        }
+
+        var scope = {};
+        if (base === null) {
+            scope.scopeDistance = null;
+
+            specials = specials.reverse();
+            for (var i=0; i<specials.length; ++i) {
+                var hashes = specials.slice(0, i+1).map(getScopeHash);
+                if (hashes.indexOf(null) === -1)
+                    specials[i].hash = hashes.join(':');
+            }
+
+            scope.path = specials;
+        } else {
             id = currentScopeId(stack);
+
+            scope.scopeDistance = 0;
             while (id !== specials[base].id) {
-                scopeD += 1;
+                scope.scopeDistance += 1;
                 id = joinId(index[id].getScopeId());
             }
 
-            specials = specials.slice(0, base);
+            scope.path = specials.slice(0, base).reverse();
         }
 
         // `scopeDistance` of non-null => inherits scope.
-        return { generic : {
-            scopeDistance : base === null ? null : scopeD,
-            scope : nest(specials.slice(1)),
-            terminal : specials[0]
-        } };
+        return { generic : scope };
     };
 
     var typeF = function (stack, index) {
@@ -315,25 +328,25 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
 
         var t;
         switch (type.which()) {
-        case type.VOID: return { type : "Void" };
-        case type.BOOL: return { type : "Bool" };
-        case type.INT8: return { type : "Int8" };
-        case type.INT16: return { type : "Int16" };
-        case type.INT32: return { type : "Int32" };
-        case type.INT64: return { type : "Int64" };
-        case type.UINT8: return { type : "UInt8" };
-        case type.UINT16: return { type : "UInt16" };
-        case type.UINT32: return { type : "UInt32" };
-        case type.UINT64: return { type : "UInt64" };
-        case type.FLOAT32: return { type : "Float32" };
-        case type.FLOAT64: return { type : "Float64" };
-        case type.DATA: return { type : "Data" };
-        case type.TEXT: return { type : "Text" };
+        case type.VOID: return { type : "Void", hash : "V" };
+        case type.BOOL: return { type : "Bool", hash : "B" };
+        case type.INT8: return { type : "Int8", hash : "I1" };
+        case type.INT16: return { type : "Int16", hash : "I2" };
+        case type.INT32: return { type : "Int32", hash : "I4" };
+        case type.INT64: return { type : "Int64", hash : "I8" };
+        case type.UINT8: return { type : "UInt8", hash : "U1" };
+        case type.UINT16: return { type : "UInt16", hash : "U2" };
+        case type.UINT32: return { type : "UInt32", hash : "U4" };
+        case type.UINT64: return { type : "UInt64", hash : "U8" };
+        case type.FLOAT32: return { type : "Float32", hash : "F4" };
+        case type.FLOAT64: return { type : "Float64", hash : "F8" };
+        case type.DATA: return { type : "Data", hash : "D" };
+        case type.TEXT: return { type : "Text", hash : "T" };
 
         case type.ANY_POINTER:
             t = type.getAnyPointer();
             switch (t.which()) {
-            case t.UNCONSTRAINED: return { type : "AnyPointer" };
+            case t.UNCONSTRAINED: return { type : "AnyPointer", hash : "A" };
 
             case t.PARAMETER:
                 t = t.getParameter();
@@ -378,10 +391,15 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
                 typeF
             );
 
-            return {
+            t = {
                 meta : "list",
                 type : child.meta === undefined ? child.type : child
             };
+
+            if (child.hash)
+                t.hash = 'L|' + child.hash;
+
+            return t;
 
         case type.STRUCT:
             t = type.getStruct();
