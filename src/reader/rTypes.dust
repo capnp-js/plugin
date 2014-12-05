@@ -1,9 +1,7 @@
 define(['capnp-js/reader/index'], function (reader) {
 
     var types = {};
-    {#.nodes}
-        {>"rTypes/node"/}(types, null);
-    {/.nodes}
+    {#.nodes}{>"rTypes/node"/}{/.nodes}
 
     return types;
 });

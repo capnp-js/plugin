@@ -1,41 +1,32 @@
-(function (types, parent) {
-    {@eq key=.meta value="struct"}
-        {?.parameters}
-            type["{.id}"] = reader.generic(
-                {.preferredListEncoding},
-                {@math key=.dataWordCount method="multiply" operand=8/},
-                {@math key=.pointerCount method="multiply" operand=8/},
-                parent,
-                {.id},
-                {@size key=.parameters/}
-            );
-            /*
-             * Specializations of the generic provide the parent to child nodes,
-             * so defer the `_PARENT` binding to the point of specialization.
-             */
-        {:else}
-            var t = reader.structure(
-                {.preferredListEncoding},
-                {@math key=.dataWordCount method="multiply" operand=8/},
-                {@math key=.pointerCount method="multiply" operand=8/},
-                parent,
-                {.id}
-            );
+{@eq key=.meta value="struct"}
+    {?.parameters}
+        types["{.id}"] = reader.generic(
+            {.preferredListEncoding},
+            {@math key=.dataWordCount method="multiply" operand=8/},
+            {@math key=.pointerCount method="multiply" operand=8/},
+            {.id},
+            {@size key=.parameters/}
+        )
+        {?.hash}.bindRootScope(){/.hash};
+    {:else}
+        types["{.id}"] = reader.structure(
+            {.preferredListEncoding},
+            {@math key=.dataWordCount method="multiply" operand=8/},
+            {@math key=.pointerCount method="multiply" operand=8/},
+            {.id}
+        );
+    {/.parameters}
 
-            type["{.id}"] = t;
+    {#.nodes}
+        {>"rTypes/node"/}
+    {/.nodes}
+{/eq}
 
-            {#.nodes}
-                {>"rTypes/node"/}(types, t);
-            {/.nodes}
-        {/.parameters}
-    {/eq}
-
-    {@eq key=.meta value="enum"}
-        types['{.id}'] = {
-            _PARENT : parent
-            {#.enumerants}
-                ,{@constant name=.name/} : {$idx}
-            {/.enumerants}
-        };
-    {/eq}
-})
+{@eq key=.meta value="enum"}
+    types['{.id}'] = {
+        {#.enumerants}
+            {@constant name=.name/} : {$idx}
+            {@sep}, {/sep}
+        {/.enumerants}
+    };
+{/eq}
