@@ -19,8 +19,8 @@
             {! Union member !}
 
             parentScope.{@constant name=.name/} =
-            parentScope.prototype.{@constant name=.name/} =
-            {.discriminantValue};
+                parentScope.prototype.{@constant name=.name/} =
+                {.discriminantValue};
 
             parentScope.prototype.{@fieldIser name=.name/} = function () {
                 return this.which() === {.discriminantValue};
@@ -39,7 +39,7 @@
                 parentScope.prototype.{@fieldGetter name=.name/} = (function() {
 
                     {@eq key=.meta value="struct"}
-                        var Reader = {>"readers/scope" index="types" current="parentScope"/};
+                        var Reader = {>"generic/scope" source="reader" index="types" current="parentScope"/};
                     {/eq}
 
                     {@eq key=.meta value="list"}
@@ -79,14 +79,14 @@
             {@eq key=.type value="group"}
                 {>"readers/fields"/}(
                     types,
-                    parentScope.Group_{.name} = reader.group(parentScope),
+                    parentScope._Group_{.name} = reader.group(parentScope),
                     allocator
                 );
 
                 parentScope.prototype.{@fieldGetter name=.name/} = function () {
                     {>throwOnInactive error="Attempted to access an inactive union member"/}
 
-                    return new parentScope.Group_{.name}(this);
+                    return new parentScope._Group_{.name}(this);
                 };
             {/eq}
             {@eq key=.type value="Data"}{>"readers/listField" current="parentScope"/}{/eq}
@@ -158,7 +158,7 @@
                     {.name} : (function () {
                         {?.meta}
                             {@eq key=.meta value="struct"}
-                                var Reader = {>"readers/scope" index="types" current="parentScope"/};
+                                var Reader = {>"generic/scope" source="reader" index="types" current="parentScope"/};
                                 var arena = allocator._fromBase64("{.defaultValue}").asReader();
                                 return {deref};
                             {/eq}
