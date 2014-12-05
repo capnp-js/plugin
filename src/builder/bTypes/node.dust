@@ -1,0 +1,16 @@
+{@eq key=.meta value="struct"}
+    {?.parameters}
+        types['{.id}'] = builder.generic(rTypes['{.id}'])
+        {?.hash}.bindRootScope(){/.hash};
+    {:else}
+        types['{.id}'] = builder.structure(rTypes['{.id}']);
+    {/.parameters}
+
+    {#.nodes}
+        {>"bTypes/structure"/}
+    {/.nodes}
+{/eq}
+
+{@eq key=.meta value="enum"}
+    types['{.id}'] = rTypes['{.id}'];
+{/eq}
