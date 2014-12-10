@@ -5,7 +5,7 @@
         {@math key=.offset method="multiply" operand=byteCount/};
 
     return {decoder}.{method}(
-        this._defaults.{.name},
+        this._floatDefaults.{.name},
         this._segment,
         position
     );
@@ -19,7 +19,7 @@
 
     {encoder}.{method}(
         value,
-        this._defaults.{.name},
+        this._floatDefaults.{.name},
         this._segment,
         position
     );

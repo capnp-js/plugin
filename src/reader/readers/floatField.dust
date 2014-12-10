@@ -6,7 +6,7 @@
 
     if (position < this._pointersSection) {
         return {decoder}.{method}(
-            this._defaults.{.name},
+            this._floatDefaults.{.name},
             this._segment,
             position
         );
