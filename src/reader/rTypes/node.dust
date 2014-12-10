@@ -1,19 +1,19 @@
 {@eq key=.meta value="struct"}
     {?.parameters}
-        types["{.id}"] = reader.generic(
+        types['{.id}'] = reader.generic(
             {.preferredListEncoding},
             {@math key=.dataWordCount method="multiply" operand=8/},
             {@math key=.pointerCount method="multiply" operand=8/},
-            {.id},
+            '{.id}',
             {@size key=.parameters/}
         )
-        {?.hash}.bindRootScope(){/.hash};
+        {?.hash}.fixScope(null){/.hash};
     {:else}
-        types["{.id}"] = reader.structure(
+        types['{.id}'] = reader.structure(
             {.preferredListEncoding},
             {@math key=.dataWordCount method="multiply" operand=8/},
             {@math key=.pointerCount method="multiply" operand=8/},
-            {.id}
+            '{.id}'
         );
     {/.parameters}
 
