@@ -15,20 +15,21 @@
                 );
             };
 
-            parentScope.prototype._setWhich = function (discriminant) {
+            parentScope.prototype._setWhich = function (discr) {
                 {>"builders/zeroUnion" zero="builder.zero"/}
 
                 var position = this._dataSection +
                     {@math key=.discriminantOffset method="multiply" operand="2"/};
 
-                builder.primitives.uint16(discriminant, this._segment, position);
+                builder.primitives.uint16(discr, this._segment, position);
             };
         {/gt}
     {/.discriminantCount}
 
     {#.fields}
         {@ne key=.discriminantValue value=65535}
-            {! Anonymous union member !}
+            {! Union member !}
+
             parentScope.prototype.{@fieldIser name=.name/} = function () {
                 return this.which() === {.discriminantValue};
             };
@@ -48,164 +49,76 @@
                     method="uint16"
                     byteCount="2"/}
             {:else}
+                {@eq key=.meta value="parameter"}
+                    var Builder_{.name} = parentScope
+                        {@repeat times=.type.scopeDistance}._PARENT{/repeat}
+                        ._PARAMS[{.type.position}];
+                {/eq}
+
                 {@eq key=.meta value="struct"}
                     var Builder_{.name} = {>"generic/scope" source="builder" index="types" current="parentScope"/};
-
-                    parentScope.prototype.{@fieldIniter name=.name/} = function () {
-                        {>"builders/setDiscriminant"/}
-
-                        var pointer = {
-                            segment : this._segment,
-                            position : this._pointersSection +
-                                {@math key=.offset method="multiply" operand="8"/}
-                        };
-
-                        return Builder_{.name}._init(
-                            this._arena,
-                            pointer,
-                            this._depth + 1
-                        );
-                    };
                 {/eq}
+
                 {@eq key=.meta value="list"}
                     var Builder_{.name} = {>"builders/list" index="types" current="parentScope"/};
-
-                    parentScope.prototype.{@fieldIniter name=.name/} = function (n) {
-                        {>"builders/setDiscriminant"/}
-
-                        var pointer = {
-                            segment : this._segment,
-                            position : this._pointersSection +
-                                {@math key=.offset method="multiply" operand="8"/}
-                        };
-
-                        return Builder_{.name}._init(this._arena, pointer, n);
-                    };
                 {/eq}
 
-                {@provide}
-                    parentScope.prototype.{@fieldGetter name=.name/} = function () {
-                        {>throwOnInactive error="Attempted to access an inactive union member"/}
-
-                        var pointer = {
-                            segment : this._segment,
-                            position : this._pointersSection +
-                                {@math key=.offset method="multiply" operand="8"/}
-                        };
-
-                        if (reader.isNull(pointer)) {
-                            builder.copy.pointer.{.setter}(
-                                this._defaults.{.name}._arena,
-                                this._defaults.{.name}._layout(),
-                                this._arena,
-                                pointer
-                            );
-                        }
-
-                        return Builder_{.name}._deref(this._arena, pointer);
-                    };
-                {:setter}
-                    {@verbatim}
-                        {@eq key=.meta value="struct"}setStructPointer{/eq}
-                        {@eq key=.meta value="list"}setListPointer{/eq}
-                    {/verbatim}
-                {/provide}
-
-                parentScope.prototype.{@fieldSetter name=.name/} = function (value) {
-                    if (Builder_{.name}._TYPE !== value._TYPE)
-                        throw new TypeError();
-
-                    {>"builders/setDiscriminant"/}
-
-                    var pointer = {
-                        segment : this._segment,
-                        position : this._pointersSection +
-                            {@math key=.offset method="multiply" operand="8"/}
-                    };
-
-                    Builder_{.name}._set(this._arena, pointer, value);
-                };
-
-                parentScope.prototype.{@fieldAdopter name=.name/} = function (value) {
-                    if (Builder_{.name}._TYPE !== value._TYPE)
-                        throw new TypeError();
-
-                    if (!value._isOrphan)
-                        throw new ValueError('Cannot adopt non-orphans');
-
-                    {>"builders/setDiscriminant"/}
-
-                    var pointer = {
-                        segment : this._segment,
-                        position : this._pointersSection +
-                            {@math key=.offset method="multiply" operand="8"/}
-                    };
-
-                    Builder_{.name}._adopt(this._arena, pointer, value);
-                };
-
-                parentScope.prototype.{@fieldDisowner name=.name/} = function () {
-                    {>throwOnInactive error="Attempted to access an inactive union member"/}
-
-                    var pointer = {
-                        segment : this._segment,
-                        position : this._pointersSection +
-                            {@math key=.offset method="multiply" operand="8"/}
-                    };
-
-                    if (reader.isNull(pointer)) {
-                        return Builder_{.name}._initOrphan(this._arena);
-                    } else {
-                        var instance = Builder_{.name}._deref(
-                            this._arena,
-                            pointer
+                {@eq key=.discriminantValue value=65535}
+                    parentScope.prototype.{@fieldGetter name=.name/} =
+                        Builder_{.name}._getField(
+                            {@math key=.offset method="multiply" operand="8"/},
+                            {.offset}
                         );
-                        this._arena._zero(pointer, 8);
-                        instance._isOrphan = true;
-
-                        return instance;
-                    }
-                };
-
-                parentScope.prototype.{@fieldReaderDisowner name=.name/} = function () {
-                    {>throwOnInactive error="Attempted to access an inactive union member"/}
-
-                    var pointer = {
-                        segment : this._segment,
-                        position : this._pointersSection +
+                    parentScope.prototype.{@fieldHaser name=.name/} =
+                        Builder_{.name}._hasField({@math key=.offset method="multiply" operand="8"/});
+                    parentScope.prototype.{@fieldSetter name=.name/} =
+                        Builder_{.name}._setField({@math key=.offset method="multiply" operand="8"/});
+                    parentScope.prototype.{@fieldIniter name=.name/} =
+                        Builder_{.name}._initField({@math key=.offset method="multiply" operand="8"/});
+                    parentScope.prototype.{@fieldAdopter name=.name/} =
+                        Builder_{.name}._adoptField({@math key=.offset method="multiply" operand="8"/});
+                    parentScope.prototype.{@fieldDisowner name=.name/} =
+                        Builder_{.name}._disownField({@math key=.offset method="multiply" operand="8"/});
+                    parentScope.prototype.{@fieldReaderDisowner name=.name/} =
+                        Builder_{.name}._readerDisownField({@math key=.offset method="multiply" operand="8"/});
+                {:else}
+                    parentScope.prototype.{@fieldGetter name=.name/} =
+                        Builder_{.name}._unionGetField(
+                            {.discriminantValue},
+                            {@math key=.offset method="multiply" operand="8"/},
+                            {.offset}
+                        );
+                    parentScope.prototype.{@fieldHaser name=.name/} =
+                        Builder_{.name}._unionHasField(
+                            {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/}
-                    };
-
-                    var instance = Builder_{.name}._READER._deref(
-                        this._arena,
-                        pointer
-                    );
-
-                    this._arena._zero(pointer, 8);
-                    instance._isOrphan = true;
-
-                    return instance;
-                };
-
-                parentScope.prototype.{@fieldHaser name=.name/} = function () {
-                    {!
-                     ! For union members, field inactivity disqualifies it from
-                     ! is-set status.
-                     !}
-                    var pointer = {
-                        segment : this._segment,
-                        position : this._pointersSection +
+                        );
+                    parentScope.prototype.{@fieldSetter name=.name/} =
+                        Builder_{.name}._unionSetField(
+                            {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/}
-                    };
-
-                    return (
-                        {@ne key=.discriminantValue value=65535}
-                            this.{@fieldIser name=.name/}()
-                            &&
-                        {/ne}
-                        !reader.isNull(pointer)
-                    );
-                };
+                        );
+                    parentScope.prototype.{@fieldIniter name=.name/} =
+                        Builder_{.name}._unionInitField(
+                            {.discriminantValue},
+                            {@math key=.offset method="multiply" operand="8"/}
+                        );
+                    parentScope.prototype.{@fieldAdopter name=.name/} =
+                        Builder_{.name}._unionAdoptField(
+                            {.discriminantValue},
+                            {@math key=.offset method="multiply" operand="8"/}
+                        );
+                    parentScope.prototype.{@fieldDisowner name=.name/} =
+                        Builder_{.name}._unionDisownField(
+                            {.discriminantValue},
+                            {@math key=.offset method="multiply" operand="8"/}
+                        );
+                    parentScope.prototype.{@fieldReaderDisowner name=.name/} =
+                        Builder_{.name}._unionReaderDisownField(
+                            {.discriminantValue},
+                            {@math key=.offset method="multiply" operand="8"/}
+                        );
+                {/eq}
             {/eq}
         {:else}
             {@eq key=.type value="group"}
@@ -234,70 +147,67 @@
                     return new Group_{.name}(this);
                 };
             {/eq}
-            {@eq key=.type value="Data"}{>"builders/listField" current="parentScope"/}{/eq}
-            {@eq key=.type value="Text"}{>"builders/listField" current="parentScope"/}{/eq}
-            {@eq key=.type value="AnyPointer"}
-                parentScope.prototype.{@fieldGetter name=.name/} = function () {
-                    {>throwOnInactive error="Attempted to access an inactive union member"/}
 
-                    var pointer = {
-                        segment : this._segment,
-                        position : this._pointersSection +
+            {@member key=.type value="Text,Data,AnyPointer"}
+                var Builder_{.name} = builder.{.type};
+
+                {@eq key=discriminantValue value=65535}
+                    parentScope.prototype.{@fieldGetter name=.name/} =
+                        Builder_{.name}._getField(
+                            {@math key=.offset method="multiply" operand="8"/},
+                            {.offset}
+                        );
+                    parentScope.prototype.{@fieldHaser name=.name/} =
+                        Builder_{.name}._hasField({@math key=.offset method="multiply" operand="8"/});
+                    parentScope.prototype.{@fieldSetter name=.name/} =
+                        Builder_{.name}._setField({@math key=.offset method="multiply" operand="8"/});
+                    parentScope.prototype.{@fieldIniter name=.name/} =
+                        Builder_{.name}._initField({@math key=.offset method="multiply" operand="8"/});
+                    parentScope.prototype.{@fieldAdopter name=.name/} =
+                        Builder_{.name}._adoptField({@math key=.offset method="multiply" operand="8"/});
+                    parentScope.prototype.{@fieldDisowner name=.name/} =
+                        Builder_{.name}._disownField({@math key=.offset method="multiply" operand="8"/});
+                    parentScope.prototype.{@fieldReaderDisowner name=.name/} =
+                        Builder_{.name}._readerDisownField({@math key=.offset method="multiply" operand="8"/});
+                {:else}
+                    parentScope.prototype.{@fieldGetter name=.name/} =
+                        Builder_{.name}._unionGetField(
+                            {.discriminantValue},
+                            {@math key=.offset method="multiply" operand="8"/},
+                            {.offset}
+                        );
+                    parentScope.prototype.{@fieldHaser name=.name/} =
+                        Builder_{.name}._unionHasField(
+                            {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/}
-                    };
-
-                    return builder.AnyPointer._deref(this._arena, pointer);
-                };
-
-                parentScope.prototype.{@fieldSetter name=.name/} = function (value) {
-                    {>"builders/setDiscriminant"/}
-
-                    var pointer = {
-                        segment : this._segment,
-                        position : this._pointersSection +
+                        );
+                    parentScope.prototype.{@fieldSetter name=.name/} =
+                        Builder_{.name}._unionSetField(
+                            {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/}
-                    };
-
-                    builder.AnyPointer._set(this._arena, pointer, value);
-                };
-
-                parentScope.prototype.{@fieldAdopter name=.name/} = function (value) {
-                    if (builder.AnyPointerBlob._TYPE !== value._TYPE) {
-                        throw new TypeError();
-                    }
-
-                    if (!value._isDisowned) {
-                        throw new ValueError('Attempted to adopt an AnyPointerBlob a second time');
-                    }
-
-                    {>"builders/setDiscriminant"/}
-
-                    builder.AnyPointerBlob._adopt(
-                        this._arena,
-                        {
-                            segment : this._segment,
-                            position : this._pointersSection +
-                                {@math key=.offset method="multiply" operand="8"/}
-                        },
-                        value
-                    );
-                };
-
-                parentScope.prototype.{@fieldDisowner name=.name/} = function () {
-                    {>throwOnInactive error="Attempted to access an inactive union member"/}
-
-                    var pointer = {
-                        segment : this._segment,
-                        position : this._pointersSection +
+                        );
+                    parentScope.prototype.{@fieldIniter name=.name/} =
+                        Builder_{.name}._unionInitField(
+                            {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/}
-                    };
-
-                    var instance = new builder.AnyPointerBlob(this._arena, pointer);
-                    this._arena._zero(pointer, 8);
-
-                    return instance;
-                };
-            {/eq}
+                        );
+                    parentScope.prototype.{@fieldAdopter name=.name/} =
+                        Builder_{.name}._unionAdoptField(
+                            {.discriminantValue},
+                            {@math key=.offset method="multiply" operand="8"/}
+                        );
+                    parentScope.prototype.{@fieldDisowner name=.name/} =
+                        Builder_{.name}._unionDisownField(
+                            {.discriminantValue},
+                            {@math key=.offset method="multiply" operand="8"/}
+                        );
+                    parentScope.prototype.{@fieldReaderDisowner name=.name/} =
+                        Builder_{.name}._unionReaderDisownField(
+                            {.discriminantValue},
+                            {@math key=.offset method="multiply" operand="8"/}
+                        );
+                {/eq}
+            {/member}
 
             {@eq key=.type value="Void"}
                 parentScope.prototype.{@fieldGetter name=.name/} = function () {
@@ -315,12 +225,10 @@
                 parentScope.prototype.{@fieldGetter name=.name/} = function () {
                     {>throwOnInactive error="Attempted to access an inactive union member"/}
 
-                    var position = this._dataSection + {@boolOffset offset=.offset/};
-
-                    return reader.fields.bool(
+                    return {decoder}.bool(
                         {.defaultValue},
                         this._segment,
-                        position,
+                        this._dataSection + {@boolOffset offset=.offset/},
                         {@boolMask offset=.offset/}
                     );
                 };
@@ -328,32 +236,31 @@
                 parentScope.prototype.{@fieldSetter name=.name/} = function (value) {
                     {>"builders/setDiscriminant"/}
 
-                    var position = this._dataSection + {@boolOffset offset=.offset/};
-
-                    builder.fields.bool(
+                    {encoder}.bool(
                         value,
                         {.defaultValue},
                         this._segment,
-                        position,
+                        this._dataSection + {@boolOffset offset=.offset/},
                         {@boolMask offset=.offset/}
                     );
                 };
             {/eq}
 
-            {#. decoder="reader.fields" encoder="builder.fields"}
-                {@eq key=.type value="Int8"}{>"builders/dataField"  current="parentScope" default=.defaultValue method="int8"  byteCount="1"/}{/eq}
-                {@eq key=.type value="Int16"}{>"builders/dataField" current="parentScope" default=.defaultValue method="int16" byteCount="2"/}{/eq}
-                {@eq key=.type value="Int32"}{>"builders/dataField" current="parentScope" default=.defaultValue method="int32" byteCount="4"/}{/eq}
-                {@eq key=.type value="Int64"}{>"builders/dataField" current="parentScope" default=.defaultValue method="int64" byteCount="8"/}{/eq}
-                {@eq key=.type value="UInt8"}{>"builders/dataField"  current="parentScope" default=.defaultValue method="uint8"  byteCount="1"/}{/eq}
-                {@eq key=.type value="UInt16"}{>"builders/dataField" current="parentScope" default=.defaultValue method="uint16" byteCount="2"/}{/eq}
-                {@eq key=.type value="UInt32"}{>"builders/dataField" current="parentScope" default=.defaultValue method="uint32" byteCount="4"/}{/eq}
-                {@eq key=.type value="UInt64"}{>"builders/dataField" current="parentScope" default=.defaultValue method="uint64" byteCount="8"/}{/eq}
-                {@eq key=.type value="Float32"}{>"builders/floatField" current="parentScope" method="float32" byteCount="4"/}{/eq}
-                {@eq key=.type value="Float64"}{>"builders/floatField" current="parentScope" method="float64" byteCount="8"/}{/eq}
+            {#. current="parentScope" decoder="reader.fields" encoder="builder.fields"}
+                {@eq key=.type value="Int8"}{>"builders/dataField"  default=.defaultValue method="int8"  byteCount="1"/}{/eq}
+                {@eq key=.type value="Int16"}{>"builders/dataField" default=.defaultValue method="int16" byteCount="2"/}{/eq}
+                {@eq key=.type value="Int32"}{>"builders/dataField" default=.defaultValue method="int32" byteCount="4"/}{/eq}
+                {@eq key=.type value="Int64"}{>"builders/dataField" default=.defaultValue method="int64" byteCount="8"/}{/eq}
+                {@eq key=.type value="UInt8"}{>"builders/dataField"  default=.defaultValue method="uint8"  byteCount="1"/}{/eq}
+                {@eq key=.type value="UInt16"}{>"builders/dataField" default=.defaultValue method="uint16" byteCount="2"/}{/eq}
+                {@eq key=.type value="UInt32"}{>"builders/dataField" default=.defaultValue method="uint32" byteCount="4"/}{/eq}
+                {@eq key=.type value="UInt64"}{>"builders/dataField" default=.defaultValue method="uint64" byteCount="8"/}{/eq}
+                {@eq key=.type value="Float32"}{>"builders/floatField" method="float32" byteCount="4"/}{/eq}
+                {@eq key=.type value="Float64"}{>"builders/floatField" method="float64" byteCount="8"/}{/eq}
             {/.}
         {/.meta}
     {/.fields}
 
-    parentScope.prototype._defaults = parentScope._READER.prototype._defaults;
+    parentScope.prototype._pointerDefaults = parentScope._READER.prototype._pointerDefaults;
+    parentScope.prototype._floatDefaults = parentScope._READER.prototype._floatDefaults;
 })
