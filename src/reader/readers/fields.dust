@@ -66,7 +66,6 @@
                             {@math key=.offset method="multiply" operand="8"/},
                             {.offset}
                         );
-{@ctThrow message="Need to implement _pointerDefaults with offset indexing!"/}
                     parentScope.prototype.{@fieldHaser name=.name/} =
                         Reader_{.name}._unionHasField(
                             {.discriminantValue},
@@ -206,7 +205,7 @@
                                 var arena = {>"readers/listDefaultArena"/};
                             {/eq}
                         {/.meta}
-                        return Reader._deref(arena, arena._root(), 0)
+                        return Reader._deref(arena, arena._root(), 0);
                     })()
                     {@sep},{/sep}
                 {/.bytes}
@@ -220,12 +219,12 @@
                 {#.bytes}
                     {.name} :
                         {@eq key=.type value="Float32"}
-                            allocator._fromBase64("{.defaultBytes}").getSegment(0);
+                            allocator._fromBase64("{.defaultBytes}").getSegment(0)
                         {/eq}
                         {@eq key=.type value="Float64"}
-                            allocator._fromBase64("{.defaultBytes}").getSegment(0);
+                            allocator._fromBase64("{.defaultBytes}").getSegment(0)
                         {/eq}
-                    {/.name}
+                    {@sep},{/sep}
                 {/.bytes}
             {:bytes}
                 {@floatFields fields=.fields/}
