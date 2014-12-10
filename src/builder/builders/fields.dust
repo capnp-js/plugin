@@ -225,7 +225,7 @@
                 parentScope.prototype.{@fieldGetter name=.name/} = function () {
                     {>throwOnInactive error="Attempted to access an inactive union member"/}
 
-                    return {decoder}.bool(
+                    return reader.fields.bool(
                         {.defaultValue},
                         this._segment,
                         this._dataSection + {@boolOffset offset=.offset/},
@@ -236,7 +236,7 @@
                 parentScope.prototype.{@fieldSetter name=.name/} = function (value) {
                     {>"builders/setDiscriminant"/}
 
-                    {encoder}.bool(
+                    builder.fields.bool(
                         value,
                         {.defaultValue},
                         this._segment,
