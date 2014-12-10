@@ -3,13 +3,11 @@
         var Generic = types["{.id}"];
     {:else}
         var Generic = types["{.id}"].bindScope(parentScope);
-        // types["{.id}"]._READER.bindScope(parentScope._READER)
-        // builder types each have access to their reader within bTypes, so the `bindScope` method can close with the same signature.
     {/.hash}
 
     Generic._populate = function (Structure) {
         {#.nodes}{>"builders/node"/}(types, Structure);{/.nodes}
-        {>"readers/fields"/}(types, Structure);
+        {>"builders/fields"/}(types, Structure);
     };
 
     Generic.bindParams = function ({#.parameters}{.}{@sep}, {/sep}{/.parameters}) {
