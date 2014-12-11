@@ -206,8 +206,7 @@
                         {/eq}
                     {/.meta}
                     return Reader._deref(arena, arena._root(), 0);
-                })()
-                {@sep},{/sep}
+                })();
             {/.pointers}
         {:pointers}
             {@pointerFields fields=.fields/}
