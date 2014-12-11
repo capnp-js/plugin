@@ -78,7 +78,7 @@
                 parentScope._Group_{.name} = reader.group(parentScope);
                 {>"readers/fields"/}(
                     types,
-                    Group_{.name},
+                    parentScope._Group_{.name},
                     allocator
                 );
 
@@ -157,66 +157,65 @@
     {/.fields}
 
     {?.fields}
-        parentScope.prototype._pointerDefaults = {
-            {@provide}
-                {#.bytes}
-                    {.name} : (function () {
-                        {?.meta}
-                            {@eq key=.meta value="struct"}
-                                var Reader = {>"generic/scope" source="reader" index="types" current="parentScope"/};
+        parentScope.prototype._pointerDefaults = [];
+        {@provide}
+            {#.pointers}
+                parentScope.prototype._pointerDefaults[{.offset}] = (function () {
+                    {?.meta}
+                        {@eq key=.meta value="struct"}
+                            var Reader = {>"generic/scope" source="reader" index="types" current="parentScope"/};
+                            var arena = allocator._fromBase64("{.defaultValue}").asReader();
+                        {/eq}
+
+                        {@eq key=.meta value="list"}
+                            var Reader = {>"readers/list" index="types" current="parentScope"/};
+                            var arena = {>"readers/listDefaultArena"/};
+                        {/eq}
+
+                        {@eq key=.meta value="parameter"}
+                            var Reader = parentScope
+                                {@repeat times=.type.scopeDistance}._PARENT{/repeat}
+                                ._PARAMS[{.type.position}];
+
+                            {@eq key=.defaultValue value="AAAAAAAAAAA="}
+                                var arena;
+                                if (Reader._CT.meta === 1) {
+                                    /* Empty, null list gets upgraded to an empty instance of the resolved type */
+                                    arena = allocator._fromBase64("AQAAAAAAAAA=").asReader();
+                                } else {
+                                    arena = allocator._fromBase64("{.defaultValue}").asReader();
+                                }
+                            {:else}
                                 var arena = allocator._fromBase64("{.defaultValue}").asReader();
                             {/eq}
+                        {/eq}
+                    {:else}
+                        {@eq key=.type value="AnyPointer"}
+                            var Reader = reader.AnyPointer;
+                            var arena = allocator._fromBase64("{.defaultValue}").asReader();
+                        {/eq}
 
-                            {@eq key=.meta value="list"}
-                                var Reader = {>"readers/list" index="types" current="parentScope"/};
-                                var arena = {>"readers/listDefaultArena"/};
-                            {/eq}
+                        {@eq key=.type value="Text"}
+                            var Reader = reader.Text;
+                            var arena = {>"readers/listDefaultArena"/};
+                        {/eq}
 
-                            {@eq key=.meta value="parameter"}
-                                var Reader = parentScope
-                                    {@repeat times=.type.scopeDistance}._PARENT{/repeat}
-                                    ._PARAMS[{.type.position}];
-
-                                {@eq key=.defaultValue value="AAAAAAAAAAA="}
-                                    var arena;
-                                    if (Reader._CT.meta === 1) {
-                                        /* Empty, null list gets upgraded to an empty instance of the resolved type */
-                                        arena = allocator._fromBase64("AQAAAAAAAAA=").asReader();
-                                    } else {
-                                        arena = allocator._fromBase64("{.defaultValue}").asReader();
-                                    }
-                                {:else}
-                                    var arena = allocator._fromBase64("{.defaultValue}").asReader();
-                                {/eq}
-                            {/eq}
-                        {:else}
-                            {@eq key=.type value="AnyPointer"}
-                                var Reader = reader.AnyPointer;
-                                var arena = allocator._fromBase64("{.defaultValue}").asReader();
-                            {/eq}
-
-                            {@eq key=.type value="Text"}
-                                var Reader = reader.Text;
-                                var arena = {>"readers/listDefaultArena"/};
-                            {/eq}
-
-                            {@eq key=.type value="Data"}
-                                var Reader = reader.Data;
-                                var arena = {>"readers/listDefaultArena"/};
-                            {/eq}
-                        {/.meta}
-                        return Reader._deref(arena, arena._root(), 0);
-                    })()
-                    {@sep},{/sep}
-                {/.bytes}
-            {:bytes}
-                {@pointerFields fields=.fields/}
-            {/provide}
-        };
+                        {@eq key=.type value="Data"}
+                            var Reader = reader.Data;
+                            var arena = {>"readers/listDefaultArena"/};
+                        {/eq}
+                    {/.meta}
+                    return Reader._deref(arena, arena._root(), 0);
+                })()
+                {@sep},{/sep}
+            {/.pointers}
+        {:pointers}
+            {@pointerFields fields=.fields/}
+        {/provide}
 
         parentScope.prototype._floatDefaults = {
             {@provide}
-                {#.bytes}
+                {#.floats}
                     {.name} :
                         {@eq key=.type value="Float32"}
                             allocator._fromBase64("{.defaultBytes}").getSegment(0)
@@ -225,8 +224,8 @@
                             allocator._fromBase64("{.defaultBytes}").getSegment(0)
                         {/eq}
                     {@sep},{/sep}
-                {/.bytes}
-            {:bytes}
+                {/.floats}
+            {:floats}
                 {@floatFields fields=.fields/}
             {/provide}
         };
