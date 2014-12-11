@@ -469,23 +469,23 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
         case v.ENUM: return {defaultValue : v.getEnum() };
         case v.DATA:
             value = v.getData();
-            return value === v._defaults.data ? zero : defaultize(encodeBlobType(value));
+            return v.hasData() ? defaultize(encodeBlobType(value)) : zero;
 
         case v.TEXT:
             value = v.getText();
-            return value === v._defaults.text ? zero : defaultize(encodeBlobType(value));
+            return v.hasText() ? defaultize(encodeBlobType(value)) : zero;
 
         case v.ANY_POINTER:
             value = v.getAnyPointer();
-            return value === v._defaults.any ? zero : defaultize(encodeAny(value));
+            return v.hasAnyPointer() ? defaultize(encodeAny(value)) : zero;
 
         case v.LIST:
             value = v.getList();
-            return value === v._defaults.list ? zero : defaultize(encodeAny(value));
+            return v.hasList() ? defaultize(encodeAny(value)) : zero;
 
         case v.STRUCT:
             value = v.getStruct();
-            return value === v._defaults.struct ? zero : defaultize(encodeAny(value));
+            return v.hasStruct() ? defaultize(encodeAny(value)) : zero;
 
         case v.INTERFACE: throw new Error('Interfaces are not supported');
 
