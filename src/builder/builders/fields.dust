@@ -64,6 +64,8 @@
                 {/eq}
 
                 {@eq key=.discriminantValue value=65535}
+                    parentScope.prototype.{@fieldAdopter name=.name/} =
+                        Builder_{.name}._adoptField({@math key=.offset method="multiply" operand="8"/});
                     parentScope.prototype.{@fieldGetter name=.name/} =
                         Builder_{.name}._getField(
                             {@math key=.offset method="multiply" operand="8"/},
@@ -71,17 +73,20 @@
                         );
                     parentScope.prototype.{@fieldHaser name=.name/} =
                         Builder_{.name}._hasField({@math key=.offset method="multiply" operand="8"/});
-                    parentScope.prototype.{@fieldSetter name=.name/} =
-                        Builder_{.name}._setField({@math key=.offset method="multiply" operand="8"/});
                     parentScope.prototype.{@fieldIniter name=.name/} =
                         Builder_{.name}._initField({@math key=.offset method="multiply" operand="8"/});
-                    parentScope.prototype.{@fieldAdopter name=.name/} =
-                        Builder_{.name}._adoptField({@math key=.offset method="multiply" operand="8"/});
                     parentScope.prototype.{@fieldDisowner name=.name/} =
                         Builder_{.name}._disownField({@math key=.offset method="multiply" operand="8"/});
                     parentScope.prototype.{@fieldReaderDisowner name=.name/} =
                         Builder_{.name}._readerDisownField({@math key=.offset method="multiply" operand="8"/});
+                    parentScope.prototype.{@fieldSetter name=.name/} =
+                        Builder_{.name}._setField({@math key=.offset method="multiply" operand="8"/});
                 {:else}
+                    parentScope.prototype.{@fieldAdopter name=.name/} =
+                        Builder_{.name}._unionAdoptField(
+                            {.discriminantValue},
+                            {@math key=.offset method="multiply" operand="8"/}
+                        );
                     parentScope.prototype.{@fieldGetter name=.name/} =
                         Builder_{.name}._unionGetField(
                             {.discriminantValue},
@@ -93,18 +98,8 @@
                             {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/}
                         );
-                    parentScope.prototype.{@fieldSetter name=.name/} =
-                        Builder_{.name}._unionSetField(
-                            {.discriminantValue},
-                            {@math key=.offset method="multiply" operand="8"/}
-                        );
                     parentScope.prototype.{@fieldIniter name=.name/} =
                         Builder_{.name}._unionInitField(
-                            {.discriminantValue},
-                            {@math key=.offset method="multiply" operand="8"/}
-                        );
-                    parentScope.prototype.{@fieldAdopter name=.name/} =
-                        Builder_{.name}._unionAdoptField(
                             {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/}
                         );
@@ -115,6 +110,11 @@
                         );
                     parentScope.prototype.{@fieldReaderDisowner name=.name/} =
                         Builder_{.name}._unionReaderDisownField(
+                            {.discriminantValue},
+                            {@math key=.offset method="multiply" operand="8"/}
+                        );
+                    parentScope.prototype.{@fieldSetter name=.name/} =
+                        Builder_{.name}._unionSetField(
                             {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/}
                         );
@@ -148,10 +148,10 @@
                 };
             {/eq}
 
-            {@member key=.type value="Text,Data,AnyPointer"}
-                var Builder_{.name} = builder.{.type};
+            {@eq key=.type value="AnyPointer"}
+                {@eq key=.discriminantValue value=65535}
+                    var Builder_{.name} = builder.any.Nonunion;
 
-                {@eq key=discriminantValue value=65535}
                     parentScope.prototype.{@fieldGetter name=.name/} =
                         Builder_{.name}._getField(
                             {@math key=.offset method="multiply" operand="8"/},
@@ -161,15 +161,9 @@
                         Builder_{.name}._hasField({@math key=.offset method="multiply" operand="8"/});
                     parentScope.prototype.{@fieldSetter name=.name/} =
                         Builder_{.name}._setField({@math key=.offset method="multiply" operand="8"/});
-                    parentScope.prototype.{@fieldIniter name=.name/} =
-                        Builder_{.name}._initField({@math key=.offset method="multiply" operand="8"/});
-                    parentScope.prototype.{@fieldAdopter name=.name/} =
-                        Builder_{.name}._adoptField({@math key=.offset method="multiply" operand="8"/});
-                    parentScope.prototype.{@fieldDisowner name=.name/} =
-                        Builder_{.name}._disownField({@math key=.offset method="multiply" operand="8"/});
-                    parentScope.prototype.{@fieldReaderDisowner name=.name/} =
-                        Builder_{.name}._readerDisownField({@math key=.offset method="multiply" operand="8"/});
                 {:else}
+                    var Builder_{.name} = builder.any.Union;
+
                     parentScope.prototype.{@fieldGetter name=.name/} =
                         Builder_{.name}._unionGetField(
                             {.discriminantValue},
@@ -181,18 +175,56 @@
                             {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/}
                         );
+                    parentScope.prototype.{@fieldIniter name=.name/} =
+                        Builder_{.name}._unionInitField({.discriminantValue});
                     parentScope.prototype.{@fieldSetter name=.name/} =
                         Builder_{.name}._unionSetField(
                             {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/}
                         );
+                {/eq}
+            {/eq}
+
+            {@member key=.type value="Text,Data"}
+                var Builder_{.name} = builder.{.type};
+
+                {@eq key=.discriminantValue value=65535}
+                    parentScope.prototype.{@fieldAdopter name=.name/} =
+                        Builder_{.name}._adoptField({@math key=.offset method="multiply" operand="8"/});
+                    parentScope.prototype.{@fieldGetter name=.name/} =
+                        Builder_{.name}._getField(
+                            {@math key=.offset method="multiply" operand="8"/},
+                            {.offset}
+                        );
+                    parentScope.prototype.{@fieldHaser name=.name/} =
+                        Builder_{.name}._hasField({@math key=.offset method="multiply" operand="8"/});
                     parentScope.prototype.{@fieldIniter name=.name/} =
-                        Builder_{.name}._unionInitField(
+                        Builder_{.name}._initField({@math key=.offset method="multiply" operand="8"/});
+                    parentScope.prototype.{@fieldDisowner name=.name/} =
+                        Builder_{.name}._disownField({@math key=.offset method="multiply" operand="8"/});
+                    parentScope.prototype.{@fieldReaderDisowner name=.name/} =
+                        Builder_{.name}._readerDisownField({@math key=.offset method="multiply" operand="8"/});
+                    parentScope.prototype.{@fieldSetter name=.name/} =
+                        Builder_{.name}._setField({@math key=.offset method="multiply" operand="8"/});
+                {:else}
+                    parentScope.prototype.{@fieldAdopter name=.name/} =
+                        Builder_{.name}._unionAdoptField(
                             {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/}
                         );
-                    parentScope.prototype.{@fieldAdopter name=.name/} =
-                        Builder_{.name}._unionAdoptField(
+                    parentScope.prototype.{@fieldGetter name=.name/} =
+                        Builder_{.name}._unionGetField(
+                            {.discriminantValue},
+                            {@math key=.offset method="multiply" operand="8"/},
+                            {.offset}
+                        );
+                    parentScope.prototype.{@fieldHaser name=.name/} =
+                        Builder_{.name}._unionHasField(
+                            {.discriminantValue},
+                            {@math key=.offset method="multiply" operand="8"/}
+                        );
+                    parentScope.prototype.{@fieldIniter name=.name/} =
+                        Builder_{.name}._unionInitField(
                             {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/}
                         );
@@ -203,6 +235,11 @@
                         );
                     parentScope.prototype.{@fieldReaderDisowner name=.name/} =
                         Builder_{.name}._unionReaderDisownField(
+                            {.discriminantValue},
+                            {@math key=.offset method="multiply" operand="8"/}
+                        );
+                    parentScope.prototype.{@fieldSetter name=.name/} =
+                        Builder_{.name}._unionSetField(
                             {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/}
                         );
