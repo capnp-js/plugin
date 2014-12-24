@@ -16,11 +16,13 @@ define(['./joinId'], function (
             var id = joinId(node.getId());
             node = index[id];
 
-            if (node.isStruct()) {
-                types[id] = null;
-                merge(types, localIds(index, node));
-            } else if (node.isEnum()) {
-                types[id] = null;
+            if (node !== undefined) {
+                if (node.isStruct()) {
+                    types[id] = null;
+                    merge(types, localIds(index, node));
+                } else if (node.isEnum()) {
+                    types[id] = null;
+                }
             }
         });
 
@@ -62,15 +64,17 @@ define(['./joinId'], function (
             var id = joinId(node.getId());
             node = index[id];
 
-            if (node.isStruct()) {
-                node.getStruct().getFields().forEach(function (field) {
-                    merge(types, fieldIds(index, field));
-                });
-                merge(types, usedIds(index, node));
-            } else if (node.isEnum()) {
-                types[joinId(node.getId())] = null;
-            } else if (node.isConst()) {
-                merge(types, typeId(node.getConst().getType()));
+            if (node !== undefined) {
+                if (node.isStruct()) {
+                    node.getStruct().getFields().forEach(function (field) {
+                        merge(types, fieldIds(index, field));
+                    });
+                    merge(types, usedIds(index, node));
+                } else if (node.isEnum()) {
+                    types[joinId(node.getId())] = null;
+                } else if (node.isConst()) {
+                    merge(types, typeId(node.getConst().getType()));
+                }
             }
         });
 
