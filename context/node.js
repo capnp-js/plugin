@@ -128,8 +128,8 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
             offset : slot.getOffset()
         };
 
-        merge(s, pushCall(stack, index, slot.getType(), typeF)); //
-        merge(s, pushCall(stack, index, slot.getDefaultValue(), defaultValueF)); //ok
+        merge(s, pushCall(stack, index, slot.getType(), typeF));
+        merge(s, pushCall(stack, index, slot.getDefaultValue(), defaultValueF));
 
         return s;
     };
@@ -176,19 +176,21 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
         } else {
             base = {
                 meta : "struct",
-                id : joinId(node.getId())
+                id : joinId(node.getId()),
+                nodes : node.getNestedNodes().map(function (n) {
+                    return pushCall(stack, index, n, nestedNodeF);
+                })
             };
 
             var params = node.getParameters();
             if (params.length() > 0) {
                 base.parameters = params.map(function (p) {
                     return p.getName().toString();
-                })
+                });
             }
 
-            if (!index[joinId(node.getScopeId())].getIsGeneric()) {
+            if (!index[joinId(node.getScopeId())].getIsGeneric())
                 base.hash = joinId(node.getId());
-            }
         }
 
         if (struct.getDiscriminantCount() > 0) {
@@ -201,9 +203,6 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
             pointerCount : struct.getPointerCount(),
             preferredListEncoding : struct.getPreferredListEncoding(),
             discriminantCount : struct.getDiscriminantCount(),
-            nodes : node.getNestedNodes().map(function (n) {
-                return pushCall(stack, index, n, nestedNodeF);
-            }),
             fields : struct.getFields().map(function (f) {
                 return pushCall(stack, index, f, fieldF);
             })
@@ -279,13 +278,12 @@ define(['capnp-js/builder/copy/pointer', 'capnp-js/builder/primitives', 'capnp-j
             }
         });
 
-        function getParamHash(p) {
-            return p.hash === undefined ? null : p.hash;
-        }
-
         function getScopeHash(s) {
             if (s.parameters) {
-                var params = s.parameters.map(getParamHash);
+                var params = s.parameters.map(function (p) {
+                    return p.hash === undefined ? null : '(' + p.hash + ')';
+                });
+
                 if (params.indexOf(null) === -1)
                     return s.id + '|' + params.join('|');
                 else
