@@ -12,7 +12,8 @@
     "build": "gulp build",
     "clean": "gulp clean & rm bin/capnp & rm -rf compiler",
     "rebuild": "npm run clean && npm run build",
-    "install": "node ./bin/installCompiler.js"
+    "install": "node ./bin/installCompiler.js",
+    "test": "capnp compile -ojs-json --src-prefix=test -I./test test/schema.capnp && mv -f schema.capnp.json test && mocha test/cgr.js"
   },
   "repository": {
     "type": "git",
@@ -30,6 +31,7 @@
   },
   "homepage": "https://github.com/popham/capnp-js-plugin",
   "devDependencies": {
+    "deep-diff": "^0.3.0",
     "gulp": "^3.8.7",
     "gulp-chug": "^0.3.0",
     "gulp-concat": "^2.3.4",
@@ -43,7 +45,7 @@
     "gulp-rename": "^1.2.0",
     "gulp-rimraf": "^0.1.0",
     "gulp-uglify": "^0.3.1",
-    "mocha": "^1.18.2",
+    "mocha": "^2.1.0",
     "nfy": "0.0.1",
     "whereis": "^0.4.0"
   },

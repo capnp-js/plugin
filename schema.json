@@ -7,58 +7,49 @@
         "name" : "Node",
         "meta" : "struct",
         "id" : "0xe682ab4cf923a417",
+        "hash" : "0xe682ab4cf923a417",
         "dataWordCount" : 5,
-        "pointerCount" : 5,
+        "pointerCount" : 6,
         "preferredListEncoding" : 7,
         "discriminantCount" : 6,
         "discriminantOffset" : 6,
         "fields" : [{
             "name" : "id",
             "type" : "UInt64",
+            "hash" : "U8",
             "discriminantValue" : 65535,
             "defaultValue" : [0,0],
             "offset" : 0
         }, {
             "name" : "displayName",
             "type" : "Text",
+            "hash" : "T",
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 0
         }, {
             "name" : "displayNamePrefixLength",
             "type" : "UInt32",
+            "hash" : "U4",
             "discriminantValue" : 65535,
             "defaultValue" : 0,
             "offset" : 2
         }, {
             "name" : "scopeId",
             "type" : "UInt64",
+            "hash" : "U8",
             "discriminantValue" : 65535,
             "defaultValue" : [0,0],
             "offset" : 2
-        }, {
-            "name" : "parameters",
-            "meta" : "list",
-            "type" : {
-                "meta" : "struct",
-                "id" : "0xb9521bccf10fa3b1"
-            },
-            "discriminantValue" : 65535,
-            "defaultValue" : "AAAAAAAAAAA=",
-            "offset" : 5
-        }, {
-            "name" : "isGeneric",
-            "type" : "Bool",
-            "discriminantValue" : 65535,
-            "defaultValue" : 0,
-            "offset" : 288
         }, {
             "name" : "nestedNodes",
             "meta" : "list",
             "type" : {
                 "meta" : "struct",
-                "id" : "0xdebf55bbfa0fc242"
+                "id" : "0xdebf55bbfa0fc242",
+                "hash" : "0xdebf55bbfa0fc242"
             },
+            "hash" : "L|0xdebf55bbfa0fc242",
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 1
@@ -67,14 +58,17 @@
             "meta" : "list",
             "type" : {
                 "meta" : "struct",
-                "id" : "0xf1c8950dab257542"
+                "id" : "0xf1c8950dab257542",
+                "hash" : "0xf1c8950dab257542"
             },
+            "hash" : "L|0xf1c8950dab257542",
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 2
         }, {
             "name" : "file",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 0,
             "defaultValue" : null,
             "offset" : 0
@@ -82,19 +76,21 @@
             "name" : "struct",
             "type" : "group",
             "dataWordCount" : 5,
-            "pointerCount" : 5,
+            "pointerCount" : 6,
             "preferredListEncoding" : 7,
             "discriminantValue" : 1,
             "discriminantCount" : 0,
             "fields" : [{
                 "name" : "dataWordCount",
                 "type" : "UInt16",
+                "hash" : "U2",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 7
             }, {
                 "name" : "pointerCount",
                 "type" : "UInt16",
+                "hash" : "U2",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 12
@@ -102,24 +98,28 @@
                 "name" : "preferredListEncoding",
                 "meta" : "enum",
                 "id" : "0xd1958f7dba521926",
+                "hash" : "0xd1958f7dba521926",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 13
             }, {
                 "name" : "isGroup",
                 "type" : "Bool",
+                "hash" : "B",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 224
             }, {
                 "name" : "discriminantCount",
                 "type" : "UInt16",
+                "hash" : "U2",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 15
             }, {
                 "name" : "discriminantOffset",
                 "type" : "UInt32",
+                "hash" : "U4",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 8
@@ -128,8 +128,10 @@
                 "meta" : "list",
                 "type" : {
                     "meta" : "struct",
-                    "id" : "0x9aad50a41f4af45f"
+                    "id" : "0x9aad50a41f4af45f",
+                    "hash" : "0x9aad50a41f4af45f"
                 },
+                "hash" : "L|0x9aad50a41f4af45f",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 3
@@ -138,7 +140,7 @@
             "name" : "enum",
             "type" : "group",
             "dataWordCount" : 5,
-            "pointerCount" : 5,
+            "pointerCount" : 6,
             "preferredListEncoding" : 7,
             "discriminantValue" : 2,
             "discriminantCount" : 0,
@@ -147,8 +149,10 @@
                 "meta" : "list",
                 "type" : {
                     "meta" : "struct",
-                    "id" : "0x978a7cebdc549a4d"
+                    "id" : "0x978a7cebdc549a4d",
+                    "hash" : "0x978a7cebdc549a4d"
                 },
+                "hash" : "L|0x978a7cebdc549a4d",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 3
@@ -157,7 +161,7 @@
             "name" : "interface",
             "type" : "group",
             "dataWordCount" : 5,
-            "pointerCount" : 5,
+            "pointerCount" : 6,
             "preferredListEncoding" : 7,
             "discriminantValue" : 3,
             "discriminantCount" : 0,
@@ -166,8 +170,10 @@
                 "meta" : "list",
                 "type" : {
                     "meta" : "struct",
-                    "id" : "0x9500cce23b334d80"
+                    "id" : "0x9500cce23b334d80",
+                    "hash" : "0x9500cce23b334d80"
                 },
+                "hash" : "L|0x9500cce23b334d80",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 3
@@ -176,8 +182,10 @@
                 "meta" : "list",
                 "type" : {
                     "meta" : "struct",
-                    "id" : "0xa9962a9ed0a4d7f8"
+                    "id" : "0xa9962a9ed0a4d7f8",
+                    "hash" : "0xa9962a9ed0a4d7f8"
                 },
+                "hash" : "L|0xa9962a9ed0a4d7f8",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 4
@@ -186,7 +194,7 @@
             "name" : "const",
             "type" : "group",
             "dataWordCount" : 5,
-            "pointerCount" : 5,
+            "pointerCount" : 6,
             "preferredListEncoding" : 7,
             "discriminantValue" : 4,
             "discriminantCount" : 0,
@@ -194,6 +202,7 @@
                 "name" : "type",
                 "meta" : "struct",
                 "id" : "0xd07378ede1f9cc60",
+                "hash" : "0xd07378ede1f9cc60",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 3
@@ -201,6 +210,7 @@
                 "name" : "value",
                 "meta" : "struct",
                 "id" : "0xce23dcd2d7b00c9b",
+                "hash" : "0xce23dcd2d7b00c9b",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 4
@@ -209,7 +219,7 @@
             "name" : "annotation",
             "type" : "group",
             "dataWordCount" : 5,
-            "pointerCount" : 5,
+            "pointerCount" : 6,
             "preferredListEncoding" : 7,
             "discriminantValue" : 5,
             "discriminantCount" : 0,
@@ -217,87 +227,120 @@
                 "name" : "type",
                 "meta" : "struct",
                 "id" : "0xd07378ede1f9cc60",
+                "hash" : "0xd07378ede1f9cc60",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 3
             }, {
                 "name" : "targetsFile",
                 "type" : "Bool",
+                "hash" : "B",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 112
             }, {
                 "name" : "targetsConst",
                 "type" : "Bool",
+                "hash" : "B",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 113
             }, {
                 "name" : "targetsEnum",
                 "type" : "Bool",
+                "hash" : "B",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 114
             }, {
                 "name" : "targetsEnumerant",
                 "type" : "Bool",
+                "hash" : "B",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 115
             }, {
                 "name" : "targetsStruct",
                 "type" : "Bool",
+                "hash" : "B",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 116
             }, {
                 "name" : "targetsField",
                 "type" : "Bool",
+                "hash" : "B",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 117
             }, {
                 "name" : "targetsUnion",
                 "type" : "Bool",
+                "hash" : "B",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 118
             }, {
                 "name" : "targetsGroup",
                 "type" : "Bool",
+                "hash" : "B",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 119
             }, {
                 "name" : "targetsInterface",
                 "type" : "Bool",
+                "hash" : "B",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 120
             }, {
                 "name" : "targetsMethod",
                 "type" : "Bool",
+                "hash" : "B",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 121
             }, {
                 "name" : "targetsParam",
                 "type" : "Bool",
+                "hash" : "B",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 122
             }, {
                 "name" : "targetsAnnotation",
                 "type" : "Bool",
+                "hash" : "B",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 123
             }]
+        }, {
+            "name" : "parameters",
+            "meta" : "list",
+            "type" : {
+                "meta" : "struct",
+                "id" : "0xb9521bccf10fa3b1",
+                "hash" : "0xb9521bccf10fa3b1"
+            },
+            "hash" : "L|0xb9521bccf10fa3b1",
+            "discriminantValue" : 65535,
+            "defaultValue" : "AAAAAAAAAAA=",
+            "offset" : 5
+        }, {
+            "name" : "isGeneric",
+            "type" : "Bool",
+            "hash" : "B",
+            "discriminantValue" : 65535,
+            "defaultValue" : 0,
+            "offset" : 288
         }],
         "nodes" : [{
             "name" : "Parameter",
             "meta" : "struct",
             "id" : "0xb9521bccf10fa3b1",
+            "hash" : "0xb9521bccf10fa3b1",
             "dataWordCount" : 0,
             "pointerCount" : 1,
             "preferredListEncoding" : 7,
@@ -305,14 +348,17 @@
             "fields" : [{
                 "name" : "name",
                 "type" : "Text",
+                "hash" : "T",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 0
-            }]
+            }],
+            "nodes" : []
         }, {
             "name" : "NestedNode",
             "meta" : "struct",
             "id" : "0xdebf55bbfa0fc242",
+            "hash" : "0xdebf55bbfa0fc242",
             "dataWordCount" : 1,
             "pointerCount" : 1,
             "preferredListEncoding" : 7,
@@ -320,21 +366,25 @@
             "fields" : [{
                 "name" : "name",
                 "type" : "Text",
+                "hash" : "T",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 0
             }, {
                 "name" : "id",
                 "type" : "UInt64",
+                "hash" : "U8",
                 "discriminantValue" : 65535,
                 "defaultValue" : [0,0],
                 "offset" : 0
-            }]
+            }],
+            "nodes" : []
         }]
     }, {
         "name" : "Field",
         "meta" : "struct",
         "id" : "0x9aad50a41f4af45f",
+        "hash" : "0x9aad50a41f4af45f",
         "dataWordCount" : 3,
         "pointerCount" : 4,
         "preferredListEncoding" : 7,
@@ -343,12 +393,14 @@
         "fields" : [{
             "name" : "name",
             "type" : "Text",
+            "hash" : "T",
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 0
         }, {
             "name" : "codeOrder",
             "type" : "UInt16",
+            "hash" : "U2",
             "discriminantValue" : 65535,
             "defaultValue" : 0,
             "offset" : 0
@@ -357,14 +409,17 @@
             "meta" : "list",
             "type" : {
                 "meta" : "struct",
-                "id" : "0xf1c8950dab257542"
+                "id" : "0xf1c8950dab257542",
+                "hash" : "0xf1c8950dab257542"
             },
+            "hash" : "L|0xf1c8950dab257542",
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 1
         }, {
             "name" : "discriminantValue",
             "type" : "UInt16",
+            "hash" : "U2",
             "discriminantValue" : 65535,
             "defaultValue" : 65535,
             "offset" : 1
@@ -379,6 +434,7 @@
             "fields" : [{
                 "name" : "offset",
                 "type" : "UInt32",
+                "hash" : "U4",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 1
@@ -386,6 +442,7 @@
                 "name" : "type",
                 "meta" : "struct",
                 "id" : "0xd07378ede1f9cc60",
+                "hash" : "0xd07378ede1f9cc60",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 2
@@ -393,12 +450,14 @@
                 "name" : "defaultValue",
                 "meta" : "struct",
                 "id" : "0xce23dcd2d7b00c9b",
+                "hash" : "0xce23dcd2d7b00c9b",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 3
             }, {
                 "name" : "hadExplicitDefault",
                 "type" : "Bool",
+                "hash" : "B",
                 "discriminantValue" : 65535,
                 "defaultValue" : 0,
                 "offset" : 128
@@ -414,6 +473,7 @@
             "fields" : [{
                 "name" : "typeId",
                 "type" : "UInt64",
+                "hash" : "U8",
                 "discriminantValue" : 65535,
                 "defaultValue" : [0,0],
                 "offset" : 2
@@ -430,12 +490,14 @@
             "fields" : [{
                 "name" : "implicit",
                 "type" : "Void",
+                "hash" : "V",
                 "discriminantValue" : 0,
                 "defaultValue" : null,
                 "offset" : 0
             }, {
                 "name" : "explicit",
                 "type" : "UInt16",
+                "hash" : "U2",
                 "discriminantValue" : 1,
                 "defaultValue" : 0,
                 "offset" : 6
@@ -447,6 +509,7 @@
             "id" : "0x97b14cbe7cfec712",
             "datum" : {
                 "type" : "UInt16",
+                "hash" : "U2",
                 "value" : 65535
             }
         }]
@@ -454,6 +517,7 @@
         "name" : "Enumerant",
         "meta" : "struct",
         "id" : "0x978a7cebdc549a4d",
+        "hash" : "0x978a7cebdc549a4d",
         "dataWordCount" : 1,
         "pointerCount" : 2,
         "preferredListEncoding" : 7,
@@ -461,12 +525,14 @@
         "fields" : [{
             "name" : "name",
             "type" : "Text",
+            "hash" : "T",
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 0
         }, {
             "name" : "codeOrder",
             "type" : "UInt16",
+            "hash" : "U2",
             "discriminantValue" : 65535,
             "defaultValue" : 0,
             "offset" : 0
@@ -475,16 +541,20 @@
             "meta" : "list",
             "type" : {
                 "meta" : "struct",
-                "id" : "0xf1c8950dab257542"
+                "id" : "0xf1c8950dab257542",
+                "hash" : "0xf1c8950dab257542"
             },
+            "hash" : "L|0xf1c8950dab257542",
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 1
-        }]
+        }],
+        "nodes" : []
     }, {
         "name" : "Superclass",
         "meta" : "struct",
         "id" : "0xa9962a9ed0a4d7f8",
+        "hash" : "0xa9962a9ed0a4d7f8",
         "dataWordCount" : 1,
         "pointerCount" : 1,
         "preferredListEncoding" : 7,
@@ -492,6 +562,7 @@
         "fields" : [{
             "name" : "id",
             "type" : "UInt64",
+            "hash" : "U8",
             "discriminantValue" : 65535,
             "defaultValue" : [0,0],
             "offset" : 0
@@ -499,82 +570,97 @@
             "name" : "brand",
             "meta" : "struct",
             "id" : "0x903455f06065422b",
+            "hash" : "0x903455f06065422b",
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 0
-        }]
+        }],
+        "nodes" : []
     }, {
         "name" : "Method",
         "meta" : "struct",
         "id" : "0x9500cce23b334d80",
+        "hash" : "0x9500cce23b334d80",
         "dataWordCount" : 3,
-        "pointerCount" : 2,
+        "pointerCount" : 5,
         "preferredListEncoding" : 7,
         "discriminantCount" : 0,
         "fields" : [{
             "name" : "name",
             "type" : "Text",
+            "hash" : "T",
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 0
         }, {
             "name" : "codeOrder",
             "type" : "UInt16",
+            "hash" : "U2",
             "discriminantValue" : 65535,
             "defaultValue" : 0,
             "offset" : 0
         }, {
-            "name" : "implicitParameters",
-            "meta" : "list",
-            "type" : {
-                "meta" : "struct",
-                "id" : "0xb9521bccf10fa3b1"
-            },
-            "discriminantValue" : 65535,
-            "defaultValue" : "AAAAAAAAAAA=",
-            "offset" : 4
-        }, {
             "name" : "paramStructType",
             "type" : "UInt64",
+            "hash" : "U8",
             "discriminantValue" : 65535,
             "defaultValue" : [0,0],
             "offset" : 1
         }, {
-            "name" : "paramBrand",
-            "meta" : "struct",
-            "id" : "0x903455f06065422b",
-            "discriminantValue" : 65535,
-            "defaultValue" : "AAAAAAAAAAA=",
-            "offset" : 2
-        }, {
             "name" : "resultStructType",
             "type" : "UInt64",
+            "hash" : "U8",
             "discriminantValue" : 65535,
             "defaultValue" : [0,0],
             "offset" : 2
-        }, {
-            "name" : "resultBrand",
-            "meta" : "struct",
-            "id" : "0x903455f06065422b",
-            "discriminantValue" : 65535,
-            "defaultValue" : "AAAAAAAAAAA=",
-            "offset" : 3
         }, {
             "name" : "annotations",
             "meta" : "list",
             "type" : {
                 "meta" : "struct",
-                "id" : "0xf1c8950dab257542"
+                "id" : "0xf1c8950dab257542",
+                "hash" : "0xf1c8950dab257542"
             },
+            "hash" : "L|0xf1c8950dab257542",
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 1
-        }]
+        }, {
+            "name" : "paramBrand",
+            "meta" : "struct",
+            "id" : "0x903455f06065422b",
+            "hash" : "0x903455f06065422b",
+            "discriminantValue" : 65535,
+            "defaultValue" : "AAAAAAAAAAA=",
+            "offset" : 2
+        }, {
+            "name" : "resultBrand",
+            "meta" : "struct",
+            "id" : "0x903455f06065422b",
+            "hash" : "0x903455f06065422b",
+            "discriminantValue" : 65535,
+            "defaultValue" : "AAAAAAAAAAA=",
+            "offset" : 3
+        }, {
+            "name" : "implicitParameters",
+            "meta" : "list",
+            "type" : {
+                "meta" : "struct",
+                "id" : "0xb9521bccf10fa3b1",
+                "hash" : "0xb9521bccf10fa3b1"
+            },
+            "hash" : "L|0xb9521bccf10fa3b1",
+            "discriminantValue" : 65535,
+            "defaultValue" : "AAAAAAAAAAA=",
+            "offset" : 4
+        }],
+        "nodes" : []
     }, {
         "name" : "Type",
         "meta" : "struct",
         "id" : "0xd07378ede1f9cc60",
-        "dataWordCount" : 2,
+        "hash" : "0xd07378ede1f9cc60",
+        "dataWordCount" : 3,
         "pointerCount" : 1,
         "preferredListEncoding" : 7,
         "discriminantCount" : 19,
@@ -582,91 +668,105 @@
         "fields" : [{
             "name" : "void",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 0,
             "defaultValue" : null,
             "offset" : 0
         }, {
             "name" : "bool",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 1,
             "defaultValue" : null,
             "offset" : 0
         }, {
             "name" : "int8",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 2,
             "defaultValue" : null,
             "offset" : 0
         }, {
             "name" : "int16",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 3,
             "defaultValue" : null,
             "offset" : 0
         }, {
             "name" : "int32",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 4,
             "defaultValue" : null,
             "offset" : 0
         }, {
             "name" : "int64",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 5,
             "defaultValue" : null,
             "offset" : 0
         }, {
             "name" : "uint8",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 6,
             "defaultValue" : null,
             "offset" : 0
         }, {
             "name" : "uint16",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 7,
             "defaultValue" : null,
             "offset" : 0
         }, {
             "name" : "uint32",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 8,
             "defaultValue" : null,
             "offset" : 0
         }, {
             "name" : "uint64",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 9,
             "defaultValue" : null,
             "offset" : 0
         }, {
             "name" : "float32",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 10,
             "defaultValue" : null,
             "offset" : 0
         }, {
             "name" : "float64",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 11,
             "defaultValue" : null,
             "offset" : 0
         }, {
             "name" : "text",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 12,
             "defaultValue" : null,
             "offset" : 0
         }, {
             "name" : "data",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 13,
             "defaultValue" : null,
             "offset" : 0
         }, {
             "name" : "list",
             "type" : "group",
-            "dataWordCount" : 2,
+            "dataWordCount" : 3,
             "pointerCount" : 1,
             "preferredListEncoding" : 7,
             "discriminantValue" : 14,
@@ -675,6 +775,7 @@
                 "name" : "elementType",
                 "meta" : "struct",
                 "id" : "0xd07378ede1f9cc60",
+                "hash" : "0xd07378ede1f9cc60",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 0
@@ -682,7 +783,7 @@
         }, {
             "name" : "enum",
             "type" : "group",
-            "dataWordCount" : 2,
+            "dataWordCount" : 3,
             "pointerCount" : 1,
             "preferredListEncoding" : 7,
             "discriminantValue" : 15,
@@ -690,6 +791,7 @@
             "fields" : [{
                 "name" : "typeId",
                 "type" : "UInt64",
+                "hash" : "U8",
                 "discriminantValue" : 65535,
                 "defaultValue" : [0,0],
                 "offset" : 1
@@ -697,6 +799,7 @@
                 "name" : "brand",
                 "meta" : "struct",
                 "id" : "0x903455f06065422b",
+                "hash" : "0x903455f06065422b",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 0
@@ -704,7 +807,7 @@
         }, {
             "name" : "struct",
             "type" : "group",
-            "dataWordCount" : 2,
+            "dataWordCount" : 3,
             "pointerCount" : 1,
             "preferredListEncoding" : 7,
             "discriminantValue" : 16,
@@ -712,6 +815,7 @@
             "fields" : [{
                 "name" : "typeId",
                 "type" : "UInt64",
+                "hash" : "U8",
                 "discriminantValue" : 65535,
                 "defaultValue" : [0,0],
                 "offset" : 1
@@ -719,6 +823,7 @@
                 "name" : "brand",
                 "meta" : "struct",
                 "id" : "0x903455f06065422b",
+                "hash" : "0x903455f06065422b",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 0
@@ -726,7 +831,7 @@
         }, {
             "name" : "interface",
             "type" : "group",
-            "dataWordCount" : 2,
+            "dataWordCount" : 3,
             "pointerCount" : 1,
             "preferredListEncoding" : 7,
             "discriminantValue" : 17,
@@ -734,6 +839,7 @@
             "fields" : [{
                 "name" : "typeId",
                 "type" : "UInt64",
+                "hash" : "U8",
                 "discriminantValue" : 65535,
                 "defaultValue" : [0,0],
                 "offset" : 1
@@ -741,6 +847,7 @@
                 "name" : "brand",
                 "meta" : "struct",
                 "id" : "0x903455f06065422b",
+                "hash" : "0x903455f06065422b",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 0
@@ -748,7 +855,7 @@
         }, {
             "name" : "anyPointer",
             "type" : "group",
-            "dataWordCount" : 2,
+            "dataWordCount" : 3,
             "pointerCount" : 1,
             "preferredListEncoding" : 7,
             "discriminantValue" : 18,
@@ -757,13 +864,14 @@
             "fields" : [{
                 "name" : "unconstrained",
                 "type" : "Void",
+                "hash" : "V",
                 "discriminantValue" : 0,
                 "defaultValue" : null,
                 "offset" : 0
             }, {
                 "name" : "parameter",
                 "type" : "group",
-                "dataWordCount" : 2,
+                "dataWordCount" : 3,
                 "pointerCount" : 1,
                 "preferredListEncoding" : 7,
                 "discriminantValue" : 1,
@@ -771,12 +879,14 @@
                 "fields" : [{
                     "name" : "scopeId",
                     "type" : "UInt64",
+                    "hash" : "U8",
                     "discriminantValue" : 65535,
                     "defaultValue" : [0,0],
                     "offset" : 2
                 }, {
                     "name" : "parameterIndex",
                     "type" : "UInt16",
+                    "hash" : "U2",
                     "discriminantValue" : 65535,
                     "defaultValue" : 0,
                     "offset" : 5
@@ -784,7 +894,7 @@
             }, {
                 "name" : "implicitMethodParameter",
                 "type" : "group",
-                "dataWordCount" : 2,
+                "dataWordCount" : 3,
                 "pointerCount" : 1,
                 "preferredListEncoding" : 7,
                 "discriminantValue" : 2,
@@ -792,16 +902,19 @@
                 "fields" : [{
                     "name" : "parameterIndex",
                     "type" : "UInt16",
+                    "hash" : "U2",
                     "discriminantValue" : 65535,
                     "defaultValue" : 0,
                     "offset" : 5
                 }]
             }]
-        }]
+        }],
+        "nodes" : []
     }, {
         "name" : "Brand",
         "meta" : "struct",
         "id" : "0x903455f06065422b",
+        "hash" : "0x903455f06065422b",
         "dataWordCount" : 0,
         "pointerCount" : 1,
         "preferredListEncoding" : 7,
@@ -811,8 +924,10 @@
             "meta" : "list",
             "type" : {
                 "meta" : "struct",
-                "id" : "0xabd73485a9636bc9"
+                "id" : "0xabd73485a9636bc9",
+                "hash" : "0xabd73485a9636bc9"
             },
+            "hash" : "L|0xabd73485a9636bc9",
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 0
@@ -821,6 +936,7 @@
             "name" : "Scope",
             "meta" : "struct",
             "id" : "0xabd73485a9636bc9",
+            "hash" : "0xabd73485a9636bc9",
             "dataWordCount" : 2,
             "pointerCount" : 1,
             "preferredListEncoding" : 7,
@@ -829,6 +945,7 @@
             "fields" : [{
                 "name" : "scopeId",
                 "type" : "UInt64",
+                "hash" : "U8",
                 "discriminantValue" : 65535,
                 "defaultValue" : [0,0],
                 "offset" : 0
@@ -837,22 +954,27 @@
                 "meta" : "list",
                 "type" : {
                     "meta" : "struct",
-                    "id" : "0xc863cd16969ee7fc"
+                    "id" : "0xc863cd16969ee7fc",
+                    "hash" : "0xc863cd16969ee7fc"
                 },
+                "hash" : "L|0xc863cd16969ee7fc",
                 "discriminantValue" : 0,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 0
             }, {
                 "name" : "inherit",
                 "type" : "Void",
+                "hash" : "V",
                 "discriminantValue" : 1,
                 "defaultValue" : null,
                 "offset" : 0
-            }]
+            }],
+            "nodes" : []
         }, {
             "name" : "Binding",
             "meta" : "struct",
             "id" : "0xc863cd16969ee7fc",
+            "hash" : "0xc863cd16969ee7fc",
             "dataWordCount" : 1,
             "pointerCount" : 1,
             "preferredListEncoding" : 7,
@@ -861,6 +983,7 @@
             "fields" : [{
                 "name" : "unbound",
                 "type" : "Void",
+                "hash" : "V",
                 "discriminantValue" : 0,
                 "defaultValue" : null,
                 "offset" : 0
@@ -868,15 +991,18 @@
                 "name" : "type",
                 "meta" : "struct",
                 "id" : "0xd07378ede1f9cc60",
+                "hash" : "0xd07378ede1f9cc60",
                 "discriminantValue" : 1,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 0
-            }]
+            }],
+            "nodes" : []
         }]
     }, {
         "name" : "Value",
         "meta" : "struct",
         "id" : "0xce23dcd2d7b00c9b",
+        "hash" : "0xce23dcd2d7b00c9b",
         "dataWordCount" : 2,
         "pointerCount" : 1,
         "preferredListEncoding" : 7,
@@ -885,66 +1011,77 @@
         "fields" : [{
             "name" : "void",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 0,
             "defaultValue" : null,
             "offset" : 0
         }, {
             "name" : "bool",
             "type" : "Bool",
+            "hash" : "B",
             "discriminantValue" : 1,
             "defaultValue" : 0,
             "offset" : 16
         }, {
             "name" : "int8",
             "type" : "Int8",
+            "hash" : "I1",
             "discriminantValue" : 2,
             "defaultValue" : 0,
             "offset" : 2
         }, {
             "name" : "int16",
             "type" : "Int16",
+            "hash" : "I2",
             "discriminantValue" : 3,
             "defaultValue" : 0,
             "offset" : 1
         }, {
             "name" : "int32",
             "type" : "Int32",
+            "hash" : "I4",
             "discriminantValue" : 4,
             "defaultValue" : 0,
             "offset" : 1
         }, {
             "name" : "int64",
             "type" : "Int64",
+            "hash" : "I8",
             "discriminantValue" : 5,
             "defaultValue" : [0,0],
             "offset" : 1
         }, {
             "name" : "uint8",
             "type" : "UInt8",
+            "hash" : "U1",
             "discriminantValue" : 6,
             "defaultValue" : 0,
             "offset" : 2
         }, {
             "name" : "uint16",
             "type" : "UInt16",
+            "hash" : "U2",
             "discriminantValue" : 7,
             "defaultValue" : 0,
             "offset" : 1
         }, {
             "name" : "uint32",
             "type" : "UInt32",
+            "hash" : "U4",
             "discriminantValue" : 8,
             "defaultValue" : 0,
             "offset" : 1
         }, {
             "name" : "uint64",
             "type" : "UInt64",
+            "hash" : "U8",
             "discriminantValue" : 9,
             "defaultValue" : [0,0],
             "offset" : 1
         }, {
             "name" : "float32",
             "type" : "Float32",
+            "hash" : "F4",
             "discriminantValue" : 10,
             "defaultValue" : 0.0,
             "defaultBytes" : "AAAAAA==",
@@ -952,6 +1089,7 @@
         }, {
             "name" : "float64",
             "type" : "Float64",
+            "hash" : "F8",
             "discriminantValue" : 11,
             "defaultValue" : 0.0,
             "defaultBytes" : "AAAAAAAAAAA=",
@@ -959,75 +1097,88 @@
         }, {
             "name" : "text",
             "type" : "Text",
+            "hash" : "T",
             "discriminantValue" : 12,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 0
         }, {
             "name" : "data",
             "type" : "Data",
+            "hash" : "D",
             "discriminantValue" : 13,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 0
         }, {
             "name" : "list",
             "type" : "AnyPointer",
+            "hash" : "A",
             "discriminantValue" : 14,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 0
         }, {
             "name" : "enum",
             "type" : "UInt16",
+            "hash" : "U2",
             "discriminantValue" : 15,
             "defaultValue" : 0,
             "offset" : 1
         }, {
             "name" : "struct",
             "type" : "AnyPointer",
+            "hash" : "A",
             "discriminantValue" : 16,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 0
         }, {
             "name" : "interface",
             "type" : "Void",
+            "hash" : "V",
             "discriminantValue" : 17,
             "defaultValue" : null,
             "offset" : 0
         }, {
             "name" : "anyPointer",
             "type" : "AnyPointer",
+            "hash" : "A",
             "discriminantValue" : 18,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 0
-        }]
+        }],
+        "nodes" : []
     }, {
         "name" : "Annotation",
         "meta" : "struct",
         "id" : "0xf1c8950dab257542",
+        "hash" : "0xf1c8950dab257542",
         "dataWordCount" : 1,
-        "pointerCount" : 1,
+        "pointerCount" : 2,
         "preferredListEncoding" : 7,
         "discriminantCount" : 0,
         "fields" : [{
             "name" : "id",
             "type" : "UInt64",
+            "hash" : "U8",
             "discriminantValue" : 65535,
             "defaultValue" : [0,0],
+            "offset" : 0
+        }, {
+            "name" : "value",
+            "meta" : "struct",
+            "id" : "0xce23dcd2d7b00c9b",
+            "hash" : "0xce23dcd2d7b00c9b",
+            "discriminantValue" : 65535,
+            "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 0
         }, {
             "name" : "brand",
             "meta" : "struct",
             "id" : "0x903455f06065422b",
+            "hash" : "0x903455f06065422b",
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 1
-        }, {
-            "name" : "value",
-            "meta" : "struct",
-            "id" : "0xce23dcd2d7b00c9b",
-            "discriminantValue" : 65535,
-            "defaultValue" : "AAAAAAAAAAA=",
-            "offset" : 0
-        }]
+        }],
+        "nodes" : []
     }, {
         "name" : "ElementSize",
         "meta" : "enum",
@@ -1053,6 +1204,7 @@
         "name" : "CodeGeneratorRequest",
         "meta" : "struct",
         "id" : "0xbfc546f6210ad7ce",
+        "hash" : "0xbfc546f6210ad7ce",
         "dataWordCount" : 0,
         "pointerCount" : 2,
         "preferredListEncoding" : 7,
@@ -1062,8 +1214,10 @@
             "meta" : "list",
             "type" : {
                 "meta" : "struct",
-                "id" : "0xe682ab4cf923a417"
+                "id" : "0xe682ab4cf923a417",
+                "hash" : "0xe682ab4cf923a417"
             },
+            "hash" : "L|0xe682ab4cf923a417",
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 0
@@ -1072,8 +1226,10 @@
             "meta" : "list",
             "type" : {
                 "meta" : "struct",
-                "id" : "0xcfea0eb02e810062"
+                "id" : "0xcfea0eb02e810062",
+                "hash" : "0xcfea0eb02e810062"
             },
+            "hash" : "L|0xcfea0eb02e810062",
             "discriminantValue" : 65535,
             "defaultValue" : "AAAAAAAAAAA=",
             "offset" : 1
@@ -1082,6 +1238,7 @@
             "name" : "RequestedFile",
             "meta" : "struct",
             "id" : "0xcfea0eb02e810062",
+            "hash" : "0xcfea0eb02e810062",
             "dataWordCount" : 1,
             "pointerCount" : 2,
             "preferredListEncoding" : 7,
@@ -1089,12 +1246,14 @@
             "fields" : [{
                 "name" : "id",
                 "type" : "UInt64",
+                "hash" : "U8",
                 "discriminantValue" : 65535,
                 "defaultValue" : [0,0],
                 "offset" : 0
             }, {
                 "name" : "filename",
                 "type" : "Text",
+                "hash" : "T",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 0
@@ -1103,8 +1262,10 @@
                 "meta" : "list",
                 "type" : {
                     "meta" : "struct",
-                    "id" : "0xae504193122357e5"
+                    "id" : "0xae504193122357e5",
+                    "hash" : "0xae504193122357e5"
                 },
+                "hash" : "L|0xae504193122357e5",
                 "discriminantValue" : 65535,
                 "defaultValue" : "AAAAAAAAAAA=",
                 "offset" : 1
@@ -1113,6 +1274,7 @@
                 "name" : "Import",
                 "meta" : "struct",
                 "id" : "0xae504193122357e5",
+                "hash" : "0xae504193122357e5",
                 "dataWordCount" : 1,
                 "pointerCount" : 1,
                 "preferredListEncoding" : 7,
@@ -1120,16 +1282,19 @@
                 "fields" : [{
                     "name" : "id",
                     "type" : "UInt64",
+                    "hash" : "U8",
                     "discriminantValue" : 65535,
                     "defaultValue" : [0,0],
                     "offset" : 0
                 }, {
                     "name" : "name",
                     "type" : "Text",
+                    "hash" : "T",
                     "discriminantValue" : 65535,
                     "defaultValue" : "AAAAAAAAAAA=",
                     "offset" : 0
-                }]
+                }],
+                "nodes" : []
             }]
         }]
     }]
