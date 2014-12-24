@@ -14,7 +14,11 @@
         {/gt}
     {/.discriminantCount}
 
+    var defaults = parentScope.prototype._pointerDefaults;
+
     {#.fields}
+        /* {.name} */
+
         {@ne key=.discriminantValue value=65535}
             {! Union member !}
 
@@ -37,37 +41,38 @@
                     byteCount="2"/}
             {:else}
                 {@eq key=.meta value="parameter"}
-                    var Reader_{.name} = parentScope
+                    var f{$idx} = parentScope
                         {@repeat times=.type.scopeDistance}._PARENT{/repeat}
-                        ._PARAMS[{.type.position}];
+                        ._PARAMS[{.type.position}]
+                        ._FIELD;
                 {/eq}
 
                 {@eq key=.meta value="struct"}
-                    var Reader_{.name} = {>"generic/scope" source="reader" index="types" current="parentScope"/};
+                    var f{$idx} = {>"generic/scope" source="reader" index="types" current="parentScope"/}._FIELD;
                 {/eq}
 
                 {@eq key=.meta value="list"}
-                    var Reader_{.name} = {>"readers/list" index="types" current="parentScope"/};
+                    var f{$idx} = {>"readers/list" index="types" current="parentScope"/}._FIELD;
                 {/eq}
 
                 {@eq key=.discriminantValue value=65535}
                     parentScope.prototype.{@fieldGetter name=.name/} =
-                        Reader_{.name}._getField(
+                        f{$idx}.get(
                             {@math key=.offset method="multiply" operand="8"/},
                             {.offset}
                         );
                     parentScope.prototype.{@fieldHaser name=.name/} =
-                        Reader_{.name}._hasField({@math key=.offset method="multiply" operand="8"/});
+                        f{$idx}.has({@math key=.offset method="multiply" operand="8"/});
 
                 {:else}
                     parentScope.prototype.{@fieldGetter name=.name/} =
-                        Reader_{.name}._unionGetField(
+                        f{$idx}.unionGet(
                             {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/},
                             {.offset}
                         );
                     parentScope.prototype.{@fieldHaser name=.name/} =
-                        Reader_{.name}._unionHasField(
+                        f{$idx}.unionHas(
                             {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/}
                         );
@@ -75,39 +80,65 @@
             {/eq}
         {:else}
             {@eq key=.type value="group"}
-                parentScope._Group_{.name} = reader.group(parentScope);
-                {>"readers/fields"/}(
-                    types,
-                    parentScope._Group_{.name},
-                    allocator
-                );
+                var G{$idx} = reader.group(parentScope);
+                parentScope._G{$idx} = G{$idx};
+                G{$idx}.prototype._pointerDefaults = defaults;
+
+                {>"readers/fields"/}(types, G{$idx}, allocator);
 
                 parentScope.prototype.{@fieldGetter name=.name/} = function () {
                     {>throwOnInactive error="Attempted to access an inactive union member"/}
 
-                    return new parentScope._Group_{.name}(this);
+                    return new G{$idx}(this);
                 };
             {/eq}
 
-            {@member key=.type value="Text,Data,AnyPointer"}
-                var Reader_{.name} = reader.{.type};
-                
-                {@eq key=discriminantValue value=65535}
+            {@eq key=.type value="AnyPointer"}
+                var f{$idx} = reader.AnyPointer._FIELD;
+
+                {@eq key=.discriminantValue value=65535}
                     parentScope.prototype.{@fieldGetter name=.name/} =
-                        Reader_{.name}._getField(
+                        f{$idx}.get(
                             {@math key=.offset method="multiply" operand="8"/},
                             {.offset}
                         );
                     parentScope.prototype.{@fieldHaser name=.name/} =
-                        Reader_{.name}._hasField({@math key=.offset method="multiply" operand="8"/});
+                        f{$idx}.has({@math key=.offset method="multiply" operand="8"/});
                 {:else}
                     parentScope.prototype.{@fieldGetter name=.name/} =
-                        Reader_{.name}._unionGetField(
+                        f{$idx}.unionGet(
+                            {.discriminantValue},
+                            {@math key=.offset method="multiply" operand="8"/},
+                            {.offset}
+                        );
+                    parentScope.prototype.{@fieldHaser name=.name/} =
+                        f{$idx}.unionHas(
                             {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/}
                         );
+                {/eq}
+            {/eq}
+
+            {@member key=.type value="Text,Data"}
+                var f{$idx} = reader.{.type}._FIELD;
+                
+                {@eq key=discriminantValue value=65535}
+                    parentScope.prototype.{@fieldGetter name=.name/} =
+                        f{$idx}.get(
+                            {@math key=.offset method="multiply" operand="8"/},
+                            {.offset}
+                        );
                     parentScope.prototype.{@fieldHaser name=.name/} =
-                        Reader_{.name}._unionHasField(
+                        f{$idx}.has({@math key=.offset method="multiply" operand="8"/});
+                {:else}
+                    parentScope.prototype.{@fieldGetter name=.name/} =
+                        f{$idx}.unionGet(
+                            {.discriminantValue},
+                            {@math key=.offset method="multiply" operand="8"/},
+                            {.offset}
+                        );
+                    parentScope.prototype.{@fieldHaser name=.name/} =
+                        f{$idx}.unionHas(
                             {.discriminantValue},
                             {@math key=.offset method="multiply" operand="8"/}
                         );
@@ -157,10 +188,9 @@
     {/.fields}
 
     {?.fields}
-        parentScope.prototype._pointerDefaults = [];
         {@provide}
             {#.pointers}
-                parentScope.prototype._pointerDefaults[{.offset}] = (function () {
+                defaults[{.offset}] = (function () {
                     {?.meta}
                         {@eq key=.meta value="struct"}
                             var Reader = {>"generic/scope" source="reader" index="types" current="parentScope"/};
@@ -179,10 +209,13 @@
 
                             {@eq key=.defaultValue value="AAAAAAAAAAA="}
                                 var arena;
-                                if (Reader._CT.meta === 1) {
-                                    /* Empty, null list gets upgraded to an empty instance of the resolved type */
-                                    arena = allocator._fromBase64("AQAAAAAAAAA=").asReader();
+                                if (Reader._CT && Reader._CT.meta === 1) {
+                                    arena = allocator._fromBase64(Reader._B64_NULL).asReader();
                                 } else {
+                                    {!
+                                     ! Handle null AnyPointer-typed instances in
+                                     ! addition to structs.
+                                     !}
                                     arena = allocator._fromBase64("{.defaultValue}").asReader();
                                 }
                             {:else}
@@ -197,12 +230,20 @@
 
                         {@eq key=.type value="Text"}
                             var Reader = reader.Text;
-                            var arena = {>"readers/listDefaultArena"/};
+                            {@eq key=.defaultValue value="AAAAAAAAAAA="}
+                                var arena = allocator._fromBase64("AQAAAAoAAAAAAAAAAAAAAA==").asReader();
+                            {:else}
+                                var arena = allocator._fromBase64("{.defaultValue}").asReader();
+                            {/eq}
                         {/eq}
 
                         {@eq key=.type value="Data"}
                             var Reader = reader.Data;
-                            var arena = {>"readers/listDefaultArena"/};
+                            {@eq key=.defaultValue value="AAAAAAAAAAA="}
+                                var arena = allocator._fromBase64("AQAAAAIAAAA=").asReader();
+                            {:else}
+                                var arena = allocator._fromBase64("{.defaultValue}").asReader();
+                            {/eq}
                         {/eq}
                     {/.meta}
                     return Reader._deref(arena, arena._root(), 0);

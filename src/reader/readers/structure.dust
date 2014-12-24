@@ -3,6 +3,7 @@
 
     Structure._PARENT = parentScope;
     {#.nodes}{>"readers/node"/}(types, Structure, allocator);{/.nodes}
+    Structure.prototype._pointerDefaults = [];
     {>"readers/fields"/}(types, Structure, allocator);
 
     parentScope.{.name} = Structure;

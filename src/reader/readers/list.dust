@@ -2,7 +2,7 @@
     {#.type}
         {! Update context for recursion. !}
         {@eq key=.meta value="list"}reader.lists.list({>"readers/list"/}){/eq}
-        {@eq key=.meta value="struct"}reader.lists.structure({>"generic/scope" source="reader"/}){/eq}
+        {@eq key=.meta value="struct"}reader.lists.struct({>"generic/scope" source="reader"/}){/eq}
         {@eq key=.meta value="enum"}reader.lists.UInt16{/eq}
     {/.type}
 {:else}
