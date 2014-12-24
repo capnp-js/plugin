@@ -3,3 +3,4 @@
 /tmp/
 /compiler/
 /bin/capnp
+/test/schema.capnp.json
