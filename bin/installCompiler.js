@@ -6,7 +6,7 @@ var spawn = require('child_process').spawn;
 var base = process.cwd();
 
 var clone = function (done) {
-    console.log(' Cloning repository...');
+    console.log('Cloning repository...');
     var git = spawn('git', [
         'clone',
         '--branch', 'master',
@@ -33,11 +33,11 @@ var build = function (done) {
         'make install'
     ];
 
-    console.log(' Building...');
+    console.log('Building...');
     exec(cmd.join(' && '), function (error, stdout, stderr) {
         if (error) throw new Error(error);
 
-        console.log(' Linked to Capnproto compiler.');
+        console.log('Linked to Capnproto compiler.');
         done();
     });
 };

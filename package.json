@@ -4,9 +4,9 @@
   "description": "Capnproto implementation for Javascript",
   "main": "index",
   "bin" : [
-      "capnp",
-      "capnpc-js-json",
-      "capnpc-js"
+    "bin/capnp",
+    "bin/capnpc-js-json",
+    "bin/capnpc-js"
   ],
   "scripts": {
     "build": "gulp build",
