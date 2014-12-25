@@ -31,10 +31,7 @@ var build = function (done) {
         'autoreconf -i',
         './configure --prefix='+base+'/compiler/build',
         'make -j4',
-        'make install',
-        'cd ../../bin',
-        'rm -f capnp',
-        'ln -s ../compiler/build/bin/capnp'
+        'make install'
     ];
 
     console.log(' Building...');
