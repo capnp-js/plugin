@@ -3,16 +3,12 @@
   "version": "0.2.0",
   "description": "Capnproto implementation for Javascript",
   "main": "index",
-  "bin": [
-    "bin/capnp",
-    "bin/capnpc-js",
-    "bin/capnpc-js-json"
-  ],
+  "directories" : { "bin" : "./bin" },
   "scripts": {
     "build": "gulp build",
     "clean": "gulp clean & rm bin/capnp & rm -rf compiler",
     "rebuild": "npm run clean && npm run build",
-    "preinstall": "node ./bin/installCompiler.js",
+    "preinstall": "node ./installCompiler.js",
     "test": "capnp compile -ojs-json --src-prefix=test -I./test test/schema.capnp && mv -f schema.capnp.json test && mocha test/cgr.js"
   },
   "repository": {

@@ -2,6 +2,7 @@
 
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
+var fs = require('fs');
 
 var base = process.cwd();
 
@@ -45,11 +46,8 @@ var build = function (done) {
     });
 };
 
-var version = spawn('capnp', ['--version']); // Finds prior local installs
+var version = spawn('capnp', ['--version']);
 var awk = spawn('awk', ['{print $4}']);
-
-version.stderr.on('data', function (err) { throw new Error(err); });
-awk.stderr.on('data', function (err) { throw new Error(err); });
 
 version.stdout.on('data', function (data) { awk.stdin.write(data); });
 version.on('close', function () { awk.stdin.end(); });
@@ -57,16 +55,21 @@ version.on('close', function () { awk.stdin.end(); });
 var n = '';
 awk.stdout.on('data', function (data) { n += data; });
 awk.on('close', function () {
-    if (parseFloat(n.slice(0,3)) >= 0.5) {
-        console.log('Found a Capnproto compiler');
-    } else {
-        console.log('No Capnproto compiler found.  Installing:');
+    if (n.length > 0 && parseFloat(n.slice(0,3)) < 0.5) {
+        console.log('No sufficient Capnproto compiler found.  See');
+        console.log('http://kentonv.github.io/capnproto/install.html for system-wide compiler');
+        console.log('installation--`npm install -g capnp-js-plugin` should reduce this waiting to a');
+        console.log('one-time-thing, but it\'s just too magical for my taste.');
+        console.log('Installing:');
 
-        var rm = spawn('rm', ['-rf', 'compiler']);
-        rm.on('close', function () {
-            clone(function () {
-                build(function () {});
-            });
-        });
+        /*
+         * Dump a local install into the `bin` directory if a compiler was not
+         * found.  Since the `bin` directory was spec'ed instead of each
+         * individual binary, `npm install` handles installation and path
+         * shenanigans.
+         */
+        clone(function () { build(function () {}); });
+    } else {
+        console.log('Sufficient Capnproto compiler found.');
     }
 });
