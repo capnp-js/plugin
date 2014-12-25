@@ -41,7 +41,7 @@ var build = function (done) {
     exec(cmd.join(' && '), function (error, stdout, stderr) {
         if (error) throw new Error(error);
 
-        console.log(' Linked to local Capnproto compiler');
+        console.log(' Linked to local Capnproto compiler.');
         done();
     });
 };
@@ -49,27 +49,46 @@ var build = function (done) {
 var version = spawn('capnp', ['--version']);
 var awk = spawn('awk', ['{print $4}']);
 
-version.stdout.on('data', function (data) { awk.stdin.write(data); });
-version.on('close', function () { awk.stdin.end(); });
+var isDone = false;
+version.on('error', function (err) {
+    console.log('No Capnproto compiler found.  See');
+    console.log('http://kentonv.github.io/capnproto/install.html for system-wide compiler');
+    console.log('installation--`npm install -g capnp-js-plugin` should reduce the wait to a');
+    console.log('one-time-thing, but it\'s too magical for my taste.');
+    console.log('Installing:');
 
-var n = '';
-awk.stdout.on('data', function (data) { n += data; });
-awk.on('close', function () {
-    if (n.length > 0 && parseFloat(n.slice(0,3)) < 0.5) {
-        console.log('No sufficient Capnproto compiler found.  See');
-        console.log('http://kentonv.github.io/capnproto/install.html for system-wide compiler');
-        console.log('installation--`npm install -g capnp-js-plugin` should reduce this waiting to a');
-        console.log('one-time-thing, but it\'s just too magical for my taste.');
-        console.log('Installing:');
-
-        /*
-         * Dump a local install into the `bin` directory if a compiler was not
-         * found.  Since the `bin` directory was spec'ed instead of each
-         * individual binary, `npm install` handles installation and path
-         * shenanigans.
-         */
-        clone(function () { build(function () {}); });
-    } else {
-        console.log('Sufficient Capnproto compiler found.');
-    }
+    /*
+     * Dump a local install into the `bin` directory if a compiler was not
+     * found.  Since the `bin` directory was spec'ed instead of each individual
+     * binary, `npm install` handles installation and path shenanigans.
+     */
+    clone(function () { build(function () {}); });
+    isDone = true;
 });
+
+if (!isDone) {
+    version.stdout.on('data', function (data) { awk.stdin.write(data); });
+    version.on('close', function () { awk.stdin.end(); });
+
+    var n = '';
+    awk.stdout.on('data', function (data) { n += data; });
+    awk.on('close', function () {
+        if (n.length > 0 && parseFloat(n.slice(0,3)) < 0.5) {
+            console.log('No sufficient Capnproto compiler found.  See');
+            console.log('http://kentonv.github.io/capnproto/install.html for system-wide compiler');
+            console.log('installation--`npm install -g capnp-js-plugin` should reduce the wait to a');
+            console.log('one-time-thing, but it\'s too magical for my taste.');
+            console.log('Installing:');
+
+            /*
+             * Dump a local install into the `bin` directory if a compiler was
+             * not found.  Since the `bin` directory was spec'ed instead of each
+             * individual binary, `npm install` handles installation and path
+             * shenanigans.
+             */
+            clone(function () { build(function () {}); });
+        } else {
+            console.log('Sufficient Capnproto compiler found.');
+        }
+    });
+}
