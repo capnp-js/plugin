@@ -3,12 +3,7 @@
   "version": "0.2.3",
   "description": "Capnproto implementation for Javascript",
   "main": "index",
-  "bin": [
-    "bin/capnpc-js",
-    "bin/capnpc-js-json",
-    "compiler/build/bin/capnp"
-  ],
-
+  "directories": { "bin": "./bin" },
   "scripts": {
     "build": "gulp build",
     "clean": "gulp clean & rm bin/capnp & rm -rf compiler",

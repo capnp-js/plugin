@@ -29,7 +29,7 @@ var build = function (done) {
         'mkdir compiler/build',
         'cd compiler/c++',
         'autoreconf -i',
-        './configure --prefix='+base+'/compiler/build',
+        './configure --prefix='+base+'/compiler/build --bindir='+base+'/bin',
         'make -j4',
         'make install'
     ];
