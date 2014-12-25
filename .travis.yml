@@ -3,4 +3,7 @@ node_js:
   - "0.10"
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -y gawk
+  - sudo apt-get remove -y g++ gcc
+  - sudo apt-get install -y gawk g++ gcc
+  - g++ --version
+  - gcc --version
