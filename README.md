@@ -1,5 +1,5 @@
-capnp-js-plugin
-===============
+capnp-js-plugin [![Build Status](https://travis-ci.org/popham/capnp-js-plugin.svg?branch=master)](https://travis-ci.org/popham/capnp-js-plugin)
+===============================================================================================================================================
 
 Generate Javascript serialization classes for [Capnproto](http://kentonv.github.io/capnproto/index.html).
 
