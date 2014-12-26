@@ -2,8 +2,8 @@ define(['./bTypes'{?.imports},{@imports file="bTypes"/}{/.imports}], function (
             types {?.imports},{#.imports}file{$idx}{@sep},{/sep}{/.imports}{/.imports}) {
 
     {#.imports}
-        {#.typeIds}
-            types["{.}"] = file{$idx}["{.}"];
+        {#.typeIds fileId=$idx}
+            types["{.}"] = file{fileId}["{.}"];
         {/.typeIds}
     {/.imports}
 
