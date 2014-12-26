@@ -13,7 +13,7 @@
     "clean": "gulp clean & rm bin/capnp & rm -rf compiler",
     "rebuild": "npm run clean && npm run build",
     "preinstall": "node ./bin/installCompiler.js",
-    "test": "npm run build && capnp compile -ojs-json --src-prefix=test -I./test test/schema.capnp && mv -f schema.capnp.json test && mocha test/cgr.js"
+    "test": "npm run build && ./bin/capnp compile -o./bin/capnpc-js-json --src-prefix=test -I./test test/schema.capnp && mv -f schema.capnp.json test && mocha test/cgr.js"
   },
   "repository": {
     "type": "git",
