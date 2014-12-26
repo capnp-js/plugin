@@ -6,13 +6,13 @@ Generate Javascript serialization classes for [Capnproto](http://kentonv.github.
 Installation and preferred use
 * Install by npm: `npm install capnp-js-plugin`.
 * This plugin checks out and then builds the Capnproto compiler.
-  The build takes about 5 minutes on my system, so I use a global install: `npm install -g capnp-js-plugin`.
-  For each project that uses a Capnproto schema, I include the plugin as a `devDependency`: `npm install --save-dev capnp-js-plugin`.
-  I avoid including the plugin as a `dependency`, because this would result in absurdly long build times for non-dev users.
-  (Under this arrangement, I have to distribute generated code instead of creating it client-side--I feel that the build time-savings warrants the source-of-truth confusion).
+  - The build takes about 5 minutes on my system, so I use a global install: `npm install -g capnp-js-plugin`.
+  - For each project that uses a Capnproto schema, I include the plugin as a `devDependency`: `npm install --save-dev capnp-js-plugin`.
+  - I avoid including the plugin as a `dependency`, because this would result in absurdly long build times for non-dev users.
+  - Under this arrangement, I must distribute generated-code instead of creating it client-side--I feel that the build time-savings warrants the source-of-truth confusion.
 
 Usage
-* The compiler is invoked with `capnp compile -ojs someSchema.capnp` to generate a `someSchema.capnp.d` directory containing the schema's AMD files.
+* The compiler is invoked with `capnp compile -ojs someSchema.capnp` to generate a `someSchema.capnp.d` directory that contains the schema's AMD files.
 * Run `capnp help compile` for additional options.
 * To obtain Node modules, I convert the generated AMD modules with a fork of [Nodefy](https://github.com/millermedeiros/nodefy) called [Nfy](https://github.com/popham/nodefy).
   See this [nodefy script](https://github.com/popham/rtc-github-protocol/blob/master/package.json#L8) for an example.
