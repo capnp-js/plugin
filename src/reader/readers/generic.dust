@@ -18,5 +18,8 @@
         );
     };
 
+    if (parentScope.{.name} !== undefined)
+        console.warn('Generic name overwriting an existing name...');
+
     parentScope.{.name} = Generic;
 })

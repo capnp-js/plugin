@@ -5,5 +5,12 @@
         {>"readers/structure"/}
     {/.parameters}
 {/eq}
-{@eq key=.meta value="enum"}(function (types, parentScope, allocator) { parentScope.{.name} = types["{.id}"]; }){/eq}
+{@eq key=.meta value="enum"}
+    (function (types, parentScope, allocator) {
+        if (parentScope.{.name} !== undefined)
+            console.warn('Enum name overwriting an existing name...');
+
+        parentScope.{.name} = types["{.id}"];
+    })
+{/eq}
 {@eq key=.meta value="const"}{>"readers/constant"/}{/eq}
