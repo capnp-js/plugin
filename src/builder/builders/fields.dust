@@ -178,7 +178,8 @@
             {/eq}
         {:else}
             {@eq key=.type value="group"}
-                var G{$idx} = builder.group(parentScope._READER._G{$idx});
+                var G{$idx} = builder.group(parentScope._READER.{@capitalize name=.name/});
+                parentScope.{@capitalize name=.name/} = G{$idx};
                 G{$idx}.prototype._pointerDefaults = parentScope.prototype._pointerDefaults;
 
                 {>"builders/fields"/}(types, G{$idx});

@@ -81,7 +81,7 @@
         {:else}
             {@eq key=.type value="group"}
                 var G{$idx} = reader.group(parentScope);
-                parentScope._G{$idx} = G{$idx};
+                parentScope.{@capitalize name=.name/} = G{$idx};
                 G{$idx}.prototype._pointerDefaults = defaults;
 
                 {>"readers/fields"/}(types, G{$idx}, allocator);
