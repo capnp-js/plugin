@@ -6,8 +6,5 @@
     Structure.prototype._pointerDefaults = Structure._READER.prototype._pointerDefaults;
     {>"builders/fields"/}(types, Structure);
 
-    if (parentScope.{.name} !== undefined)
-        console.warn('Struct name overwriting an existing name...');
-
     parentScope.{.name} = Structure;
 })

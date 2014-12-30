@@ -8,9 +8,6 @@
 
 {@eq key=.meta value="enum"}
     (function (types, parentScope) {
-        if (parentScope.{.name} !== undefined)
-            console.warn('Enum name overwriting an existing name...');
-
         parentScope.{.name} = parentScope._READER.{.name};
     })
 {/eq}

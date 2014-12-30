@@ -81,10 +81,7 @@
         {:else}
             {@eq key=.type value="group"}
                 var G{$idx} = reader.group(parentScope);
-                if (parentScope.{@capitalize name=.name/} !== undefined)
-                    console.warn('Group name overwriting an existing name...');
-
-                parentScope.{@capitalize name=.name/} = G{$idx};
+                parentScope.{.name} = G{$idx};
                 G{$idx}.prototype._pointerDefaults = defaults;
 
                 {>"readers/fields"/}(types, G{$idx}, allocator);
