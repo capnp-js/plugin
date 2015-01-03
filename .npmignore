@@ -7,3 +7,4 @@
 /bin/capnp
 /bin/capnpc-c++
 /bin/capnpc-capnp
+/compiler/
