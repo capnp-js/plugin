@@ -4,4 +4,6 @@
 /test/
 /gulpfile.js
 /schema.json
-/bin/
+/bin/capnp
+/bin/capnpc-c++
+/bin/capnpc-capnp
