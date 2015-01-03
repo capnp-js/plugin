@@ -15,7 +15,7 @@ Usage
 * The compiler is invoked with `capnp compile -ojs someSchema.capnp` to generate a `someSchema.capnp.d` directory that contains the schema's AMD files.
 * Run `capnp help compile` for additional options.
 * To obtain Node modules, I convert the generated AMD modules with a fork of [Nodefy](https://github.com/millermedeiros/nodefy) called [Nfy](https://github.com/popham/nodefy).
-  See this [nodefy script](https://github.com/popham/rtc-github-protocol/blob/master/package.json#L8) for an example.
+  See this [nfy script](https://github.com/popham/rtc-github-protocol/blob/master/package.json#L8) for an example.
   I suspect that [AMDefine](https://github.com/jrburke/amdefine) provides an alternate solution, but I won't chase any upstream bugs related to the use of AMDefine.
 
 # Serialization Classes
