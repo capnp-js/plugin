@@ -3,3 +3,5 @@
 /tmp/
 /compiler/
 /test/schema.capnp.json
+/bin/*
+!/bin/installCompiler.js
