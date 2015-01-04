@@ -43,7 +43,7 @@ The Javascript plugin maps absolute imports to absolute AMD paths.
 Consider the [messaging example](https://github.com/popham/rtc-github/tree/gh-pages/example/messages/) from the [rtc-github](https://github.com/popham/rtc-github/) repository:
 * Its [capnp/server.capnp](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/capnp/server.capnp) schema lists an absolute import: `using import "/rtc-github-protocol/user.capnp".User;`.
 * The package's [rtc-github-protocol dependency](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/package.json#L17) exposes the *user.capnp* schema as *node_modules/rtc-github-protocol/user.capnp*.
-* The package's [capnp script](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/package.json#L8), `capnp compile -ojs -I node_modules/ capnp/*.capnp`, yields an absolute path in [capnp/server.capnp.d/readers.js](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/capnp/server.capnp.d/readers.js#L1), amongst others.
+* The package's [capnp script](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/package.json#L8), `capnp compile -ojs:resources --src-prefix=capnp -I node_modules/ capnp/*.capnp`, yields an absolute path in [capnp/server.capnp.d/readers.js](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/capnp/server.capnp.d/readers.js#L1), amongst others.
 * Now I just need to point my AMD loader at *rtc-github-protocol*, e.g. [index.htm](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/index.htm#L17).
 
 # Production Builds
