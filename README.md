@@ -47,7 +47,7 @@ Consider the [messaging example](https://github.com/popham/rtc-github/tree/gh-pa
 * Now I just need to point my AMD loader at *rtc-github-protocol*, e.g. [index.htm](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/index.htm#L17).
 
 So why the */rtc-github-protocol* prefix?
-Why not `using import "/user.capnp".User;`, `capnp compile -ojs -I ./node_modules/rtc-github-protocol/ capnp/*.capnp`, and then provide a *user.capnp.d* path to the AMD loader?
+Why not `using import "/user.capnp".User;`, `capnp compile -ojs:resources --src-prefix=capnp -I ./node_modules/rtc-github-protocol/ capnp/*.capnp`, and then provide a *user.capnp.d* path to the AMD loader?
 Nfy doesn't remap absolute names.
 If I need to use [capnp/server.capnp](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/capnp/server.capnp) in a Node module, then every absolute path's root will need a corresponding entry under *node_modules/*.
 This is no big deal if you're using `npm link` for these modules, but if you want to distribute under `npm`'s official public registry (and don't want dependencies that point at git repositories), then publishing *user.capnp.d* seems wrong.
