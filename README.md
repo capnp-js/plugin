@@ -46,13 +46,6 @@ Consider the [messaging example](https://github.com/popham/rtc-github/tree/gh-pa
 * The package's [capnp script](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/package.json#L8), `capnp compile -ojs -I node_modules/ capnp/*.capnp`, yields an absolute path in [capnp/server.capnp.d/readers.js](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/capnp/server.capnp.d/readers.js#L1), amongst others.
 * Now I just need to point my AMD loader at *rtc-github-protocol*, e.g. [index.htm](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/index.htm#L17).
 
-So why the */rtc-github-protocol* prefix?
-Why not `using import "/user.capnp".User;`, `capnp compile -ojs:resources --src-prefix=capnp -I ./node_modules/rtc-github-protocol/ capnp/*.capnp`, and then provide a *user.capnp.d* path to the AMD loader?
-Nfy doesn't remap absolute names.
-If I need to use [capnp/server.capnp](https://github.com/popham/rtc-github/blob/gh-pages/example/messages/capnp/server.capnp) in a Node module, then every absolute path's root will need a corresponding entry under *node_modules/*.
-This is no big deal if you're using `npm link` for these modules, but if you want to distribute under `npm`'s official public registry (and don't want dependencies that point at git repositories), then publishing *user.capnp.d* seems wrong.
-The schemas under */rtc-github-protocol* are used by an [RTC signaling server](https://github.com/popham/rtc-github/blob/master/lib/server.js) that will probably appear on `npm`'s official public registry someday, hence the */rtc-github-protocol* prefix.
-
 # Production Builds
 You should minify the generated code for production builds.
 The generated code contains `console.warn` calls for development purposes--use something like `uglifyjs -c drop_console` to eliminate them.
