@@ -4,6 +4,8 @@ capnp-js-plugin [![Build Status](https://travis-ci.org/popham/capnp-js-plugin.sv
 Generate Javascript serialization classes for [Capnproto](http://kentonv.github.io/capnproto/index.html).
 
 Installation and preferred use
+* Ensure that you have up-to-date versions of libtool, autoconf, and automake.
+  - On OSX: `brew upgrade libtool autoconf automake`
 * Install by npm: `npm install capnp-js-plugin`.
 * This plugin checks out and then builds the Capnproto compiler.
   - The build takes about 5 minutes on my system, so I use a global install: `npm install -g capnp-js-plugin`.
