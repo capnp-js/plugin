@@ -34,7 +34,7 @@ var build = function (done) {
     ];
 
     console.log('Building...');
-    exec(cmd.join(' && '), function (error, stdout, stderr) {
+    exec(cmd.join(' && '), {maxBuffer: 2000 * 1024}, function (error, stdout, stderr) {
         if (error) throw new Error(error);
 
         console.log('Linked to Capnproto compiler.');
