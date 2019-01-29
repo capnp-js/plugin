@@ -1,23 +1,22 @@
 {
-  "name": "capnp-js-plugin",
-  "version": "0.2.11",
-  "description": "Capnproto implementation for Javascript",
-  "main": "index",
-  "bin" : [
-    "bin/capnp",
-    "bin/capnpc-js-json",
-    "bin/capnpc-js"
-  ],
+  "name": "@capnp-js/plugin",
+  "version": "0.4.0",
+  "description": "Cap'n Proto code generator",
+  "main": "lib/index",
+  "bin": {
+    "capnpc-flow-js": "lib/bin/flow.js"
+  },
   "scripts": {
-    "build": "gulp build",
-    "clean": "gulp clean & rm bin/capnp & rm -rf compiler",
-    "rebuild": "npm run clean && npm run build",
-    "preinstall": "node ./bin/installCompiler.js",
-    "test": "npm run build && ./bin/capnp compile -o./bin/capnpc-js-json --src-prefix=test -I./test test/schema.capnp && mv -f schema.capnp.json test && mocha test/cgr.js"
+    "build": "gulp lib",
+    "refresh": "rm -f package-lock.json && npm run clean && npm unpublish --force && rm -rf node_modules/@capnp-js && npm run build && npm publish",
+    "clean": "gulp clean",
+    "test-flow": "flow check --strip-root --show-all-errors --color=always src",
+    "test": "gulp build && capnp compile -o./bin/capnpc-js-json:test --src-prefix=test -I./test test/schema.capnp && mocha test/cgr.js",
+    "flow": "flow"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/popham/capnp-js-plugin.git"
+    "url": "https://github.com/capnp-js/capnp-js-plugin.git"
   },
   "keywords": [
     "capnproto",
@@ -27,32 +26,39 @@
   "author": "Tim Popham",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/popham/capnp-js-plugin/issues"
+    "url": "https://github.com/capnp-js/capnp-js-plugin/issues"
   },
-  "homepage": "https://github.com/popham/capnp-js-plugin",
+  "homepage": "https://github.com/capnp-js/capnp-js-plugin",
   "devDependencies": {
-    "deep-diff": "^0.3.0",
-    "gulp": "^3.8.7",
-    "gulp-chug": "^0.3.0",
-    "gulp-concat": "^2.3.4",
-    "gulp-dust": "^1.0.0",
-    "gulp-dust-render": "0.0.2",
-    "gulp-insert": "^0.4.0",
-    "gulp-jshint": "^1.8.4",
-    "gulp-nfy": "0.0.1",
-    "gulp-preprocess": "^1.1.1",
-    "gulp-rename": "^1.2.0",
-    "gulp-rimraf": "^0.1.0",
-    "gulp-uglify": "^0.3.1",
-    "mocha": "^2.1.0",
-    "nfy": "0.0.1"
+    "@babel/core": "^7.1.6",
+    "@babel/preset-env": "^7.1.6",
+    "@babel/preset-flow": "^7.0.0",
+    "@babel/register": "^7.0.0",
+    "babel-eslint": "^10.0.1",
+    "del": "^3.0.0",
+    "eslint-plugin-flowtype": "^3.2.0",
+    "flow-bin": "^0.86.0",
+    "gulp": "^4.0.0",
+    "gulp-babel": "^8.0.0",
+    "gulp-eslint": "^5.0.0",
+    "gulp-ext-replace": "^0.3.0",
+    "gulp-jscc": "^1.2.0"
   },
   "dependencies": {
-    "buffers": "^0.1.1",
-    "capnp-js": "0.2.11",
-    "capnp-js-plugin-dust": "0.2.7",
-    "js-beautify": "^1.5.1",
-    "mkdirp": "^0.5.0",
-    "when": "^3.1.0"
+    "@capnp-js/builder-arena": "^0.4.0",
+    "@capnp-js/bytes": "^0.4.0",
+    "@capnp-js/int64": "^0.4.0",
+    "@capnp-js/layout": "^0.4.0",
+    "@capnp-js/memory": "^0.4.0",
+    "@capnp-js/nullary": "^0.4.0",
+    "@capnp-js/read-data": "^0.4.0",
+    "@capnp-js/reader-arena": "^0.4.0",
+    "@capnp-js/trans-align-bytes": "^0.4.0",
+    "@capnp-js/trans-base64": "^0.4.0",
+    "@capnp-js/trans-inject": "^0.4.0",
+    "@capnp-js/trans-packing": "^0.4.0",
+    "@capnp-js/trans-readable": "^0.4.0",
+    "@capnp-js/trans-stream": "^0.4.0",
+    "@capnp-js/uint64": "^0.4.0"
   }
 }

@@ -1,0 +1,5 @@
+[options]
+esproposal.optional_chaining=enable
+
+[ignore]
+<PROJECT_ROOT>/src/old/.*

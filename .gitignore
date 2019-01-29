@@ -1,7 +1,2 @@
-/node_modules/
 /lib/
-/tmp/
-/compiler/
-/test/schema.capnp.json
-/bin/*
-!/bin/installCompiler.js
+/node_modules/
