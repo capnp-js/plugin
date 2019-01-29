@@ -1,9 +1,0 @@
-{!
- ! Build a sequence of byte and multibyte data section, union members of the
- ! form `a1:a2,b1:b2,c1:c2,d1:d2,`, where `a1:a2` \equiv [a1,a1+a2) (the caller
- ! must handle the trailing comma).
- !}
-
-{#bytes}
-    this._zeroData({position}, {length});
-{/bytes}

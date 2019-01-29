@@ -1,9 +1,0 @@
-{@eq key=.value value="AAAAAAAAAAA="}
-    {@provide}
-        allocator._fromBase64("{.encoding}").asReader()
-    {:encoding}
-        {@nullListPointer type=.type/}
-    {/provide}
-{:else}
-    allocator._fromBase64("{.value}").asReader()
-{/eq}

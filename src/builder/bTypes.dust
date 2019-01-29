@@ -1,8 +1,0 @@
-define(['capnp-js/builder/index', './rTypes'], function (
-                  builder,           rTypes) {
-
-    var types = {};
-    {#.nodes}{>"bTypes/node"/}{/.nodes}
-
-    return types;
-});

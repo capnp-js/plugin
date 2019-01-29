@@ -1,8 +1,0 @@
-{!
- ! Build a sequence of single-bit union members of the form `a,b,c,d,` (the
- ! caller must handle the trailing comma).
- !}
-
-{#bits}
-    this._maskData({position}, {mask});
-{/bits}
