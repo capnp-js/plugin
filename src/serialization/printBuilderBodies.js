@@ -984,6 +984,23 @@ class BuildersVisitor extends Visitor<Printer> {
       }
     }
 
+    function initTag(discrValue: u16, discrOffset: u33, p: Printer): void {
+      if (discrValue !== Field.getNoDiscriminant()) {
+        p.line(`this.guts.initTag(${discrValue}, ${discrOffset}, {`);
+        p.indent(p => {
+          const partialDBs = union.maskedBytes.map(p => `[${p.offset}, ${p.mask}]`);
+          p.line(`partialDataBytes: [ ${partialDBs.join(", ")} ],`);
+
+          const dataBs = union.dataSequences.map(p => `[${p.offset}, ${p.length}]`);
+          p.line(`dataBytes: [ ${dataBs.join(", ")} ],`);
+
+          const pointersBs = union.pointersSequences.map(p => `[${p.offset}, ${p.length}]`);
+          p.line(`pointersBytes: [ ${pointersBs.join(", ")} ]`);
+        });
+        p.line("});");
+      }
+    }
+
     const name = nonnull(field.getName());
     p.comment(name.toString());
 
@@ -1334,9 +1351,19 @@ class BuildersVisitor extends Visitor<Printer> {
             p.line(`return new ${baseName}__InstanceB(this.guts);`);
           }
         });
-        p.block(`${setField}(): void`, p => {
-          setTag(discrValue, discrOffset, p);
-        });
+
+        if (discrValue !== Field.getNoDiscriminant()) {
+          const initField = `init${capitalize(nonnull(field.getName()).toString())}`;
+          p.block(`${initField}(): void`, p => {
+            initTag(discrValue, discrOffset, p);
+
+            if (parameters.size > 0) {
+              p.line(`return new ${baseName}__InstanceB(this.guts, { ${objectParams.join(", ")} });`);
+            } else {
+              p.line(`return new ${baseName}__InstanceB(this.guts);`);
+            }
+          });
+        }
       }
       break;
     default:
