@@ -8,6 +8,7 @@ import type { Node__InstanceR, Value__InstanceR } from "../schema.capnp-r";
 
 import { toHex } from "@capnp-js/uint64";
 import { AnyValue } from "@capnp-js/reader-core";
+import { Unlimited } from "@capnp-js/base-arena";
 import { Builder } from "@capnp-js/builder-arena";
 
 import { array as injectArray } from "@capnp-js/trans-inject";
@@ -167,7 +168,7 @@ const pack = packing(new Uint8Array(2048));
 const align = alignment(3);
 
 export default function accumulateValues(index: NodeIndex, fileId: UInt64): Values {
-  const blob = new Builder(2048);
+  const blob = Builder.fresh(2048, new Unlimited());
   const internalAcc = new ValuesVisitor(index).visit(fileId, {
     blob,
     defaults: {},
@@ -197,84 +198,3 @@ export default function accumulateValues(index: NodeIndex, fileId: UInt64): Valu
     constants: internalAcc.constants,
   };
 }
-
-/*
-export default function consts(nodes: NodeIndex, fileId: UInt64, p: Printer): void {
-  const { blob, defaults, constants } = new Consts(nodes).visit(fileId, {
-    blob: new Builder(2048),
-    defaults: {},
-    constants: {},
-  });
-
-  
-  
-  if (Object.keys(defaults).length !== 0 || Object.keys(constants).length !== 0) {
-    // Compress the arena's data to a base-64 string at compile time.
-    let base64 = "";
-
-    let header = serialize.header(blob);
-    while (!header.done) {
-      base64 += header.value;
-    }
-    if (header.done instanceof Error) {
-      throw header.done;
-    }
-
-    for (let i=0; i<blob.segments.length; ++i) {
-      let segment = serialize.segment(blob.segments[i]);
-      while (!segment.done) {
-        base64 += segment.value;
-      }
-      if (segment.done instanceof Error) {
-        throw segment.done;
-      }
-    }
-
-    p.blank();
-
-    // Uncompress the base-64 string to an arena at run time.
-    p.line(`const blob = deserializeUnsafe("${base64}");`);
-  }
-
-  if (Object.keys(defaults).length !== 0) {
-    p.blank();
-    p.line("const defaults = {");
-    Object.keys(defaults).forEach(uuid => {
-      const scope = defaults[uuid];
-      p.indent(p => {
-        p.line(`"${uuid}": {`);
-        Object.keys(scope).forEach(name => {
-          const ref = scope[name];
-          p.indent(p => {
-            p.line(`${name}: {`);
-            p.indent(p => {
-              p.line(`segment: blob.segment(${ref.segmentId}),`);
-              p.line(`position: ${ref.position},`);
-            });
-            p.line("},");
-          });
-        });
-        p.line("},");
-      });
-    });
-    p.line("};");
-  }
-
-  if (Object.keys(constants).length !== 0) {
-    p.blank();
-    p.line("const constants = {");
-    Object.keys(constants).forEach(uuid => {
-      const ref = constants[uuid];
-      p.indent(p => {
-        p.line(`"${uuid}": {`);
-        p.indent(p => {
-          p.line(`segment: blob.segment(${ref.segmentId}),`);
-          p.line(`position: ${ref.position},`);
-        });
-        p.line("},");
-      });
-    });
-    p.line("};");
-  }
-}
-*/

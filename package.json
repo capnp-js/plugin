@@ -45,6 +45,7 @@
     "gulp-jscc": "^1.2.0"
   },
   "dependencies": {
+    "@capnp-js/base-arena": "^0.4.0",
     "@capnp-js/builder-arena": "^0.4.0",
     "@capnp-js/bytes": "^0.4.0",
     "@capnp-js/int64": "^0.4.0",
