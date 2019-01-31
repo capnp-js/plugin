@@ -22,192 +22,12 @@ import Visitor from "../Visitor";
 import address from "../util/address";
 import capitalize from "../util/capitalize";
 import flatMap from "../util/flatMap";
+import paramName from "../util/paramName";
 import unprefixName from "../util/unprefixName";
 import { Node, Brand, Field, Type, Value } from "../schema.capnp-r";
 
 type u16 = number;
 type u33 = number;
-
-function paramName(index: NodeIndex, id: UInt64, position: u16): string {
-  const source = index[toHex(id)];
-  const parameters = nonnull(source.getParameters());
-
-  const name = nonnull(parameters.get(position).getName());
-  const depth = address(index, id).classes.length - 1;
-
-  return `${name.toString()}_${depth}`;
-}
-
-/* TODO: Clobber after this gets moved to BuilderBodies
-
-type UnionLayout = {|
-  maskedBytes: $ReadOnlyArray<{| offset: uint, mask: u8 |}>,
-  dataSequences: $ReadOnlyArray<{| offset: uint, length: u19 |}>,
-  pointersSequences: $ReadOnlyArray<{| offset: uint, length: u19 |}>,
-|};
-
-function unionLayout(nodes: NodeIndex, id: UInt64): UnionLayout {
-  const layout = {
-    dataBits: [],
-    dataBytes: [],
-    pointersWords: [],
-  };
-  addUnionMembers(id, layout);
-
-  const dataBits = layout.dataBits.reduce((acc, { b, mask }) => {
-    if (acc.hasOwnProperty(b)) {
-      acc[b].mask &= mask;
-    } else {
-      acc[b] = { offset: b, mask };
-    }
-
-    return acc;
-  }, {});
-  / A 0x00 mask implies a full byte, so move any 0x00 masks to the `dataBytes`
-     data structure. /
-  const maskedBytes = [];
-  Object.keys(dataBits).forEach(b => {
-    const offset = dataBits[b].offset;
-    const mask = dataBits[b].mask & 0xff;
-    if (mask === 0x00) {
-      layout.dataBytes.push(offset);
-    } else {
-      maskedBytes.push({
-        offset,
-        mask,
-      });
-    }
-  });
-
-  layout.dataBytes.sort();
-  const dataSequences = [];
-  const dataBytes = new NonRepeats(layout.dataBytes);
-  let b = dataBytes.next();
-  while (!b.done) {
-    const offset = b.value;
-    let length = 0;
-    do {
-      b = dataBytes.next();
-      ++length;
-    } while (!b.done && b.value === offset+length);
-    dataSequences.push({ offset, length });
-  }
-
-  layout.pointersWords.sort();
-  const pointersSequences = [];
-  const pointersWords = new NonRepeats(layout.pointersWords);
-  let w = pointersWords.next();
-  while (!w.done) {
-    const offset = w.value << 3;
-    let length = 0;
-    do {
-      w = pointersWords.next();
-      length += 8;
-    } while (!w.done && (w.value<<3) === offset+length);
-    pointersSequences.push({ offset, length });
-  }
-
-  return {
-    maskedBytes,
-    dataSequences,
-    pointersSequences,
-  };
-
-  function addUnionMembers(id, layout): void {
-    const node = nodes[toHex(id)];
-    const struct = node.getStruct();
-    const fields = struct.getFields();
-    if (fields !== null) {
-      fields.forEach(field => {
-        if (field.getDiscriminantValue() !== Field.getNoDiscriminant()) {
-          addField(field, layout);
-        }
-      });
-    }
-  }
-  function addField(field, layout): void {
-    switch (field.tag()) {
-    case Field.tags.slot:
-      {
-        const slot = field.getSlot();
-        const offset = slot.getOffset();
-        const type = slot.getType();
-        switch (type === null ? 0 : type.tag()) {
-        case Type.tags.bool:
-          {
-            const b = offset >>> 3;
-            layout.dataBits.push({ b, mask: ~(0x01 << (offset & 0x07)) });
-          }
-          break;
-        case Type.tags.int8:
-        case Type.tags.uint8:
-          layout.dataBytes.push(offset);
-          break;
-        case Type.tags.int16:
-        case Type.tags.uint16:
-        case Type.tags.enum:
-          {
-            const b = offset << 1;
-            layout.dataBytes.push(b);
-            layout.dataBytes.push(b+1);
-          }
-          break;
-        case Type.tags.int32:
-        case Type.tags.uint32:
-        case Type.tags.float32:
-          {
-            const b = offset << 2;
-            layout.dataBytes.push(b);
-            layout.dataBytes.push(b+1);
-            layout.dataBytes.push(b+2);
-            layout.dataBytes.push(b+3);
-          }
-          break;
-        case Type.tags.int64:
-        case Type.tags.uint64:
-        case Type.tags.float64:
-          {
-            const b = offset << 3;
-            layout.dataBytes.push(b);
-            layout.dataBytes.push(b+1);
-            layout.dataBytes.push(b+2);
-            layout.dataBytes.push(b+3);
-            layout.dataBytes.push(b+4);
-            layout.dataBytes.push(b+5);
-            layout.dataBytes.push(b+6);
-            layout.dataBytes.push(b+7);
-          }
-          break;
-        case Type.tags.text:
-        case Type.tags.data:
-        case Type.tags.list:
-        case Type.tags.struct:
-        case Type.tags.interface:
-        case Type.tags.anyPointer:
-          layout.pointersWords.push(offset);
-          break;
-        }
-      }
-      break;
-    case Field.tags.group:
-      {
-        const node = nodes[toHex(field.getGroup().getTypeId())];
-        const struct = node.getStruct();
-        if (struct.getDiscriminantCount() !== 0) {
-          const b = struct.getDiscriminantOffset() << 1;
-          layout.dataBytes.push(b);
-          layout.dataBytes.push(b+1);
-        }
-        const fields = struct.getFields();
-        if (fields !== null) {
-          fields.forEach(field => addField(field, layout));
-        }
-      }
-      break;
-    }
-  }
-}
-*/
 
 class InstanceType {
   +index: NodeIndex;
@@ -414,6 +234,7 @@ class InstanceType {
                       unresolveds.delete(name);
                       bindings[name] = nonnull(this.pointer(binding.getType()));
                     }
+                    break;
                   default:
                     throw new Error("Unrecognized brand binding tag.");
                   }
@@ -775,6 +596,7 @@ class GroupValues {
           p.line("},");
         }
 
+        //TODO: This includes nonpointers among the defaults, no? That's a bug, no?
         const fields = node.getStruct().getFields();
         if (fields !== null) {
           fields.forEach(field => {
@@ -1154,7 +976,7 @@ class ReadersVisitor extends Visitor<Printer> {
   }
 
   structField(field: Field__InstanceR, discrOffset: u33, p: Printer): void {
-    function checkTag(discrValue: u16, discrOffset: u33, p: Printer) {
+    function checkTag(discrValue: u16, discrOffset: u33, p: Printer): void {
       if (discrValue !== Field.getNoDiscriminant()) {
         p.line(`this.guts.checkTag(${discrValue}, ${discrOffset});`);
       }
@@ -1184,14 +1006,14 @@ class ReadersVisitor extends Visitor<Printer> {
           p.block(`${getField}(): boolean`, p => {
             checkTag(discrValue, discrOffset, p);
 
-            p.line(`const b = this.guts.layout.dataSection + ${slot.getOffset() >>> 3};`);
+            p.line(`const d = this.guts.layout.dataSection + ${slot.getOffset() >>> 3};`);
 
             const def = nonnull(slot.getDefaultValue()).getBool();
             p.ifElse(
-              "b < this.guts.layout.pointersSection",
+              "d < this.guts.layout.pointersSection",
               p => {
                 const prefix = def === true ? "!" : "!!";
-                p.line(`return ${prefix}decode.bit(this.guts.segment.raw, b, ${slot.getOffset() & 0x07});`);
+                p.line(`return ${prefix}decode.bit(this.guts.segment.raw, d, ${slot.getOffset() & 0x07});`);
               },
               p => {
                 p.line(`return ${def === true ? "true" : "false"};`);
@@ -1203,13 +1025,13 @@ class ReadersVisitor extends Visitor<Printer> {
           p.block(`${getField}(): i8`, p => {
             checkTag(discrValue, discrOffset, p);
 
-            p.line(`const b = this.guts.layout.dataSection + ${slot.getOffset()};`);
+            p.line(`const d = this.guts.layout.dataSection + ${slot.getOffset()};`);
 
             const def = nonnull(slot.getDefaultValue()).getInt8();
             p.ifElse(
-              "b + 1 <= this.guts.layout.pointersSection",
+              "d + 1 <= this.guts.layout.pointersSection",
               p => {
-                p.line(`return ${def} ^ decode.int8(this.guts.segment.raw, b);`);
+                p.line(`return ${def} ^ decode.int8(this.guts.segment.raw, d);`);
               },
               p => {
                 p.line(`return ${def};`);
@@ -1221,13 +1043,13 @@ class ReadersVisitor extends Visitor<Printer> {
           p.block(`${getField}(): i16`, p => {
             checkTag(discrValue, discrOffset, p);
 
-            p.line(`const b = this.guts.layout.dataSection + ${slot.getOffset() << 1};`);
+            p.line(`const d = this.guts.layout.dataSection + ${slot.getOffset() << 1};`);
 
             const def = nonnull(slot.getDefaultValue()).getInt16();
             p.ifElse(
-              "b + 2 <= this.guts.layout.pointersSection",
+              "d + 2 <= this.guts.layout.pointersSection",
               p => {
-                p.line(`return ${def} ^ decode.int16(this.guts.segment.raw, b);`);
+                p.line(`return ${def} ^ decode.int16(this.guts.segment.raw, d);`);
               },
               p => {
                 p.line(`return ${def};`);
@@ -1239,13 +1061,13 @@ class ReadersVisitor extends Visitor<Printer> {
           p.block(`${getField}(): i32`, p => {
             checkTag(discrValue, discrOffset, p);
 
-            p.line(`const b = this.guts.layout.dataSection + ${slot.getOffset() << 2};`);
+            p.line(`const d = this.guts.layout.dataSection + ${slot.getOffset() << 2};`);
 
             const def = nonnull(slot.getDefaultValue()).getInt32();
             p.ifElse(
-              "b + 4 <= this.guts.layout.pointersSection",
+              "d + 4 <= this.guts.layout.pointersSection",
               p => {
-                p.line(`return ${def} ^ decode.int32(this.guts.segment.raw, b);`);
+                p.line(`return ${def} ^ decode.int32(this.guts.segment.raw, d);`);
               },
               p => {
                 p.line(`return ${def};`);
@@ -1257,16 +1079,16 @@ class ReadersVisitor extends Visitor<Printer> {
           p.block(`${getField}(): Int64`, p => {
             checkTag(discrValue, discrOffset, p);
 
-            p.line(`const b = this.guts.layout.dataSection + ${slot.getOffset() << 3};`);
+            p.line(`const d = this.guts.layout.dataSection + ${slot.getOffset() << 3};`);
 
             const def = nonnull(slot.getDefaultValue()).getInt64();
             p.ifElse(
-              "b + 8 <= this.guts.layout.pointersSection",
+              "d + 8 <= this.guts.layout.pointersSection",
               p => {
                 p.line ("return injectI64(");
                 p.indent(p => {
-                  p.line(`${def[0]} ^ decode.int32(this.guts.segment.raw, b+4),`);
-                  p.line(`${def[1]} ^ decode.int32(this.guts.segment.raw, b),`);
+                  p.line(`${def[0]} ^ decode.int32(this.guts.segment.raw, d+4),`);
+                  p.line(`${def[1]} ^ decode.int32(this.guts.segment.raw, d),`);
                 });
                 p.line(");");
               },
@@ -1280,13 +1102,13 @@ class ReadersVisitor extends Visitor<Printer> {
           p.block(`${getField}(): u8`, p => {
             checkTag(discrValue, discrOffset, p);
 
-            p.line(`const b = this.guts.layout.dataSection + ${slot.getOffset()};`);
+            p.line(`const d = this.guts.layout.dataSection + ${slot.getOffset()};`);
 
             const def = nonnull(slot.getDefaultValue()).getUint8();
             p.ifElse(
-              "b + 1 <= this.guts.layout.pointersSection",
+              "d + 1 <= this.guts.layout.pointersSection",
               p => {
-                p.line(`return (${def} ^ decode.uint8(this.guts.segment.raw, b)) >>> 0;`);
+                p.line(`return (${def} ^ decode.uint8(this.guts.segment.raw, d)) >>> 0;`);
               },
               p => {
                 p.line(`return ${def} >>> 0;`);
@@ -1298,13 +1120,13 @@ class ReadersVisitor extends Visitor<Printer> {
           p.block(`${getField}(): u16`, p => {
             checkTag(discrValue, discrOffset, p);
 
-            p.line(`const b = this.guts.layout.dataSection + ${slot.getOffset() << 1};`);
+            p.line(`const d = this.guts.layout.dataSection + ${slot.getOffset() << 1};`);
 
             const def = nonnull(slot.getDefaultValue()).getUint16();
             p.ifElse(
-              "b + 2 <= this.guts.layout.pointersSection",
+              "d + 2 <= this.guts.layout.pointersSection",
               p => {
-                p.line(`return (${def} ^ decode.uint16(this.guts.segment.raw, b)) >>> 0;`);
+                p.line(`return (${def} ^ decode.uint16(this.guts.segment.raw, d)) >>> 0;`);
               },
               p => {
                 p.line(`return ${def} >>> 0;`);
@@ -1316,13 +1138,13 @@ class ReadersVisitor extends Visitor<Printer> {
           p.block(`${getField}(): u32`, p => {
             checkTag(discrValue, discrOffset, p);
 
-            p.line(`const b = this.guts.layout.dataSection + ${slot.getOffset() << 2};`);
+            p.line(`const d = this.guts.layout.dataSection + ${slot.getOffset() << 2};`);
 
             const def = nonnull(slot.getDefaultValue()).getUint32();
             p.ifElse(
-              "b + 4 <= this.guts.layout.pointersSection",
+              "d + 4 <= this.guts.layout.pointersSection",
               p => {
-                p.line(`return (${def} ^ decode.uint32(this.guts.segment.raw, b)) >>> 0;`);
+                p.line(`return (${def} ^ decode.uint32(this.guts.segment.raw, d)) >>> 0;`);
               },
               p => {
                 p.line(`return ${def} >>> 0;`);
@@ -1334,16 +1156,16 @@ class ReadersVisitor extends Visitor<Printer> {
           p.block(`${getField}(): UInt64`, p => {
             checkTag(discrValue, discrOffset, p);
 
-            p.line(`const b = this.guts.layout.dataSection + ${slot.getOffset() << 3};`);
+            p.line(`const d = this.guts.layout.dataSection + ${slot.getOffset() << 3};`);
 
             const def = nonnull(slot.getDefaultValue()).getUint64();
             p.ifElse(
-              "b + 8 <= this.guts.layout.pointersSection",
+              "d + 8 <= this.guts.layout.pointersSection",
               p => {
                 p.line("return injectU64(");
                 p.indent(p => {
-                  p.line(`${def[0]} ^ decode.int32(this.guts.segment.raw, b+4),`);
-                  p.line(`${def[1]} ^ decode.int32(this.guts.segment.raw, b),`);
+                  p.line(`${def[0]} ^ decode.int32(this.guts.segment.raw, d+4),`);
+                  p.line(`${def[1]} ^ decode.int32(this.guts.segment.raw, d),`);
                 });
                 p.line(");");
               },
@@ -1357,15 +1179,15 @@ class ReadersVisitor extends Visitor<Printer> {
           p.block(`${getField}(): f32`, p => {
             checkTag(discrValue, discrOffset, p);
 
-            p.line(`const b = this.guts.layout.dataSection + ${slot.getOffset() << 2};`);
+            p.line(`const d = this.guts.layout.dataSection + ${slot.getOffset() << 2};`);
 
             /* Manually grab the default's bit pattern from the Float32
                location. */
             const def = int32(slot.guts.segment.raw, slot.guts.layout.dataSection + 4);
             p.ifElse(
-              "b + 4 <= this.guts.layout.pointersSection",
+              "d + 4 <= this.guts.layout.pointersSection",
               p => {
-                p.line("const bytes = decode.int32(this.guts.segment.raw, b);");
+                p.line("const bytes = decode.int32(this.guts.segment.raw, d);");
                 p.line(`return decode.float32(${def} ^ bytes);`);
               },
               p => {
@@ -1378,7 +1200,7 @@ class ReadersVisitor extends Visitor<Printer> {
           p.block(`${getField}(): f64`, p => {
             checkTag(discrValue, discrOffset, p);
 
-            p.line(`const b = this.guts.layout.dataSection + ${slot.getOffset() << 3};`);
+            p.line(`const d = this.guts.layout.dataSection + ${slot.getOffset() << 3};`);
 
             /* Manually grab the default's bit pattern from the Float64
                location. */
@@ -1387,12 +1209,12 @@ class ReadersVisitor extends Visitor<Printer> {
               int32(slot.guts.segment.raw, slot.guts.layout.dataSection + 8),
             ];
             p.ifElse(
-              "b + 8 <= this.guts.layout.pointersSection",
+              "d + 8 <= this.guts.layout.pointersSection",
               p => {
                 p.line("const bytes = injectI64(");
                 p.indent(p => {
-                  p.line(`decode.int32(this.guts.segment.raw, b+4) ^ ${def[0]},`);
-                  p.line(`decode.int32(this.guts.segment.raw, b) ^ ${def[1]},`);
+                  p.line(`decode.int32(this.guts.segment.raw, d+4) ^ ${def[0]},`);
+                  p.line(`decode.int32(this.guts.segment.raw, d) ^ ${def[1]},`);
                 });
                 p.line(");");
                 p.line("return decode.float64(bytes);");
@@ -1407,13 +1229,13 @@ class ReadersVisitor extends Visitor<Printer> {
           p.block(`${getField}(): u16`, p => {
             checkTag(discrValue, discrOffset, p);
 
-            p.line(`const b = this.guts.layout.dataSection + ${slot.getOffset() << 1};`);
+            p.line(`const d = this.guts.layout.dataSection + ${slot.getOffset() << 1};`);
 
             const def = nonnull(slot.getDefaultValue()).getEnum();
             p.ifElse(
-              "b + 2 <= this.guts.layout.pointersSection",
+              "d + 2 <= this.guts.layout.pointersSection",
               p => {
-                p.line(`return (${def} ^ decode.uint16(this.guts.segment.raw, b)) >>> 0;`);
+                p.line(`return (${def} ^ decode.uint16(this.guts.segment.raw, d)) >>> 0;`);
               },
               p => {
                 p.line(`return ${def} >>> 0;`);
@@ -2120,13 +1942,13 @@ class ReadersVisitor extends Visitor<Printer> {
     p.line(`const ${baseName}__Enum: {`);
     p.indent(p => {
       nonnull(node.getEnum().getEnumerants()).forEach((enumerant, value) => {
-        p.line(`+${nonnull(enumerant.getName()).toString()}: ${value}`);
+        p.line(`+${nonnull(enumerant.getName()).toString()}: ${value},`);
       });
     });
     p.line("} = {");
     p.indent(p => {
       nonnull(node.getEnum().getEnumerants()).forEach((enumerant, value) => {
-        p.line(`${nonnull(enumerant.getName()).toString()}: ${value}`);
+        p.line(`${nonnull(enumerant.getName()).toString()}: ${value},`);
       });
     });
     p.line("};");

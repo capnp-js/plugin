@@ -93,6 +93,9 @@ function chainMember(index: NodeIndex, id: UInt64): ChainMember {
 }
 
 //TODO: This will fail for method parameters and method results, right? They've got scopeId===0, right?
+//      Yup. Instead of working around the scopeId===0 algorithmically,
+//      I'm going to implement the builder side without interfaces and I'm going to
+//      use builders to patch the schema to get rid of the scopeId===0 case.
 function chain(index: NodeIndex, sourceId: string, consumerId: UInt64): Array<ChainMember> {
   const members = [chainMember(index, consumerId)];
   while (members[0].uuid !== sourceId) {

@@ -3,6 +3,7 @@
 import type { NodeIndex } from "../Visitor";
 import type { CodeGeneratorRequest_RequestedFile__InstanceR } from "../schema.capnp-r";
 
+import * as path from "path";
 import { nonnull } from "@capnp-js/nullary";
 import { toHex } from "@capnp-js/uint64";
 
@@ -80,7 +81,9 @@ export default function serialization(index: NodeIndex, strategy: Strategy, file
       });
     } else if (Object.keys(lib).length > 1) {
       p.line("import type {");
-      Object.keys(lib).forEach(type => {
+      const keys = Object.keys(lib);
+      keys.sort();
+      keys.forEach(type => {
         p.indent(p => {
           if (lib[type] === type) {
             p.line(`${type},`);
@@ -116,7 +119,9 @@ export default function serialization(index: NodeIndex, strategy: Strategy, file
       });
     } else if (Object.keys(lib).length > 1) {
       p.line("import {");
-      Object.keys(lib).forEach(value => {
+      const keys = Object.keys(lib);
+      keys.sort();
+      keys.forEach(value => {
         p.indent(p => {
           if (lib[value] === value) {
             p.line(`${value},`);
@@ -131,7 +136,31 @@ export default function serialization(index: NodeIndex, strategy: Strategy, file
 
   p.interrupt();
 
-  /* Section 2: User Imports and Type Aliases
+  /* Section 2: Reader Imports (builder only)
+     Each builder instance exposes a `reader` method to derive a read-only
+     instance for the builder's data. The `reader` method requires the reader's
+     type. */
+  if (strategy.tag === "builder") {
+    const baseName = path.basename(nonnull(file.getFilename()).toString());
+    const source = `./${baseName}-r.js`;
+    if (locals.structs.size === 1) {
+      locals.structs.forEach(name => {
+        p.line(`import type { ${name}__InstanceR } from "${source}";`);
+      });
+    } else if (locals.structs.size > 1) {
+      p.line("import type {");
+      p.indent(p => {
+        locals.structs.forEach(name => {
+          p.line(`${name}__InstanceR,`);
+        });
+      });
+      p.line(`} from "${source}";`);
+    }
+  }
+
+  p.interrupt();
+
+  /* Section 3: User Imports and Type Aliases
      Cap'n Proto schema files admit user imports where the unqualified names may
      collide with local names. I scan all of the imports and mangle a name if it
      collides with a local name. */
@@ -228,13 +257,15 @@ export default function serialization(index: NodeIndex, strategy: Strategy, file
   p.interrupt();
 
   /* Type aliases */
-  for (let alias in users.aliases) {
-    p.line(`type ${alias} = ${users.aliases[alias]};`);
+  {
+    const keys = Object.keys(users.aliases);
+    keys.sort();
+    keys.forEach(alias => p.line(`type ${alias} = ${users.aliases[alias]};`));
   }
 
   p.interrupt();
 
-  /* Section 3: Static Data (reader only) //TODO: Whoops. This needs to get buried behind strategy so that the builder doesn't catch it too, dummy.
+  /* Section 4: Static Data (reader only)
      Pointer default and constant values require an arena to host their values.
      (The `empty()` method on Struct constructors require an arena also.) A
      single "blob" arena contains all of this data. */
@@ -290,7 +321,7 @@ export default function serialization(index: NodeIndex, strategy: Strategy, file
 
   p.interrupt();
 
-  /* Section 4: Translated Nodes
+  /* Section 5: Translated Nodes
      Translate Cap'n Proto schema nodes into JavaScript classes. */
 
   /* Generic parametrizations */
@@ -306,7 +337,7 @@ export default function serialization(index: NodeIndex, strategy: Strategy, file
 
   p.interrupt();
 
-  /* Section 5: Export instantiations of file scoped types from the schema. */
+  /* Section 6: Export instantiations of file scoped types from the schema. */
   if (strategy.tag === "reader") {
     printReaderInstantiations(index, file.getId(), parameters, p);
   } else {

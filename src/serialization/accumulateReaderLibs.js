@@ -118,7 +118,6 @@ class LibsVisitor extends Visitor<Acc> {
     case Type.tags.uint16:
     case Type.tags.uint32:
     case Type.tags.float32:
-    case Type.tags.float64:
       acc["all-value"]["read-data"] = "decode";
       break;
     case Type.tags.float64:

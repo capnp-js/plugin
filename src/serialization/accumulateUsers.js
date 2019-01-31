@@ -110,6 +110,9 @@ class UsersVisitor extends Visitor<Acc> {
     case Type.tags.list:
       this.addType(type.getList().getElementType(), acc);
       break;
+    case Type.tags.enum:
+      acc.aliases["u16"] = "number";
+      break;
     case Type.tags.struct:
       acc.structs.add(type.getStruct().getTypeId());
       break;
