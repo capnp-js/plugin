@@ -978,7 +978,7 @@ class BuildersVisitor extends Visitor<Printer> {
           p.line(`dataBytes: [ ${dataBs.join(", ")} ],`);
 
           const pointersBs = union.pointersSequences.map(p => `[${p.offset}, ${p.length}]`);
-          p.line(`pointersBytes: [ ${pointersBs.join(", ")} ]`);
+          p.line(`pointersBytes: [ ${pointersBs.join(", ")} ],`);
         });
         p.line("});");
       }
@@ -995,7 +995,7 @@ class BuildersVisitor extends Visitor<Printer> {
           p.line(`dataBytes: [ ${dataBs.join(", ")} ],`);
 
           const pointersBs = union.pointersSequences.map(p => `[${p.offset}, ${p.length}]`);
-          p.line(`pointersBytes: [ ${pointersBs.join(", ")} ]`);
+          p.line(`pointersBytes: [ ${pointersBs.join(", ")} ],`);
         });
         p.line("});");
       }
@@ -1599,6 +1599,8 @@ class BuildersVisitor extends Visitor<Printer> {
         if (parameters.ctor.size > 0) {
           class_ += `<${declareParams.join(", ")}>`;
         }
+
+        //TODO: Add an "implements" clause?
 
         p.block(class_, p => {
           const constructorAsses = [];
