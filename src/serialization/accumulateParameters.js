@@ -3,7 +3,11 @@
 import type { UInt64 } from "@capnp-js/uint64";
 
 import type { NodeIndex } from "../Visitor";
-import type { Node__InstanceR, Type__InstanceR } from "../schema.capnp-r";
+import type {
+  Node__InstanceR,
+  Type__InstanceR,
+  Brand__InstanceR,
+} from "../schema.capnp-r";
 
 import { toHex } from "@capnp-js/uint64";
 import { nonnull } from "@capnp-js/nullary";
@@ -64,7 +68,12 @@ type Group = {
   structUuid: string,
 };
 
-type ChainMember = Struct | Group;
+type Interface = {
+  tag: "interface",
+  uuid: string,
+};
+
+type ChainMember = Struct | Group | Interface;
 
 function chainMember(index: NodeIndex, id: UInt64): ChainMember {
   const uuid = toHex(id);
@@ -88,18 +97,52 @@ function chainMember(index: NodeIndex, id: UInt64): ChainMember {
         uuid,
       };
     }
-  default: throw new Error("TODO");
+  case Node.tags.interface:
+    return {
+      tag: "interface",
+      uuid,
+    };
+  default: throw new Error("Unexpected node tag.");
   }
 }
 
-//TODO: This will fail for method parameters and method results, right? They've got scopeId===0, right?
-//      Yup. Instead of working around the scopeId===0 algorithmically,
-//      I'm going to implement the builder side without interfaces and I'm going to
-//      use builders to patch the schema to get rid of the scopeId===0 case.
+let zeroScope = null;
+type ZeroScopeIndex = { [childId: string]: UInt64 };
+
 function chain(index: NodeIndex, sourceId: string, consumerId: UInt64): Array<ChainMember> {
+  if (zeroScope === null) {
+    zeroScope = {};
+    for (let uuid in index) {
+      const node = index[uuid];
+      if (node.tag() === Node.tags.interface) {
+        const methods = node.getInterface().getMethods();
+        if (methods !== null) {
+          methods.forEach(method => {
+            const paramNode = index[toHex(method.getParamStructType())];
+            const paramScopeId = paramNode.getScopeId();
+            if (paramScopeId[0] === 0 && paramScopeId[1] === 0) {
+              ((zeroScope: any): ZeroScopeIndex)[toHex(paramNode.getId())] = node.getId(); // eslint-disable-line flowtype/no-weak-types
+            }
+
+            const resultNode = index[toHex(method.getResultStructType())];
+            const resultScopeId = resultNode.getScopeId();
+            if (resultScopeId[0] === 0 && resultScopeId[1] === 0) {
+              ((zeroScope: any): ZeroScopeIndex)[toHex(resultNode.getId())] = node.getId(); // eslint-disable-line flowtype/no-weak-types
+            }
+          });
+        }
+      }
+    }
+  }
+
   const members = [chainMember(index, consumerId)];
   while (members[0].uuid !== sourceId) {
-    members.unshift(chainMember(index, index[members[0].uuid].getScopeId()));
+    let scopeId = index[members[0].uuid].getScopeId();
+    if (scopeId[0] === 0 && scopeId[1] === 0) {
+      scopeId = zeroScope[members[0].uuid];
+    }
+
+    members.unshift(chainMember(index, scopeId));
   }
 
   return members;
@@ -114,14 +157,13 @@ class ParametersVisitor extends Visitor<ParametersIndex> {
   +consumers: Consumers;
   depth: uint;
 
-  constructor(nodes: NodeIndex, consumers: Consumers) {
-    super(nodes);
+  constructor(index: NodeIndex, consumers: Consumers) {
+    super(index);
     this.consumers = consumers;
     this.depth = 0;
   }
 
-  struct(node: Node__InstanceR, acc: ParametersIndex): ParametersIndex {
-    ++this.depth;
+  parametric(node: Node__InstanceR, acc: ParametersIndex): ParametersIndex {
     const sourceId = toHex(node.getId());
     const parameters = node.getParameters();
     if (parameters !== null) {
@@ -139,6 +181,7 @@ class ParametersVisitor extends Visitor<ParametersIndex> {
           chain(this.index, sourceId, consumerId).forEach(member => {
             switch (member.tag) {
             case "struct":
+            case "interface":
               if (member.uuid !== sourceId) {
                 acc[member.uuid].generic.add(parameterName);
               }
@@ -153,21 +196,27 @@ class ParametersVisitor extends Visitor<ParametersIndex> {
               acc[member.structUuid].instance.add(parameterName);
               acc[member.uuid].instance.add(parameterName);
               break;
-            default: throw new Error("TODO");
+            default: throw new Error("Unrecognized chain member tag.");
             }
           });
         });
       });
     }
 
+    return acc;
+  }
+
+  struct(node: Node__InstanceR, acc: ParametersIndex): ParametersIndex {
+    ++this.depth;
+    acc = this.parametric(node, acc);
+
     /* The visitor ignores groups, so scour the fields for groups and visit
-       them. A lot of the generated data will get ignored (i.e. `generic`,
-       `ctor`, and `specialize`). */
+       them. */
     const fields = node.getStruct().getFields();
     if (fields !== null) {
       fields.forEach(field => {
         if (field.tag() === Field.tags.group) {
-          this.visit(field.getGroup().getTypeId(), acc);
+          acc = this.visit(field.getGroup().getTypeId(), acc);
         }
       });
     }
@@ -180,7 +229,26 @@ class ParametersVisitor extends Visitor<ParametersIndex> {
   }
 
   interface(node: Node__InstanceR, acc: ParametersIndex): ParametersIndex {
-    //TODO: Fill this in
+    ++this.depth;
+    acc = this.parametric(node, acc);
+
+    /* Param and result lists are not listed among the interface's nested nodes,
+       so I need to visit them manually. */
+    const methods = node.getInterface().getMethods();
+    if (methods !== null) {
+      methods.forEach(method => {
+        const paramNodeId = method.getParamStructType();
+        if (paramNodeId[0] === 0 && paramNodeId[1] === 0) {
+          acc = this.visit(paramNodeId, acc);
+        }
+
+        const resultNodeId = method.getResultStructType();
+        if (resultNodeId[0] === 0 && resultNodeId[1] === 0) {
+          acc = this.visit(resultNodeId, acc);
+        }
+      });
+    }
+
     const next = super.interface(node, acc);
 
     --this.depth;
@@ -190,7 +258,27 @@ class ParametersVisitor extends Visitor<ParametersIndex> {
 }
 
 export default function accumulateParameters(index: NodeIndex): ParametersIndex {
-  function addParameters(type: null | Type__InstanceR, consumerId: UInt64, consumers: Consumers): void {
+  function addBrandParameters(brand: null | Brand__InstanceR, consumerId: UInt64, consumers: Consumers): void {
+    if (brand === null) {
+      return;
+    }
+
+    const scopes = brand.getScopes();
+    if (scopes !== null) {
+      scopes.forEach(scope => {
+        if (scope.tag() === Brand.Scope.tags.bind) {
+          const bind = scope.getBind();
+          if (bind !== null) {
+            bind.forEach(binding => {
+              addTypeParameters(binding.getType(), consumerId, consumers);
+            });
+          }
+        }
+      });
+    }
+  }
+
+  function addTypeParameters(type: null | Type__InstanceR, consumerId: UInt64, consumers: Consumers): void {
     if (type === null) {
       return;
     }
@@ -200,32 +288,15 @@ export default function accumulateParameters(index: NodeIndex): ParametersIndex 
       {
         const list = type.getList();
         if (list !== null) {
-          addParameters(list.getElementType(), consumerId, consumers);
+          addTypeParameters(list.getElementType(), consumerId, consumers);
         }
       }
       break;
     case Type.tags.struct:
-      {
-        const brand = type.getStruct().getBrand();
-        if (brand !== null) {
-          const scopes = brand.getScopes();
-          if (scopes !== null) {
-            scopes.forEach(scope => {
-              if (scope.tag() === Brand.Scope.tags.bind) {
-                const bind = scope.getBind();
-                if (bind !== null) {
-                  bind.forEach(binding => {
-                    addParameters(binding.getType(), consumerId, consumers);
-                  });
-                }
-              }
-            });
-          }
-        }
-      }
+      addBrandParameters(type.getStruct().getBrand(), consumerId, consumers);
       break;
     case Type.tags.interface:
-      break; // TODO
+      break;
     case Type.tags.anyPointer:
       {
         const anyPointerG = Type.groups.anyPointer;
@@ -258,6 +329,8 @@ export default function accumulateParameters(index: NodeIndex): ParametersIndex 
   for (let sourceUuid in consumers) {
     const node = index[sourceUuid];
     switch (node.tag()) {
+    case Node.tags.file:
+      break;
     case Node.tags.struct:
       {
         const fields = node.getStruct().getFields();
@@ -266,18 +339,23 @@ export default function accumulateParameters(index: NodeIndex): ParametersIndex 
             /* Since the index includes group nodes, I don't need to treat them
                specially. */
             if (field.tag() === Field.tags.slot) {
-              addParameters(field.getSlot().getType(), node.getId(), consumers);
+              addTypeParameters(field.getSlot().getType(), node.getId(), consumers);
             }
           });
         }
       }
       break;
+    case Node.tags.enum:
+      break;
     case Node.tags.interface:
-      //TODO;
       break;
     case Node.tags.const:
-      addParameters(node.getConst().getType(), node.getId(), consumers);
+      addTypeParameters(node.getConst().getType(), node.getId(), consumers);
       break;
+    case Node.tags.annotation:
+      break;
+    default:
+      throw new Error("Unrecognized node tag.");
     }
   }
 

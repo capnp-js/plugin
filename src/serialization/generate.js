@@ -142,7 +142,7 @@ export default function serialization(index: NodeIndex, strategy: Strategy, file
      type. */
   if (strategy.tag === "builder") {
     const baseName = path.basename(nonnull(file.getFilename()).toString());
-    const source = `./${baseName}-r.js`;
+    const source = `./${baseName}-r`;
     if (locals.structs.size === 1) {
       locals.structs.forEach(name => {
         p.line(`import type { ${name}__InstanceR } from "${source}";`);

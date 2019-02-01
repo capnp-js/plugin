@@ -1585,6 +1585,23 @@ class BuildersVisitor extends Visitor<Printer> {
       {
         /* `X__CtorB` */
 
+        let thisR = `${baseName}__InstanceR`;
+        let thisB = `${baseName}__InstanceB`;
+        if (parameters.instance.size > 0) {
+          const specialParamsR = flatMap(Array.from(parameters.instance), name => [
+            `${name}_guts`,
+            `${name}_r`,
+          ]);
+          thisR += `<${specialParamsR.join(", ")}>`;
+
+          const specialParamsB = flatMap(Array.from(parameters.instance), name => [
+            `${name}_guts`,
+            `${name}_r`,
+            `${name}_b`,
+          ]);
+          thisB += `<${specialParamsB.join(", ")}>`;
+        }
+
         const declareParams = flatMap(Array.from(parameters.ctor), name => [
           `${name}_guts: AnyGutsR`,
           `${name}_r: {+guts: ${name}_guts}`,
@@ -1600,7 +1617,7 @@ class BuildersVisitor extends Visitor<Printer> {
           class_ += `<${declareParams.join(", ")}>`;
         }
 
-        //TODO: Add an "implements" clause?
+        class_ += ` implements StructCtorB<${thisR}, ${thisB}>`;
 
         p.block(class_, p => {
           const constructorAsses = [];
@@ -1680,7 +1697,8 @@ class BuildersVisitor extends Visitor<Printer> {
                 }
                 break;
               case Node.tags.interface:
-                throw new Error("TODO");
+//                throw new Error("TODO");
+//asdf
               }
             });
           }
@@ -1717,23 +1735,6 @@ class BuildersVisitor extends Visitor<Printer> {
           }
 
           p.interrupt();
-
-          let thisR = `${baseName}__InstanceR`;
-          let thisB = `${baseName}__InstanceB`;
-          if (parameters.instance.size > 0) {
-            const specialParamsR = flatMap(Array.from(parameters.instance), name => [
-              `${name}_guts`,
-              `${name}_r`,
-            ]);
-            thisR += `<${specialParamsR.join(", ")}>`;
-
-            const specialParamsB = flatMap(Array.from(parameters.instance), name => [
-              `${name}_guts`,
-              `${name}_r`,
-              `${name}_b`,
-            ]);
-            thisB += `<${specialParamsB.join(", ")}>`;
-          }
 
           //TODO: convert parameters.specialize to a Set<string> for consistency?
           const instanceParams = Array.from(parameters.instance).map(name => `${name}: this.params.${name}`);
@@ -1809,7 +1810,7 @@ class BuildersVisitor extends Visitor<Printer> {
         /* `X__InstanceB` */
 
         const declareParams = flatMap(Array.from(parameters.instance), name => [
-          `${name}_guts: AnyGutsB`,
+          `${name}_guts: AnyGutsR`,
           `${name}_r: {+guts: ${name}_guts}`,
           `${name}_b: ReaderCtor<${name}_guts, ${name}_r>`,
         ]);
@@ -1830,7 +1831,7 @@ class BuildersVisitor extends Visitor<Printer> {
             `${name}_r`,
           ]);
 
-          instanceR += specials.join(", ");
+          instanceR += `<${specials.join(", ")}>`;
         }
 
         p.block(class_, p => {
@@ -1859,14 +1860,14 @@ class BuildersVisitor extends Visitor<Printer> {
             p.line("return Ctor.intern(this.guts);");
           });
 
-          p.interrupt();
-
           let union = {
             maskedBytes: [],
             dataSequences: [],
             pointersSequences: [],
           };
           if (struct.getDiscriminantCount() > 0) {
+            p.interrupt();
+
             p.block("tag(): u16", p => {
               //TODO: Fix the offset annotation from getTag in reader-core. Its at u19 when it should be u33
               p.line(`return this.guts.getTag(${2 * struct.getDiscriminantOffset()});`);
@@ -1874,8 +1875,6 @@ class BuildersVisitor extends Visitor<Printer> {
 
             union = unionLayout(this.index, node.getId());
           }
-
-          p.interrupt();
 
           const fields = struct.getFields();
           if (fields !== null) {

@@ -1068,7 +1068,7 @@ export class Method__CtorR implements StructCtorR<Method__InstanceR> {
   }
 
   compiledBytes(): Bytes {
-    return {data: 8, pointers: 16};
+    return {data: 24, pointers: 40};
   }
 
   empty(): Method__InstanceR {
