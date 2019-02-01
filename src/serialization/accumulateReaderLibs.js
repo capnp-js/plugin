@@ -2,13 +2,15 @@
 
 import type { UInt64 } from "@capnp-js/uint64";
 
-import type { NodeIndex } from "../Visitor";
+import type { NodeIndex, Scope } from "../Visitor";
 import type {
   Node__InstanceR,
   Brand__InstanceR,
   Type__InstanceR,
 } from "../schema.capnp-r";
 import type { Libs } from "./libs";
+
+import { nonnull } from "@capnp-js/nullary";
 
 import { Brand, Field, Type } from "../schema.capnp-r";
 import Visitor from "../Visitor";
@@ -52,10 +54,10 @@ class LibsVisitor extends Visitor<Acc> {
   }
 
   mangle(naive: string): string {
-    return this.names.has(naive) ? "capnpJs_" + naive : naive;
+    return this.names.has(naive) ? "capnp_" + naive : naive;
   }
 
-  struct(node: Node__InstanceR, acc: Acc): Acc {
+  struct(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: Acc): Acc {
     /* GenericR */
     const parameters = node.getParameters();
     if (parameters !== null && parameters.length() > 0) {
@@ -85,21 +87,26 @@ class LibsVisitor extends Visitor<Acc> {
           break;
         case Field.tags.group:
           /* Dig into the struct's groups for their field types too. */
-          this.visit(field.getGroup().getTypeId(), acc);
+          const groupScopes = scopes.slice(0);
+          groupScopes.push({
+            name: nonnull(field.getName()).toString(),
+            id: field.getGroup().getTypeId(),
+          });
+          this.visit(groupScopes, field.getGroup().getTypeId(), acc);
           break;
         default: throw new Error("Unrecognized field tag.");
         }
       });
     }
 
-    return super.struct(node, acc);
+    return super.struct(scopes, node, acc);
   }
 
-  const(node: Node__InstanceR, acc: Acc): Acc {
+  const(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: Acc): Acc {
     acc.value["reader-arena"]["deserializeUnsafe"] = "deserializeUnsafe";
     this.addType(node.getConst().getType(), acc);
 
-    return super.const(node, acc);
+    return super.const(scopes, node, acc);
   }
 
   addType(type: null | Type__InstanceR, acc: Acc): void {
@@ -311,7 +318,7 @@ class LibsVisitor extends Visitor<Acc> {
 }
 
 export default function accumulateReaderLibs(index: NodeIndex, fileId: UInt64, names: Set<string>): Libs {
-  const internalAcc = new LibsVisitor(index, names).visit(fileId, {
+  const internalAcc = new LibsVisitor(index, names).visit([], fileId, {
     type: {
       int64: {},
       uint64: {},

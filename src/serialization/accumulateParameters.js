@@ -2,7 +2,7 @@
 
 import type { UInt64 } from "@capnp-js/uint64";
 
-import type { NodeIndex } from "../Visitor";
+import type { NodeIndex, Scope } from "../Visitor";
 import type {
   Node__InstanceR,
   Type__InstanceR,
@@ -206,7 +206,7 @@ class ParametersVisitor extends Visitor<ParametersIndex> {
     return acc;
   }
 
-  struct(node: Node__InstanceR, acc: ParametersIndex): ParametersIndex {
+  struct(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: ParametersIndex): ParametersIndex {
     ++this.depth;
     acc = this.parametric(node, acc);
 
@@ -216,19 +216,24 @@ class ParametersVisitor extends Visitor<ParametersIndex> {
     if (fields !== null) {
       fields.forEach(field => {
         if (field.tag() === Field.tags.group) {
-          acc = this.visit(field.getGroup().getTypeId(), acc);
+          const groupScopes = scopes.slice(0);
+          groupScopes.push({
+            name: nonnull(field.getName()).toString(),
+            id: field.getGroup().getTypeId(),
+          });
+          acc = this.visit(groupScopes, field.getGroup().getTypeId(), acc);
         }
       });
     }
 
-    const next = super.struct(node, acc);
+    const next = super.struct(scopes, node, acc);
 
     --this.depth;
 
     return next;
   }
 
-  interface(node: Node__InstanceR, acc: ParametersIndex): ParametersIndex {
+  interface(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: ParametersIndex): ParametersIndex {
     ++this.depth;
     acc = this.parametric(node, acc);
 
@@ -239,17 +244,27 @@ class ParametersVisitor extends Visitor<ParametersIndex> {
       methods.forEach(method => {
         const paramNodeId = method.getParamStructType();
         if (paramNodeId[0] === 0 && paramNodeId[1] === 0) {
-          acc = this.visit(paramNodeId, acc);
+          const methodScopes = scopes.slice(0);
+          methodScopes.push({
+            name: nonnull(method.getName()).toString(),
+            id: paramNodeId,
+          });
+          acc = this.visit(methodScopes, paramNodeId, acc);
         }
 
         const resultNodeId = method.getResultStructType();
         if (resultNodeId[0] === 0 && resultNodeId[1] === 0) {
-          acc = this.visit(resultNodeId, acc);
+          const methodScopes = scopes.slice(0);
+          methodScopes.push({
+            name: nonnull(method.getName()).toString(),
+            id: resultNodeId,
+          });
+          acc = this.visit(methodScopes, resultNodeId, acc);
         }
       });
     }
 
-    const next = super.interface(node, acc);
+    const next = super.interface(scopes, node, acc);
 
     --this.depth;
 
@@ -375,7 +390,7 @@ export default function accumulateParameters(index: NodeIndex): ParametersIndex 
   const visitor = new ParametersVisitor(index, consumers);
   for (let uuid in index) {
     if (index[uuid].tag() === Node.tags.file) {
-      parametersIndex = visitor.visit(index[uuid].getId(), parametersIndex);
+      parametersIndex = visitor.visit([], index[uuid].getId(), parametersIndex);
     }
   }
 

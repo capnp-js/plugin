@@ -3,7 +3,7 @@
 import type { UInt64 } from "@capnp-js/uint64";
 
 import type Printer from "../Printer";
-import type { NodeIndex } from "../Visitor";
+import type { NodeIndex, Scope } from "../Visitor";
 import type {
   Node__InstanceR,
   Brand__InstanceR,
@@ -19,11 +19,9 @@ import { int32 } from "@capnp-js/read-data";
 
 import Visitor from "../Visitor";
 import NonRepeats from "../util/NonRepeats";
-import address from "../util/address";
 import capitalize from "../util/capitalize";
 import flatMap from "../util/flatMap";
 import paramName from "../util/paramName";
-import unprefixName from "../util/unprefixName";
 import { Node, Brand, Field, Type } from "../schema.capnp-r";
 
 type uint = number;
@@ -725,8 +723,7 @@ class GroupValues {
     return { tagExists, groupExists };
   }
 
-  tagsRoot(id: UInt64, p: Printer): boolean {
-    const baseName = address(this.index, id).classes.map(unprefixName).join("_");
+  tagsRoot(id: UInt64, baseName: string, p: Printer): boolean {
     const node = this.index[toHex(id)];
     if (node.getStruct().getDiscriminantCount() > 0) {
       const fields = nonnull(node.getStruct().getFields());
@@ -762,10 +759,9 @@ class GroupValues {
     p.line("},");
   }
 
-  groupsRoot(id: UInt64, p: Printer): boolean {
+  groupsRoot(id: UInt64, baseName: string, p: Printer): boolean {
     if (this.peek(id).groupExists) {
       const node = this.index[toHex(id)];
-      const baseName = address(this.index, id).classes.map(unprefixName).join("_");
       p.line(`const ${baseName}__Groups = {`);
       p.indent(p => {
         const fields = nonnull(node.getStruct().getFields());
@@ -960,7 +956,7 @@ class BuildersVisitor extends Visitor<Printer> {
     this.groupValues = new GroupValues(index);
   }
 
-  structField(field: Field__InstanceR, discrOffset: u33, union: UnionLayout, p: Printer): void {
+  structField(scopes: $ReadOnlyArray<Scope>, field: Field__InstanceR, discrOffset: u33, union: UnionLayout, p: Printer): void {
     function checkTag(discrValue: u16, discrOffset: u33, p: Printer): void {
       if (discrValue !== Field.getNoDiscriminant()) {
         p.line(`this.guts.checkTag(${discrValue}, ${discrOffset});`);
@@ -1005,10 +1001,10 @@ class BuildersVisitor extends Visitor<Printer> {
     p.comment(name.toString());
 
     const discrValue = field.getDiscriminantValue();
-    const getField = `get${capitalize(nonnull(field.getName()).toString())}`;
-    const setField = `set${capitalize(nonnull(field.getName()).toString())}`;
-    const disownField = `disown${capitalize(nonnull(field.getName()).toString())}`;
-    const adoptField = `adopt${capitalize(nonnull(field.getName()).toString())}`;
+    const getField = `get${capitalize(name.toString())}`;
+    const setField = `set${capitalize(name.toString())}`;
+    const disownField = `disown${capitalize(name.toString())}`;
+    const adoptField = `adopt${capitalize(name.toString())}`;
 
     switch (field.tag()) {
     case Field.tags.slot:
@@ -1326,7 +1322,7 @@ class BuildersVisitor extends Visitor<Printer> {
       {
         const group = field.getGroup();
         const id = group.getTypeId();
-        const baseName = address(this.index, id).classes.map(unprefixName).join("_");
+        const baseName = `${scopes.map(s => s.name).join("_")}_${name.toString()}`;
 
         const parameters = this.parameters[toHex(id)].instance;
 
@@ -1353,7 +1349,7 @@ class BuildersVisitor extends Visitor<Printer> {
         });
 
         if (discrValue !== Field.getNoDiscriminant()) {
-          const initField = `init${capitalize(nonnull(field.getName()).toString())}`;
+          const initField = `init${capitalize(name.toString())}`;
           p.block(`${initField}(): void`, p => {
             initTag(discrValue, discrOffset, p);
 
@@ -1371,11 +1367,11 @@ class BuildersVisitor extends Visitor<Printer> {
     }
   }
 
-  struct(node: Node__InstanceR, p: Printer): Printer {
+  struct(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, p: Printer): Printer {
     const uuid = toHex(node.getId());
     const parameters = this.parameters[uuid];
     const struct = node.getStruct();
-    const baseName = address(this.index, node.getId()).classes.map(unprefixName).join("_");
+    const baseName = scopes.map(s => s.name).join("_");
     if (struct.getIsGroup()) {
       //TODO: This is a very common pattern. extract a function and refactor?
       const declareParams = flatMap(Array.from(parameters.instance), name => [
@@ -1436,25 +1432,24 @@ class BuildersVisitor extends Visitor<Printer> {
           fields.forEach(field => {
             p.interrupt();
 
-            this.structField(field, 2 * struct.getDiscriminantOffset(), union, p);
+            this.structField(scopes, field, 2 * struct.getDiscriminantOffset(), union, p);
           });
         }
       });
     } else {
       p.interrupt();
 
-      const path = address(this.index, node.getId()).classes.map(unprefixName);
-      p.line(`/**${"*".repeat(path.join(".").length)}**/`);
-      p.line(`/* ${path.join(".")} */`);
-      p.line(`/**${"*".repeat(path.join(".").length)}**/`);
+      p.line(`/**${"*".repeat(scopes.map(s => s.name).join(".").length)}**/`);
+      p.line(`/* ${scopes.map(s => s.name).join(".")} */`);
+      p.line(`/**${"*".repeat(scopes.map(s => s.name).join(".").length)}**/`);
 
       p.interrupt();
 
-      this.groupValues.tagsRoot(node.getId(), p);
+      this.groupValues.tagsRoot(node.getId(), baseName, p);
 
       p.interrupt();
 
-      this.groupValues.groupsRoot(node.getId(), p);
+      this.groupValues.groupsRoot(node.getId(), baseName, p);
 
       p.interrupt();
 
@@ -1486,7 +1481,6 @@ class BuildersVisitor extends Visitor<Printer> {
               const contained = this.index[toHex(nestedNode.getId())];
               if (contained.tag() === Node.tags.enum) {
                 const localName = nonnull(nestedNode.getName()).toString();
-                const baseName = address(this.index, contained.getId()).classes.map(unprefixName).join("_");
                 const enumerants = contained.getEnum().getEnumerants();
                 if (enumerants === null || enumerants.length() === 0) {
                   p.line(`+${localName}: {}`);
@@ -1500,7 +1494,7 @@ class BuildersVisitor extends Visitor<Printer> {
                   p.line("};");
                 }
 
-                constructorAsses.push(`this.${localName} = ${baseName}__Enum;`);
+                constructorAsses.push(`this.${localName} = ${baseName}_${localName}__Enum;`);
               }
             });
           }
@@ -1630,10 +1624,9 @@ class BuildersVisitor extends Visitor<Printer> {
               case Node.tags.struct:
                 {
                   const localName = nonnull(nestedNode.getName()).toString();
-                  const baseName = address(this.index, contained.getId()).classes.map(unprefixName).join("_");
                   const parameters = this.parameters[toHex(nestedNode.getId())];
                   if (parameters.specialize.length > 0) {
-                    let t = `${baseName}__GenericB`;
+                    let t = `${baseName}_${localName}__GenericB`;
                     if (parameters.generic.size > 0) {
                       const specialParams = flatMap(Array.from(parameters.generic), name => [
                         `${name}_guts`,
@@ -1648,12 +1641,12 @@ class BuildersVisitor extends Visitor<Printer> {
                       const params = Array.from(parameters.generic).map(name => {
                         return `${name}: this.params.${name}`;
                       });
-                      constructorAsses.push(`this.${localName} = new ${baseName}__GenericB({ ${params.join(", ")} });`);
+                      constructorAsses.push(`this.${localName} = new ${baseName}_${localName}__GenericB({ ${params.join(", ")} });`);
                     } else {
-                      constructorAsses.push(`this.${localName} = new ${baseName}__GenericB();`);
+                      constructorAsses.push(`this.${localName} = new ${baseName}_${localName}__GenericB();`);
                     }
                   } else {
-                    let t = `${baseName}__CtorB`;
+                    let t = `${baseName}_${localName}__CtorB`;
                     if (parameters.ctor.size > 0) {
                       const specialParams = flatMap(Array.from(parameters.ctor), name => [
                         `${name}_guts`,
@@ -1668,9 +1661,9 @@ class BuildersVisitor extends Visitor<Printer> {
                       const params = Array.from(parameters.ctor).map(name => {
                         return `${name}: this.params.${name}`;
                       });
-                      constructorAsses.push(`this.${localName} = new ${baseName}__CtorB({ ${params.join(", ")} });`);
+                      constructorAsses.push(`this.${localName} = new ${baseName}_${localName}__CtorB({ ${params.join(", ")} });`);
                     } else {
-                      constructorAsses.push(`this.${localName} = new ${baseName}__CtorB();`);
+                      constructorAsses.push(`this.${localName} = new ${baseName}_${localName}__CtorB();`);
                     }
                   }
                 }
@@ -1678,7 +1671,6 @@ class BuildersVisitor extends Visitor<Printer> {
               case Node.tags.enum:
                 {
                   const localName = nonnull(nestedNode.getName()).toString();
-                  const baseName = address(this.index, contained.getId()).classes.map(unprefixName).join("_");
                   const enumerants = contained.getEnum().getEnumerants();
                   if (enumerants === null || enumerants.length() === 0) {
                     p.line(`+${localName}: {}`);
@@ -1693,7 +1685,7 @@ class BuildersVisitor extends Visitor<Printer> {
                     p.line("};");
                   }
 
-                  constructorAsses.push(`this.${localName} = ${baseName}__Enum;`);
+                  constructorAsses.push(`this.${localName} = ${baseName}_${localName}__Enum;`);
                 }
                 break;
               case Node.tags.interface:
@@ -1881,15 +1873,12 @@ class BuildersVisitor extends Visitor<Printer> {
             fields.forEach(field => {
               p.interrupt();
 
-              this.structField(field, 2 * struct.getDiscriminantOffset(), union, p);
+              this.structField(scopes, field, 2 * struct.getDiscriminantOffset(), union, p);
             });
           }
         });
       }
     }
-
-    //TODO: Check on all Visitor extensions to verify that super.struct, etc have been invoked under these methods
-    p = super.struct(node, p);
 
     const fields = struct.getFields();
     if (fields !== null) {
@@ -1897,23 +1886,28 @@ class BuildersVisitor extends Visitor<Printer> {
         if (field.tag() === Field.tags.group) {
           p.interrupt();
 
-          p = this.struct(this.index[toHex(field.getGroup().getTypeId())], p);
+          const groupScopes = scopes.slice(0);
+          groupScopes.push({
+            name: nonnull(field.getName()).toString(),
+            id: field.getGroup().getTypeId(),
+          });
+          p = this.visit(groupScopes, field.getGroup().getTypeId(), p);
         }
       });
     }
 
-    return p;
+    //TODO: Check on all Visitor extensions to verify that super.struct, etc have been invoked under these methods
+    return super.struct(scopes, node, p);
   }
 
-  enum(node: Node__InstanceR, p: Printer): Printer {
-    const baseName = address(this.index, node.getId()).classes.map(unprefixName).join("_");
+  enum(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, p: Printer): Printer {
+    const baseName = scopes.map(s => s.name).join("_");
 
     p.interrupt();
 
-    const path = address(this.index, node.getId()).classes.map(unprefixName);
-    p.line(`/**${"*".repeat(path.join(".").length)}**/`);
-    p.line(`/* ${path.join(".")} */`);
-    p.line(`/**${"*".repeat(path.join(".").length)}**/`);
+    p.line(`/**${"*".repeat(scopes.map(s => s.name).join(".").length)}**/`);
+    p.line(`/* ${scopes.map(s => s.name).join(".")} */`);
+    p.line(`/**${"*".repeat(scopes.map(s => s.name).join(".").length)}**/`);
 
     p.interrupt();
 
@@ -1931,10 +1925,10 @@ class BuildersVisitor extends Visitor<Printer> {
     });
     p.line("};");
 
-    return super.enum(node, p);
+    return super.enum(scopes, node, p);
   }
 
-  interface(node: Node__InstanceR, p: Printer): Printer {
+  interface(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, p: Printer): Printer {
     //TODO
     //This will swallow any nested nodes of the interface
     return p;
@@ -1949,5 +1943,5 @@ export default function printReaderBodies(
   p: Printer,
 ): void {
   //TODO: Add empty() to Data and Text? I don't think that I want to.
-  new BuildersVisitor(index, identifiers, parameters).visit(fileId, p);
+  new BuildersVisitor(index, identifiers, parameters).visit([], fileId, p);
 }

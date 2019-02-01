@@ -2,18 +2,18 @@
 
 import type { UInt64 } from "@capnp-js/uint64";
 
-import type { NodeIndex } from "../Visitor";
+import type { NodeIndex, Scope } from "../Visitor";
 import type { Node__InstanceR, Type__InstanceR } from "../schema.capnp-r";
 
 import { toHex } from "@capnp-js/uint64";
+import { nonnull } from "@capnp-js/nullary";
 
 import Visitor from "../Visitor";
-import address from "../util/address";
-import unprefixName from "../util/unprefixName";
+import hostFile from "../util/hostFile";
 import { Field, Type } from "../schema.capnp-r";
 
 type Acc = {
-  structs: Set<UInt64>,
+  scopes: { [uuid: string]: $ReadOnlyArray<Scope> },
   aliases: { [name: string]: string },
 };
 
@@ -31,14 +31,7 @@ export interface Users extends MangledUsers {
 }
 
 class UsersVisitor extends Visitor<Acc> {
-  +names: Set<string>;
-
-  constructor(index: NodeIndex, names: Set<string>) {
-    super(index);
-    this.names = names;
-  }
-
-  struct(node: Node__InstanceR, acc: Acc): Acc {
+  struct(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: Acc): Acc {
     acc.aliases["uint"] = "number";
 
     const struct = node.getStruct();
@@ -52,22 +45,33 @@ class UsersVisitor extends Visitor<Acc> {
       fields.forEach(field => {
         switch (field.tag()) {
         case Field.tags.slot:
-          this.addType(field.getSlot().getType(), acc);
+          this.addType(scopes, field.getSlot().getType(), acc);
           break;
         case Field.tags.group:
-          /* Dig into the struct's groups for their field types too. */
-          //TODO: Grep for this.struct calls that should be this.visit calls.
-          this.visit(field.getGroup().getTypeId(), acc);
+          {
+            /* Dig into the struct's groups for their field types too. */
+            //TODO: Grep for this.struct calls that should be this.visit calls.
+            const groupScopes = scopes.slice(0);
+            groupScopes.push({
+              name: nonnull(field.getName()).toString(),
+              id: field.getGroup().getTypeId(),
+            });
+            this.visit(groupScopes, field.getGroup().getTypeId(), acc);
+          }
           break;
         default: throw new Error("Unrecognized field tag.");
         }
       });
     }
 
-    return super.struct(node, acc);
+    return super.struct(scopes, node, acc);
   }
 
-  addType(type: null | Type__InstanceR, acc: Acc): void {
+  interface(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: Acc): Acc {
+    return acc; //TODO: Examine all of the method fields
+  }
+
+  addType(scopes: $ReadOnlyArray<Scope>, type: null | Type__InstanceR, acc: Acc): void {
     if (type === null) {
       type = Type.empty();
     }
@@ -108,16 +112,16 @@ class UsersVisitor extends Visitor<Acc> {
     case Type.tags.data:
       break;
     case Type.tags.list:
-      this.addType(type.getList().getElementType(), acc);
+      this.addType(scopes, type.getList().getElementType(), acc);
       break;
     case Type.tags.enum:
       acc.aliases["u16"] = "number";
       break;
     case Type.tags.struct:
-      acc.structs.add(type.getStruct().getTypeId());
+      acc.scopes[toHex(type.getStruct().getTypeId())] = scopes;
       break;
     case Type.tags.interface:
-      throw new Error("TODO");
+      throw new Error("TODO?");
     case Type.tags.anyPointer:
       break;
     default:
@@ -179,9 +183,10 @@ type NameCollisions = {
   },
 };
 
-function insertCollision(fileId: UInt64, classes: $ReadOnlyArray<Node__InstanceR>, collisions: NameCollisions): void {
-  const naive = unprefixName(classes[0]);
-  const uuid = toHex(classes[0].getId());
+//TODO: Did I include result and param structs somehow? I think that the "_someMethod" part of the signatures will avoid collisions, but...?
+function insertCollision(fileId: UInt64, scopes: $ReadOnlyArray<Scope>, collisions: NameCollisions): void {
+  const naive = scopes[0].name;
+  const uuid = toHex(scopes[0].id);
 
   if (!collisions[naive]) {
     collisions[naive] = {};
@@ -194,10 +199,10 @@ function insertCollision(fileId: UInt64, classes: $ReadOnlyArray<Node__InstanceR
     };
   }
 
-  if (classes.length === 1) {
+  if (scopes.length === 1) {
     collisions[naive][uuid].fileId = fileId;
   } else {
-    insertCollision(fileId, classes.slice(1), collisions[naive][uuid].subscopes);
+    insertCollision(fileId, scopes.slice(1), collisions[naive][uuid].subscopes);
   }
 }
 
@@ -260,19 +265,25 @@ function mangle(names: Set<string>, path: Path, collisions: NameCollisions, mang
 }
 
 export default function accumulateUsers(index: NodeIndex, fileId: UInt64, names: Set<string>): Users {
-  const internalAcc = new UsersVisitor(index, names).visit(fileId, {
-    structs: new Set(),
+  const internalAcc = new UsersVisitor(index).visit([], fileId, {
+    scopes: {},
     aliases: {},
   });
 
-  const addresses = Array.from(internalAcc.structs).map(id => address(index, id));
-
   const collisions = {};
-  addresses.forEach(address => {
-    if (toHex(address.file.getId()) !== toHex(fileId)) {
-      insertCollision(address.file.getId(), address.classes, collisions);
+  for (let uuid in internalAcc.scopes) {
+    const scopes = internalAcc.scopes[uuid];
+
+    let hostFileId = hostFile(index, scopes[0].id);
+    if (hostFileId === null) {
+      hostFileId = fileId;
     }
-  });
+
+    if (!(hostFileId[0] === fileId[0] && hostFileId[1] === fileId[1])) {
+      insertCollision(hostFileId, scopes, collisions);
+    }
+  }
+
   const mangled = {
     imports: {},
     identifiers: {},
@@ -280,7 +291,8 @@ export default function accumulateUsers(index: NodeIndex, fileId: UInt64, names:
   mangle(names, { naive: [], local: [] }, collisions, mangled);
 
   return {
-    ...mangled,
+    imports: mangled.imports,
+    identifiers: mangled.identifiers,
     aliases: internalAcc.aliases,
   };
 }
