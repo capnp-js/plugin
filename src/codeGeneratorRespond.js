@@ -4,8 +4,8 @@ import type { CodeGeneratorRequest__InstanceR } from "./schema.capnp-r";
 
 import { writeFile } from "fs";
 import { nonnull } from "@capnp-js/nullary";
-import { toHex } from "@capnp-js/uint64";
 
+import Index from "./Index";
 import generateSerialization from "./serialization/generate";
 
 const readerStrategy = {
@@ -29,13 +29,7 @@ const builderStrategy = {
 };
 
 export default function codeGeneratorRespond(request: CodeGeneratorRequest__InstanceR): void {
-  const index = {};
-  const nodes = request.getNodes();
-  if (nodes !== null) {
-    nodes.forEach(node => {
-      index[toHex(node.getId())] = node;
-    });
-  }
+  const index = new Index(request.getNodes());
 
   const requestedFiles = request.getRequestedFiles();
   if (requestedFiles !== null) {

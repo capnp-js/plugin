@@ -2,15 +2,13 @@
 
 import type { UInt64 } from "@capnp-js/uint64";
 
-import type { NodeIndex, Scope } from "../Visitor";
+import type Index from "../Index";
 import type {
   Node__InstanceR,
   Brand__InstanceR,
   Type__InstanceR,
 } from "../schema.capnp-r";
 import type { Libs } from "./libs";
-
-import { nonnull } from "@capnp-js/nullary";
 
 import { Brand, Field, Type } from "../schema.capnp-r";
 import Visitor from "../Visitor";
@@ -48,7 +46,7 @@ function addNames(table: { [naive: string]: string }, acc: Set<string>): void {
 class LibsVisitor extends Visitor<Acc> {
   +names: Set<string>;
 
-  constructor(index: NodeIndex, names: Set<string>) {
+  constructor(index: Index, names: Set<string>) {
     super(index);
     this.names = names;
   }
@@ -57,7 +55,7 @@ class LibsVisitor extends Visitor<Acc> {
     return this.names.has(naive) ? "capnp_" + naive : naive;
   }
 
-  struct(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: Acc): Acc {
+  struct(node: Node__InstanceR, acc: Acc): Acc {
     /* GenericR */
     const parameters = node.getParameters();
     if (parameters !== null && parameters.length() > 0) {
@@ -87,26 +85,51 @@ class LibsVisitor extends Visitor<Acc> {
           break;
         case Field.tags.group:
           /* Dig into the struct's groups for their field types too. */
-          const groupScopes = scopes.slice(0);
-          groupScopes.push({
-            name: nonnull(field.getName()).toString(),
-            id: field.getGroup().getTypeId(),
-          });
-          this.visit(groupScopes, field.getGroup().getTypeId(), acc);
+          acc = this.visit(field.getGroup().getTypeId(), acc);
           break;
         default: throw new Error("Unrecognized field tag.");
         }
       });
     }
 
-    return super.struct(scopes, node, acc);
+    return super.struct(node, acc);
   }
 
-  const(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: Acc): Acc {
+  interface(node: Node__InstanceR, acc: Acc): Acc {
+    /* GenericR */
+    const parameters = node.getParameters();
+    if (parameters !== null && parameters.length() > 0) {
+      acc.type["reader-core"]["AnyGutsR"] = this.mangle("AnyGutsR");
+      acc.type["reader-core"]["CtorR"] = this.mangle("CtorR");
+    }
+
+    const methods = node.getInterface().getMethods();
+    if (methods !== null) {
+      methods.forEach(method => {
+        const paramId = method.getParamStructType();
+        const param = this.index.getNode(paramId);
+        const paramScopeId = param.getScopeId();
+        if (paramScopeId[0] === 0 && paramScopeId[1] === 0) {
+          acc = this.visit(paramId, acc);
+        }
+
+        const resultId = method.getResultStructType();
+        const result = this.index.getNode(resultId);
+        const resultScopeId = result.getScopeId();
+        if (resultScopeId[0] === 0 && resultScopeId[1] === 0) {
+          acc = this.visit(paramId, acc);
+        }
+      });
+    }
+
+    return super.interface(node, acc);
+  }
+
+  const(node: Node__InstanceR, acc: Acc): Acc {
     acc.value["reader-arena"]["deserializeUnsafe"] = "deserializeUnsafe";
     this.addType(node.getConst().getType(), acc);
 
-    return super.const(scopes, node, acc);
+    return super.const(node, acc);
   }
 
   addType(type: null | Type__InstanceR, acc: Acc): void {
@@ -317,8 +340,8 @@ class LibsVisitor extends Visitor<Acc> {
   }
 }
 
-export default function accumulateReaderLibs(index: NodeIndex, fileId: UInt64, names: Set<string>): Libs {
-  const internalAcc = new LibsVisitor(index, names).visit([], fileId, {
+export default function accumulateReaderLibs(index: Index, fileId: UInt64, names: Set<string>): Libs {
+  const internalAcc = new LibsVisitor(index, names).visit(fileId, {
     type: {
       int64: {},
       uint64: {},

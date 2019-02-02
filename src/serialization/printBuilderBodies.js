@@ -3,7 +3,7 @@
 import type { UInt64 } from "@capnp-js/uint64";
 
 import type Printer from "../Printer";
-import type { NodeIndex, Scope } from "../Visitor";
+import type Index from "../Index";
 import type {
   Node__InstanceR,
   Brand__InstanceR,
@@ -36,7 +36,7 @@ type UnionLayout = {
   pointersSequences: $ReadOnlyArray<{ offset: uint, length: u19 }>,
 };
 
-function unionLayout(nodes: NodeIndex, id: UInt64): UnionLayout {
+function unionLayout(index: Index, id: UInt64): UnionLayout {
   const layout = {
     dataBits: [],
     dataBytes: [],
@@ -110,7 +110,7 @@ function unionLayout(nodes: NodeIndex, id: UInt64): UnionLayout {
         break;
       case Field.tags.group:
         {
-          const node = nodes[toHex(field.getGroup().getTypeId())];
+          const node = index.getNode(field.getGroup().getTypeId());
           const struct = node.getStruct();
           if (struct.getDiscriminantCount() !== 0) {
             const b = struct.getDiscriminantOffset() << 1;
@@ -126,7 +126,7 @@ function unionLayout(nodes: NodeIndex, id: UInt64): UnionLayout {
       }
     }
 
-    const node = nodes[toHex(id)];
+    const node = index.getNode(id);
     const struct = node.getStruct();
     const fields = struct.getFields();
     if (fields !== null) {
@@ -208,11 +208,11 @@ type InstanceTypeT = {
 };
 
 class InstanceType {
-  +index: NodeIndex;
+  +index: Index;
   +identifiers: { [uuid: string]: string };
   +parameters: ParametersIndex;
 
-  constructor(index: NodeIndex, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
+  constructor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
     this.index = index;
     this.identifiers = identifiers;
     this.parameters = parameters;
@@ -460,7 +460,7 @@ class InstanceType {
           case Brand.Scope.tags.inherit:
             {
               const scopeId = scope.getScopeId();
-              const parameters = this.index[toHex(scopeId)].getParameters();
+              const parameters = this.index.getNode(scopeId).getParameters();
               if (parameters !== null) {
                 parameters.forEach((parameter, position) => {
                   const name = paramName(this.index, scopeId, position);
@@ -499,11 +499,11 @@ class InstanceType {
 }
 
 class CtorValue {
-  +index: NodeIndex;
+  +index: Index;
   +identifiers: { [uuid: string]: string };
   +parameters: ParametersIndex;
 
-  constructor(index: NodeIndex, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
+  constructor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
     this.index = index;
     this.identifiers = identifiers;
     this.parameters = parameters;
@@ -671,7 +671,7 @@ class CtorValue {
         case Brand.Scope.tags.inherit:
           {
             const scopeId = scope.getScopeId();
-            const parameters = this.index[toHex(scopeId)].getParameters();
+            const parameters = this.index.getNode(scopeId).getParameters();
             if (parameters !== null) {
               parameters.forEach((parameter, position) => {
                 const name = paramName(this.index, scopeId, position);
@@ -701,14 +701,14 @@ class CtorValue {
 }
 
 class GroupValues {
-  +index: NodeIndex;
+  +index: Index;
 
-  constructor(index: NodeIndex) {
+  constructor(index: Index) {
     this.index = index;
   }
 
   peek(id: UInt64): { tagExists: boolean, groupExists: boolean } {
-    const struct = this.index[toHex(id)].getStruct();
+    const struct = this.index.getNode(id).getStruct();
     const tagExists = struct.getDiscriminantCount() > 0;
     let groupExists = false;
     const fields = struct.getFields();
@@ -724,7 +724,7 @@ class GroupValues {
   }
 
   tagsRoot(id: UInt64, baseName: string, p: Printer): boolean {
-    const node = this.index[toHex(id)];
+    const node = this.index.getNode(id);
     if (node.getStruct().getDiscriminantCount() > 0) {
       const fields = nonnull(node.getStruct().getFields());
       p.line(`const ${baseName}__Tags = {`);
@@ -745,7 +745,7 @@ class GroupValues {
   }
 
   tags(id: UInt64, p: Printer): void {
-    const node = this.index[toHex(id)];
+    const node = this.index.getNode(id);
     const fields = nonnull(node.getStruct().getFields());
     p.line("tags: {");
     p.indent(p => {
@@ -761,7 +761,7 @@ class GroupValues {
 
   groupsRoot(id: UInt64, baseName: string, p: Printer): boolean {
     if (this.peek(id).groupExists) {
-      const node = this.index[toHex(id)];
+      const node = this.index.getNode(id);
       p.line(`const ${baseName}__Groups = {`);
       p.indent(p => {
         const fields = nonnull(node.getStruct().getFields());
@@ -787,7 +787,7 @@ class GroupValues {
   }
 
   groups(id: UInt64, p: Printer): void {
-    const node = this.index[toHex(id)];
+    const node = this.index.getNode(id);
     const parent = this.peek(id);
     if (parent.tagExists || parent.groupExists) {
       p.indent(p => {
@@ -820,16 +820,16 @@ class GroupValues {
 }
 
 class GroupTypes {
-  +index: NodeIndex;
+  +index: Index;
   +instanceType: InstanceType;
 
-  constructor(index: NodeIndex, instanceType: InstanceType) {
+  constructor(index: Index, instanceType: InstanceType) {
     this.index = index;
     this.instanceType = instanceType;
   }
 
   peek(id: UInt64): { tagExists: boolean, groupExists: boolean } {
-    const struct = this.index[toHex(id)].getStruct();
+    const struct = this.index.getNode(id).getStruct();
     const tagExists = struct.getDiscriminantCount() > 0;
     let groupExists = false;
     const fields = struct.getFields();
@@ -845,7 +845,7 @@ class GroupTypes {
   }
 
   tagsRoot(id: UInt64, p: Printer): boolean {
-    const node = this.index[toHex(id)];
+    const node = this.index.getNode(id);
     if (node.getStruct().getDiscriminantCount() > 0) {
       const fields = nonnull(node.getStruct().getFields());
       p.line("+tags: {");
@@ -866,7 +866,7 @@ class GroupTypes {
   }
 
   tags(id: UInt64, p: Printer): void {
-    const node = this.index[toHex(id)];
+    const node = this.index.getNode(id);
     const fields = nonnull(node.getStruct().getFields());
     p.line("+tags: {");
     p.indent(p => {
@@ -882,7 +882,7 @@ class GroupTypes {
 
   groupsRoot(id: UInt64, p: Printer): boolean {
     if (this.peek(id).groupExists) {
-      const node = this.index[toHex(id)];
+      const node = this.index.getNode(id);
       p.line("+groups: {");
       p.indent(p => {
         const fields = nonnull(node.getStruct().getFields());
@@ -908,7 +908,7 @@ class GroupTypes {
   }
 
   groups(id: UInt64, p: Printer): void {
-    const node = this.index[toHex(id)];
+    const node = this.index.getNode(id);
     const parent = this.peek(id);
     if (parent.tagExists || parent.groupExists) {
       p.indent(p => {
@@ -947,7 +947,7 @@ class BuildersVisitor extends Visitor<Printer> {
   +groupTypes: GroupTypes;
   +groupValues: GroupValues;
 
-  constructor(index: NodeIndex, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
+  constructor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
     super(index);
     this.parameters = parameters;
     this.instanceType = new InstanceType(index, identifiers, parameters);
@@ -956,7 +956,7 @@ class BuildersVisitor extends Visitor<Printer> {
     this.groupValues = new GroupValues(index);
   }
 
-  structField(scopes: $ReadOnlyArray<Scope>, field: Field__InstanceR, discrOffset: u33, union: UnionLayout, p: Printer): void {
+  structField(field: Field__InstanceR, discrOffset: u33, union: UnionLayout, p: Printer): void {
     function checkTag(discrValue: u16, discrOffset: u33, p: Printer): void {
       if (discrValue !== Field.getNoDiscriminant()) {
         p.line(`this.guts.checkTag(${discrValue}, ${discrOffset});`);
@@ -1322,7 +1322,7 @@ class BuildersVisitor extends Visitor<Printer> {
       {
         const group = field.getGroup();
         const id = group.getTypeId();
-        const baseName = `${scopes.map(s => s.name).join("_")}_${name.toString()}`;
+        const baseName = `${this.index.getScopes(id).map(s => s.name).join("_")}`;
 
         const parameters = this.parameters[toHex(id)].instance;
 
@@ -1367,11 +1367,11 @@ class BuildersVisitor extends Visitor<Printer> {
     }
   }
 
-  struct(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, p: Printer): Printer {
+  struct(node: Node__InstanceR, p: Printer): Printer {
     const uuid = toHex(node.getId());
     const parameters = this.parameters[uuid];
     const struct = node.getStruct();
-    const baseName = scopes.map(s => s.name).join("_");
+    const baseName = this.index.getScopes(node.getId()).map(s => s.name).join("_");
     if (struct.getIsGroup()) {
       //TODO: This is a very common pattern. extract a function and refactor?
       const declareParams = flatMap(Array.from(parameters.instance), name => [
@@ -1432,16 +1432,17 @@ class BuildersVisitor extends Visitor<Printer> {
           fields.forEach(field => {
             p.interrupt();
 
-            this.structField(scopes, field, 2 * struct.getDiscriminantOffset(), union, p);
+            this.structField(field, 2 * struct.getDiscriminantOffset(), union, p);
           });
         }
       });
     } else {
       p.interrupt();
 
-      p.line(`/**${"*".repeat(scopes.map(s => s.name).join(".").length)}**/`);
-      p.line(`/* ${scopes.map(s => s.name).join(".")} */`);
-      p.line(`/**${"*".repeat(scopes.map(s => s.name).join(".").length)}**/`);
+      const names = this.index.getScopes(node.getId()).map(s => s.name);
+      p.line(`/**${"*".repeat(names.join(".").length)}**/`);
+      p.line(`/* ${names.join(".")} */`);
+      p.line(`/**${"*".repeat(names.join(".").length)}**/`);
 
       p.interrupt();
 
@@ -1478,7 +1479,7 @@ class BuildersVisitor extends Visitor<Printer> {
           const nestedNodes = node.getNestedNodes();
           if (nestedNodes !== null) {
             nestedNodes.forEach(nestedNode => {
-              const contained = this.index[toHex(nestedNode.getId())];
+              const contained = this.index.getNode(nestedNode.getId());
               if (contained.tag() === Node.tags.enum) {
                 const localName = nonnull(nestedNode.getName()).toString();
                 const enumerants = contained.getEnum().getEnumerants();
@@ -1619,7 +1620,7 @@ class BuildersVisitor extends Visitor<Printer> {
           const nestedNodes = node.getNestedNodes();
           if (nestedNodes !== null) {
             nestedNodes.forEach(nestedNode => {
-              const contained = this.index[toHex(nestedNode.getId())];
+              const contained = this.index.getNode(nestedNode.getId());
               switch (contained.tag()) {
               case Node.tags.struct:
                 {
@@ -1873,7 +1874,7 @@ class BuildersVisitor extends Visitor<Printer> {
             fields.forEach(field => {
               p.interrupt();
 
-              this.structField(scopes, field, 2 * struct.getDiscriminantOffset(), union, p);
+              this.structField(field, 2 * struct.getDiscriminantOffset(), union, p);
             });
           }
         });
@@ -1886,28 +1887,24 @@ class BuildersVisitor extends Visitor<Printer> {
         if (field.tag() === Field.tags.group) {
           p.interrupt();
 
-          const groupScopes = scopes.slice(0);
-          groupScopes.push({
-            name: nonnull(field.getName()).toString(),
-            id: field.getGroup().getTypeId(),
-          });
-          p = this.visit(groupScopes, field.getGroup().getTypeId(), p);
+          p = this.visit(field.getGroup().getTypeId(), p);
         }
       });
     }
 
     //TODO: Check on all Visitor extensions to verify that super.struct, etc have been invoked under these methods
-    return super.struct(scopes, node, p);
+    return super.struct(node, p);
   }
 
-  enum(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, p: Printer): Printer {
-    const baseName = scopes.map(s => s.name).join("_");
+  enum(node: Node__InstanceR, p: Printer): Printer {
+    const names = this.index.getScopes(node.getId()).map(s => s.name);
+    const baseName = names.join("_");
 
     p.interrupt();
 
-    p.line(`/**${"*".repeat(scopes.map(s => s.name).join(".").length)}**/`);
-    p.line(`/* ${scopes.map(s => s.name).join(".")} */`);
-    p.line(`/**${"*".repeat(scopes.map(s => s.name).join(".").length)}**/`);
+    p.line(`/**${"*".repeat(names.join(".").length)}**/`);
+    p.line(`/* ${names.join(".")} */`);
+    p.line(`/**${"*".repeat(names.join(".").length)}**/`);
 
     p.interrupt();
 
@@ -1925,10 +1922,10 @@ class BuildersVisitor extends Visitor<Printer> {
     });
     p.line("};");
 
-    return super.enum(scopes, node, p);
+    return super.enum(node, p);
   }
 
-  interface(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, p: Printer): Printer {
+  interface(node: Node__InstanceR, p: Printer): Printer {
     //TODO
     //This will swallow any nested nodes of the interface
     return p;
@@ -1936,12 +1933,12 @@ class BuildersVisitor extends Visitor<Printer> {
 }
 
 export default function printReaderBodies(
-  index: NodeIndex,
+  index: Index,
   fileId: UInt64,
   identifiers: { [uuid: string]: string },
   parameters: ParametersIndex,
   p: Printer,
 ): void {
   //TODO: Add empty() to Data and Text? I don't think that I want to.
-  new BuildersVisitor(index, identifiers, parameters).visit([], fileId, p);
+  new BuildersVisitor(index, identifiers, parameters).visit(fileId, p);
 }

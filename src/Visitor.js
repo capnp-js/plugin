@@ -3,147 +3,113 @@
 import type { UInt64 } from "@capnp-js/uint64";
 import type { Node__InstanceR } from "./schema.capnp-r";
 
-import { toHex } from "@capnp-js/uint64";
-import { nonnull } from "@capnp-js/nullary";
-
+import Index from "./Index";
 import { Node } from "./schema.capnp-r";
 
-export type NodeIndex = { +[uuid: string]: Node__InstanceR };
-
-export type Scope = {
-  +name: string,
-  +id: UInt64,
-};
-
 export default class Visitor<T> {
-  +index: NodeIndex;
+  +index: Index;
 
-  constructor(index: NodeIndex) {
+  constructor(index: Index) {
     this.index = index;
   }
 
-  visit(scopes: $ReadOnlyArray<Scope>, id: UInt64, acc: T): T {
-    const node = this.index[toHex(id)];
+  visit(id: UInt64, acc: T): T {
+    const node = this.index.getNode(id);
     if (!node) {
       return acc;
     }
 
-    let update;
     switch (node.tag()) {
     case Node.tags.file:
-      update = this.file(scopes, node, acc);
+      acc = this.file(node, acc);
       break;
     case Node.tags.struct:
-      update = this.struct(scopes, node, acc);
+      acc = this.struct(node, acc);
       break;
     case Node.tags.enum:
-      update = this.enum(scopes, node, acc);
+      acc = this.enum(node, acc);
       break;
     case Node.tags.interface:
-      update = this.interface(scopes, node, acc);
+      acc = this.interface(node, acc);
       break;
     case Node.tags.const:
-      update = this.const(scopes, node, acc);
+      acc = this.const(node, acc);
       break;
     case Node.tags.annotation:
-      update = this.annotation(scopes, node, acc);
+      acc = this.annotation(node, acc);
       break;
     default: throw new Error("Unrecognized node tag.");
     }
 
-    return update;
+    return acc;
   }
 
-  file(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: T): T {
+  file(node: Node__InstanceR, acc: T): T {
     const nestedNodes = node.getNestedNodes();
     if (nestedNodes !== null) {
       nestedNodes.forEach(nestedNode => {
-        const update = scopes.slice(0);
-        update.push({
-          name: nonnull(nestedNode.getName()).toString(),
-          id: nestedNode.getId(),
-        });
-        acc = this.visit(update, nestedNode.getId(), acc);
+        acc = this.visit(nestedNode.getId(), acc);
       });
     }
 
     return acc;
   }
 
-  struct(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: T): T {
+  struct(node: Node__InstanceR, acc: T): T {
     const nestedNodes = node.getNestedNodes();
     if (nestedNodes !== null) {
       nestedNodes.forEach(nestedNode => {
-        const update = scopes.slice(0);
-        update.push({
-          name: nonnull(nestedNode.getName()).toString(),
-          id: nestedNode.getId(),
-        });
-        acc = this.visit(update, nestedNode.getId(), acc);
+        acc = this.visit(nestedNode.getId(), acc);
+      });
+    }
+
+    /* I don't iterate through the struct's groups in case some subclass chooses
+       to ignore them. */
+
+    return acc;
+  }
+
+  enum(node: Node__InstanceR, acc: T): T {
+    const nestedNodes = node.getNestedNodes();
+    if (nestedNodes !== null) {
+      nestedNodes.forEach(nestedNode => {
+        acc = this.visit(nestedNode.getId(), acc);
       });
     }
 
     return acc;
   }
 
-  enum(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: T): T {
+  interface(node: Node__InstanceR, acc: T): T {
     const nestedNodes = node.getNestedNodes();
     if (nestedNodes !== null) {
       nestedNodes.forEach(nestedNode => {
-        const update = scopes.slice(0);
-        update.push({
-          name: nonnull(nestedNode.getName()).toString(),
-          id: nestedNode.getId(),
-        });
-        acc = this.visit(update, nestedNode.getId(), acc);
+        acc = this.visit(nestedNode.getId(), acc);
+      });
+    }
+
+    /* I don't iterate through the interfaces param nor result structs in case
+       some subclass chooses to ignore them. */
+
+    return acc;
+  }
+
+  const(node: Node__InstanceR, acc: T): T {
+    const nestedNodes = node.getNestedNodes();
+    if (nestedNodes !== null) {
+      nestedNodes.forEach(nestedNode => {
+        acc = this.visit(nestedNode.getId(), acc);
       });
     }
 
     return acc;
   }
 
-  interface(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: T): T {
+  annotation(node: Node__InstanceR, acc: T): T {
     const nestedNodes = node.getNestedNodes();
     if (nestedNodes !== null) {
       nestedNodes.forEach(nestedNode => {
-        const update = scopes.slice(0);
-        update.push({
-          name: nonnull(nestedNode.getName()).toString(),
-          id: nestedNode.getId(),
-        });
-        acc = this.visit(update, nestedNode.getId(), acc);
-      });
-    }
-
-    return acc;
-  }
-
-  const(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: T): T {
-    const nestedNodes = node.getNestedNodes();
-    if (nestedNodes !== null) {
-      nestedNodes.forEach(nestedNode => {
-        const update = scopes.slice(0);
-        update.push({
-          name: nonnull(nestedNode.getName()).toString(),
-          id: nestedNode.getId(),
-        });
-        acc = this.visit(update, nestedNode.getId(), acc);
-      });
-    }
-
-    return acc;
-  }
-
-  annotation(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: T): T {
-    const nestedNodes = node.getNestedNodes();
-    if (nestedNodes !== null) {
-      nestedNodes.forEach(nestedNode => {
-        const update = scopes.slice(0);
-        update.push({
-          name: nonnull(nestedNode.getName()).toString(),
-          id: nestedNode.getId(),
-        });
-        acc = this.visit(update, nestedNode.getId(), acc);
+        acc = this.visit(nestedNode.getId(), acc);
       });
     }
 

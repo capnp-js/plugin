@@ -3,7 +3,7 @@
 import type { UInt64 } from "@capnp-js/uint64";
 import type { SegmentB, Word } from "@capnp-js/memory";
 
-import type { NodeIndex, Scope } from "../Visitor";
+import type Index from "../Index";
 import type { Node__InstanceR, Value__InstanceR } from "../schema.capnp-r";
 
 import { toHex } from "@capnp-js/uint64";
@@ -110,7 +110,7 @@ class ValuesVisitor extends Visitor<Acc> {
     }
   }
 
-  struct(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: Acc): Acc {
+  struct(node: Node__InstanceR, acc: Acc): Acc {
     const hostUuid = toHex(node.getId());
     const struct = node.getStruct();
     const fields = struct.getFields();
@@ -133,12 +133,7 @@ class ValuesVisitor extends Visitor<Acc> {
         case Field.tags.group:
           {
             /* Dig into the struct's groups for their defaults too. */
-            const groupScopes = scopes.slice(0);
-            groupScopes.push({
-              name: nonnull(field.getName()).toString(),
-              id: field.getGroup().getTypeId(),
-            });
-            this.visit(groupScopes, field.getGroup().getTypeId(), acc);
+            this.visit(field.getGroup().getTypeId(), acc);
           }
           break;
         default:
@@ -147,12 +142,12 @@ class ValuesVisitor extends Visitor<Acc> {
       });
     }
 
-    return super.struct(scopes, node, acc);
+    return super.struct(node, acc);
   }
 
   //TODO: Interfaces can contain constants. Implement the interface handler.
 
-  const(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: Acc): Acc {
+  const(node: Node__InstanceR, acc: Acc): Acc {
     let value = node.getConst().getValue();
     if (value === null) {
       value = Value.empty();
@@ -165,7 +160,7 @@ class ValuesVisitor extends Visitor<Acc> {
       value.guts.set(0, acc.blob, ref);
     }
 
-    return super.const(scopes, node, acc);
+    return super.const(node, acc);
   }
 }
 
@@ -176,9 +171,9 @@ const start = startStream(new Uint8Array(2048));
 const pack = packing(new Uint8Array(2048));
 const align = alignment(3);
 
-export default function accumulateValues(index: NodeIndex, fileId: UInt64): Values {
+export default function accumulateValues(index: Index, fileId: UInt64): Values {
   const blob = Builder.fresh(2048, new Unlimited());
-  const internalAcc = new ValuesVisitor(index).visit([], fileId, {
+  const internalAcc = new ValuesVisitor(index).visit(fileId, {
     blob,
     defaults: {},
     constants: {},

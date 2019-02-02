@@ -29,6 +29,7 @@ const decode = finishDecode((err, data) => {
 
     const arena = Reader.limited(segments, 1 << 26, 64);
 
+    //TODO: Write an empty file on null? Can null happen?
     const root = nonnull(arena.getRoot());
     const request = root.getAs(CodeGeneratorRequest);
 

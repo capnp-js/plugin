@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { NodeIndex } from "../Visitor";
+import type Index from "../Index";
 import type { CodeGeneratorRequest_RequestedFile__InstanceR } from "../schema.capnp-r";
 
 import * as path from "path";
@@ -27,7 +27,7 @@ export type Strategy = {
   suffix(base: string): string,
 };
 
-export default function serialization(index: NodeIndex, strategy: Strategy, file: RequestedFile): string {
+export default function serialization(index: Index, strategy: Strategy, file: RequestedFile): string {
   const p = new Printer(2);
 
   p.line("/* @flow */");

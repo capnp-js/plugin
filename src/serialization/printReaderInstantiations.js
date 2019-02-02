@@ -2,8 +2,8 @@
 
 import type { UInt64 } from "@capnp-js/uint64";
 
+import type Index from "../Index";
 import type Printer from "../Printer";
-import type { NodeIndex } from "../Visitor";
 import type { ParametersIndex } from "./accumulateParameters";
 
 import { nonnull } from "@capnp-js/nullary";
@@ -11,13 +11,13 @@ import { toHex } from "@capnp-js/uint64";
 
 import { Node } from "../schema.capnp-r";
 
-export default function printReaderInstantiations(index: NodeIndex, fileId: UInt64, parameters: ParametersIndex, p: Printer): void {
-  const file = index[toHex(fileId)];
+export default function printReaderInstantiations(index: Index, fileId: UInt64, parameters: ParametersIndex, p: Printer): void {
+  const file = index.getNode(fileId);
   const nestedNodes = file.getNestedNodes();
   if (nestedNodes !== null) {
     nestedNodes.forEach(nestedNode => {
       const uuid = toHex(nestedNode.getId());
-      const node = index[uuid];
+      const node = index.getNode(nestedNode.getId());
       const name = nonnull(nestedNode.getName()).toString();
       switch (node.tag()) {
       case Node.tags.file:

@@ -2,8 +2,8 @@
 
 import type { UInt64 } from "@capnp-js/uint64";
 
+import type Index from "../Index";
 import type Printer from "../Printer";
-import type { NodeIndex, Scope } from "../Visitor";
 import type {
   Node__InstanceR,
   Brand__InstanceR,
@@ -28,11 +28,11 @@ type u16 = number;
 type u33 = number;
 
 class InstanceType {
-  +index: NodeIndex;
+  +index: Index;
   +identifiers: { [uuid: string]: string };
   +parameters: ParametersIndex;
 
-  constructor(index: NodeIndex, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
+  constructor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
     this.index = index;
     this.identifiers = identifiers;
     this.parameters = parameters;
@@ -246,7 +246,7 @@ class InstanceType {
           case Brand.Scope.tags.inherit:
             {
               const scopeId = scope.getScopeId();
-              const parameters = this.index[toHex(scopeId)].getParameters();
+              const parameters = this.index.getNode(scopeId).getParameters();
               if (parameters !== null) {
                 parameters.forEach((parameter, position) => {
                   const name = paramName(this.index, scopeId, position);
@@ -277,11 +277,11 @@ class InstanceType {
 }
 
 class CtorValue {
-  +index: NodeIndex;
+  +index: Index;
   +identifiers: { [uuid: string]: string };
   +parameters: ParametersIndex;
 
-  constructor(index: NodeIndex, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
+  constructor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
     this.index = index;
     this.identifiers = identifiers;
     this.parameters = parameters;
@@ -453,7 +453,7 @@ class CtorValue {
         case Brand.Scope.tags.inherit:
           {
             const scopeId = scope.getScopeId();
-            const parameters = this.index[toHex(scopeId)].getParameters();
+            const parameters = this.index.getNode(scopeId).getParameters();
             if (parameters !== null) {
               parameters.forEach((parameter, position) => {
                 const name = paramName(this.index, scopeId, position);
@@ -483,16 +483,16 @@ class CtorValue {
 }
 
 class GroupValues {
-  +index: NodeIndex;
+  +index: Index;
   +constants: Constants;
 
-  constructor(index: NodeIndex, constants: Constants) {
+  constructor(index: Index, constants: Constants) {
     this.index = index;
     this.constants = constants;
   }
 
   peek(id: UInt64): { tagExists: boolean, groupExists: boolean } {
-    const struct = this.index[toHex(id)].getStruct();
+    const struct = this.index.getNode(id).getStruct();
     const tagExists = struct.getDiscriminantCount() > 0;
     let groupExists = false;
     const fields = struct.getFields();
@@ -508,7 +508,7 @@ class GroupValues {
   }
 
   tagsRoot(id: UInt64, baseName: string, p: Printer): boolean {
-    const node = this.index[toHex(id)];
+    const node = this.index.getNode(id);
     if (node.getStruct().getDiscriminantCount() > 0) {
       const fields = nonnull(node.getStruct().getFields());
       p.line(`const ${baseName}__Tags = {`);
@@ -529,7 +529,7 @@ class GroupValues {
   }
 
   tags(id: UInt64, p: Printer): void {
-    const node = this.index[toHex(id)];
+    const node = this.index.getNode(id);
     const fields = nonnull(node.getStruct().getFields());
     p.line("tags: {");
     p.indent(p => {
@@ -545,7 +545,7 @@ class GroupValues {
 
   groupsRoot(id: UInt64, baseName: string, p: Printer): boolean {
     if (this.peek(id).groupExists) {
-      const node = this.index[toHex(id)];
+      const node = this.index.getNode(id);
       p.line(`const ${baseName}__Groups = {`);
       p.indent(p => {
         const fields = nonnull(node.getStruct().getFields());
@@ -571,7 +571,7 @@ class GroupValues {
   }
 
   groups(id: UInt64, p: Printer): void {
-    const node = this.index[toHex(id)];
+    const node = this.index.getNode(id);
     const parent = this.peek(id);
     if (parent.tagExists || parent.groupExists) {
       p.indent(p => {
@@ -627,16 +627,16 @@ class GroupValues {
 }
 
 class GroupTypes {
-  +index: NodeIndex;
+  +index: Index;
   +instanceType: InstanceType;
 
-  constructor(index: NodeIndex, instanceType: InstanceType) {
+  constructor(index: Index, instanceType: InstanceType) {
     this.index = index;
     this.instanceType = instanceType;
   }
 
   peek(id: UInt64): { tagExists: boolean, groupExists: boolean } {
-    const struct = this.index[toHex(id)].getStruct();
+    const struct = this.index.getNode(id).getStruct();
     const tagExists = struct.getDiscriminantCount() > 0;
     let groupExists = false;
     const fields = struct.getFields();
@@ -652,7 +652,7 @@ class GroupTypes {
   }
 
   tagsRoot(id: UInt64, p: Printer): boolean {
-    const node = this.index[toHex(id)];
+    const node = this.index.getNode(id);
     if (node.getStruct().getDiscriminantCount() > 0) {
       const fields = nonnull(node.getStruct().getFields());
       p.line("+tags: {");
@@ -673,7 +673,7 @@ class GroupTypes {
   }
 
   tags(id: UInt64, p: Printer): void {
-    const node = this.index[toHex(id)];
+    const node = this.index.getNode(id);
     const fields = nonnull(node.getStruct().getFields());
     p.line("+tags: {");
     p.indent(p => {
@@ -689,7 +689,7 @@ class GroupTypes {
 
   groupsRoot(id: UInt64, p: Printer): boolean {
     if (this.peek(id).groupExists) {
-      const node = this.index[toHex(id)];
+      const node = this.index.getNode(id);
       p.line("+groups: {");
       p.indent(p => {
         const fields = nonnull(node.getStruct().getFields());
@@ -715,7 +715,7 @@ class GroupTypes {
   }
 
   groups(id: UInt64, p: Printer): void {
-    const node = this.index[toHex(id)];
+    const node = this.index.getNode(id);
     const parent = this.peek(id);
     if (parent.tagExists || parent.groupExists) {
       p.indent(p => {
@@ -968,7 +968,7 @@ class ReadersVisitor extends Visitor<Printer> {
   +groupTypes: GroupTypes;
   +groupValues: GroupValues;
 
-  constructor(index: NodeIndex, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
+  constructor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
     super(index);
     this.parameters = parameters;
     this.instanceType = new InstanceType(index, identifiers, parameters);
@@ -978,7 +978,7 @@ class ReadersVisitor extends Visitor<Printer> {
     this.groupValues = new GroupValues(index, this.constants);
   }
 
-  structField(scopes: $ReadOnlyArray<Scope>, field: Field__InstanceR, discrOffset: u33, p: Printer): void {
+  structField(field: Field__InstanceR, discrOffset: u33, p: Printer): void {
     function checkTag(discrValue: u16, discrOffset: u33, p: Printer): void {
       if (discrValue !== Field.getNoDiscriminant()) {
         p.line(`this.guts.checkTag(${discrValue}, ${discrOffset});`);
@@ -1269,7 +1269,7 @@ class ReadersVisitor extends Visitor<Printer> {
       {
         const group = field.getGroup();
         const id = group.getTypeId();
-        const baseName = `${scopes.map(s => s.name).join("_")}_${name.toString()}`;
+        const baseName = `${this.index.getScopes(id).map(s => s.name).join("_")}`;
 
         const parameters = this.parameters[toHex(id)].instance;
 
@@ -1300,13 +1300,548 @@ class ReadersVisitor extends Visitor<Printer> {
     }
   }
 
-  file(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, p: Printer): Printer {
+  // TODO: I made lots of assumptions about the name patterns within a non-"" prefixed struct.
+  //       Try to generate some gibberish under those assumptions.
+  printStruct(type: "param" | "result" | "plain", node: Node__InstanceR, p: Printer): void {
+    const uuid = toHex(node.getId());
+    const baseName = this.index.getScopes(node.getId()).map(s => s.name).join("_");
+    const parameters = this.parameters[uuid];
+    const struct = node.getStruct();
+    let prefix;
+    switch (type) {
+    case "param":
+      prefix = "Param";
+      break;
+    case "result":
+      prefix = "Result";
+      break;
+    default:
+      (type: "plain");
+      prefix = "";
+    }
+
+    this.groupValues.tagsRoot(node.getId(), baseName, p);
+
+    p.interrupt();
+
+    this.groupValues.groupsRoot(node.getId(), baseName, p);
+
+    p.interrupt();
+
+    if (parameters.specialize.length > 0) {
+      /* This struct or interface introduces new generic parameters, so I need
+         a `X__GenericR` class. */
+
+      const declareParams = flatMap(Array.from(parameters.generic), name => [
+        `${name}_guts: AnyGutsR`,
+        `${name}_r: {+guts: ${name}_guts}`,
+      ]);
+
+      const objectParams = Array.from(parameters.generic).map(name => {
+        return `+${name}: CtorR<${name}_guts, ${name}_r>`;
+      });
+
+      let class_ = `export class ${baseName}__${prefix}GenericR`;
+      if (parameters.generic.size > 0) {
+        class_ += `<${declareParams.join(", ")}>`;
+      }
+
+      p.block(class_, p => {
+        const constructorAsses = [];
+
+        const nestedNodes = node.getNestedNodes();
+        if (nestedNodes !== null) {
+          nestedNodes.forEach(nestedNode => {
+            const contained = this.index.getNode(nestedNode.getId());
+            if (contained.tag() === Node.tags.enum) {
+              const localName = nonnull(nestedNode.getName()).toString();
+              const enumerants = contained.getEnum().getEnumerants();
+              if (enumerants === null || enumerants.length() === 0) {
+                p.line(`+${localName}: {}`);
+              } else {
+                p.line(`+${localName}: {`);
+                p.indent(p => {
+                  enumerants.forEach((enumerant, value) => {
+                    p.line(`+${nonnull(enumerant.getName()).toString()}: ${value}`);
+                  });
+                });
+                p.line("};");
+              }
+
+              constructorAsses.push(`this.${localName} = ${baseName}_${localName}__Enum;`);
+            }
+          });
+        }
+
+        if (this.groupTypes.tagsRoot(node.getId(), p)) {
+          constructorAsses.push(`this.tags = ${baseName}__Tags;`);
+        }
+
+        //TODO: Test enum code embedded within structs (and interfaces)
+        if (this.groupTypes.groupsRoot(node.getId(), p)) {
+          constructorAsses.push(`this.groups = ${baseName}__Groups;`);
+        }
+
+        if (parameters.generic.size > 0) {
+          p.line(`+params: { ${objectParams.join(", ")} };`);
+          constructorAsses.push("this.params = params;");
+        }
+
+        p.interrupt();
+
+        if (constructorAsses.length > 0) {
+          if (parameters.generic.size > 0) {
+            p.block(`constructor(params: { ${objectParams.join(", ")} })`, p => {
+              constructorAsses.forEach(ass => {
+                p.line(ass);
+              });
+            });
+          } else {
+            p.block(`constructor()`, p => {
+              constructorAsses.forEach(ass => {
+                p.line(ass);
+              });
+            });
+          }
+        }
+
+        p.interrupt();
+
+        const declarePs = flatMap(parameters.specialize, name => [
+          `${name}_guts: AnyGutsR`,
+          `${name}_r: {+guts: ${name}_guts}`,
+        ]);
+        const argPs = parameters.specialize.map(name => `${name}: CtorR<${name}_guts, ${name}_r>`);
+        const specialPs = flatMap(Array.from(parameters.ctor), name => [
+          `${name}_guts`,
+          `${name}_r`,
+        ]);
+        let specialization = `${baseName}__${prefix}CtorR`;
+        if (parameters.ctor.size > 0) {
+          /* I gotta check for existence because all of the generic parameters
+             may go unused. */
+          specialization += `<${specialPs.join(", ")}>`;
+        }
+        p.block(`specialize<${declarePs.join(", ")}>(${argPs.join(", ")}): ${specialization}`, p => {
+          const newPs = Array.from(parameters.generic).map(name => `${name}: this.params.${name}`);
+
+          /* Some of the specialize arguments may go unused, so I need to add
+             the subset that actually appear in `parameters.ctor`. */
+          parameters.specialize.forEach(name => {
+            if (parameters.ctor.has(name)) {
+              newPs.push(name);
+            }
+          });
+
+          if (parameters.ctor.size > 0) {
+            p.line(`return new ${baseName}__${prefix}CtorR({ ${newPs.join(", ")} });`);
+          } else {
+            p.line(`return new ${baseName}__${prefix}CtorR();`);
+          }
+        });
+
+        if (nestedNodes !== null) {
+          let heading = true;
+          nestedNodes.forEach(nestedNode => {
+            const uuid = toHex(nestedNode.getId());
+            const contained = this.index.getNode(nestedNode.getId());
+            if (contained.tag() === Node.tags.const) {
+              if (heading) {
+                p.interrupt();
+
+                p.comment("Constants");
+                heading = false;
+              }
+
+              p.interrupt();
+
+              const ref = `constants["${uuid}"]`;
+              const c = contained.getConst();
+              this.constants.context(ref, c.getType(), c.getValue(), (type, body) => {
+                const name = nonnull(nestedNode.getName()).toString();
+                if (body === null) {
+                  p.line(`get${capitalize(name)}(): ${type} {}`);
+                } else {
+                  p.block(`get${capitalize(name)}(): ${type}`, p => {
+                    p.line(body);
+                  });
+                }
+              });
+            }
+          });
+        }
+
+        const fields = struct.getFields();
+        if (fields !== null) {
+          let heading = true;
+          fields.forEach(field => {
+            if (field.tag === Field.tags.slot) {
+              const slot = field.getSlot();
+              if (slot.getHadExplicitDefault()) {
+                if (heading) {
+                  p.comment("Defaults");
+                  heading = false;
+                }
+
+                p.interrupt();
+
+                const name = nonnull(field.getName()).toString();
+                const ref = `defaults["${uuid}"].${name}`;
+                this.constants.context(ref, slot.getType(), slot.getDefaultValue(), (type, body) => {
+                  if (body === null) {
+                    p.line(`default${capitalize(name)}(): ${type} {}`);
+                  } else {
+                    p.block(`default${capitalize(name)}(): ${type}`, p => {
+                      p.line(body);
+                    });
+                  }
+                });
+              }
+            }
+          });
+        }
+      });
+    }
+
+    p.interrupt();
+
+    {
+      /* `X__CtorR` */
+
+      let this_ = `${baseName}__${prefix}InstanceR`;
+      if (parameters.instance.size > 0) {
+        const specialParams = flatMap(Array.from(parameters.instance), name => [
+          `${name}_guts`,
+          `${name}_r`,
+        ]);
+        this_ += `<${specialParams.join(", ")}>`;
+      }
+
+      const declareParams = flatMap(Array.from(parameters.ctor), name => [
+        `${name}_guts: AnyGutsR`,
+        `${name}_r: {+guts: ${name}_guts}`,
+      ]);
+
+      const objectParams = Array.from(parameters.ctor).map(name => {
+        return `+${name}: CtorR<${name}_guts, ${name}_r>`;
+      });
+
+      let class_ = `export class ${baseName}__${prefix}CtorR`;
+      if (parameters.ctor.size > 0) {
+        class_ += `<${declareParams.join(", ")}>`;
+      }
+
+      class_ += ` implements StructCtorR<${this_}>`;
+
+      p.block(class_, p => {
+        const constructorAsses = [];
+
+        const nestedNodes = node.getNestedNodes();
+        if (nestedNodes !== null) {
+          nestedNodes.forEach(nestedNode => {
+            const contained = this.index.getNode(nestedNode.getId());
+            switch (contained.tag()) {
+            case Node.tags.struct:
+            case Node.tags.interface:
+              {
+                const localName = nonnull(nestedNode.getName()).toString();
+                const parameters = this.parameters[toHex(nestedNode.getId())];
+                if (parameters.specialize.length > 0) {
+                  let t = `${baseName}_${localName}__GenericR`;
+                  if (parameters.generic.size > 0) {
+                    const specialParams = flatMap(Array.from(parameters.generic), name => [
+                      `${name}_guts`,
+                      `${name}_r`,
+                    ]);
+                    t += `<${specialParams.join(", ")}>`;
+                  }
+                  p.line(`+${localName}: ${t};`);
+
+                  if (parameters.generic.size > 0) {
+                    const params = Array.from(parameters.generic).map(name => {
+                      return `${name}: this.params.${name}`;
+                    });
+                    constructorAsses.push(`this.${localName} = new ${baseName}_${localName}__GenericR({ ${params.join(", ")} });`);
+                  } else {
+                    constructorAsses.push(`this.${localName} = new ${baseName}_${localName}__GenericR();`);
+                  }
+                } else {
+                  let t = `${baseName}_${localName}__CtorR`;
+                  if (parameters.ctor.size > 0) {
+                    const specialParams = flatMap(Array.from(parameters.ctor), name => [
+                      `${name}_guts`,
+                      `${name}_r`,
+                    ]);
+                    t += `<${specialParams.join(", ")}>`;
+                  }
+                  p.line(`+${localName}: ${t};`);
+
+                  if (parameters.ctor.size > 0) {
+                    const params = Array.from(parameters.ctor).map(name => {
+                      return `${name}: this.params.${name}`;
+                    });
+                    constructorAsses.push(`this.${localName} = new ${baseName}_${localName}__CtorR({ ${params.join(", ")} });`);
+                  } else {
+                    constructorAsses.push(`this.${localName} = new ${baseName}_${localName}__CtorR();`);
+                  }
+                }
+              }
+              break;
+            case Node.tags.enum:
+              {
+                const localName = nonnull(nestedNode.getName()).toString();
+                const enumerants = contained.getEnum().getEnumerants();
+                if (enumerants === null || enumerants.length() === 0) {
+                  p.line(`+${localName}: {}`);
+                } else {
+                  //TODO: This bunch of enum stuff exists verbatim above. Consider factoring it out into a __Tags-like const.
+                  p.line(`+${localName}: {`);
+                  p.indent(p => {
+                    enumerants.forEach((enumerant, value) => {
+                      p.line(`+${nonnull(enumerant.getName()).toString()}: ${value}`);
+                    });
+                  });
+                  p.line("};");
+                }
+
+                constructorAsses.push(`this.${localName} = ${baseName}_${localName}__Enum;`);
+              }
+              break;
+            }
+          });
+        }
+
+        if (this.groupTypes.tagsRoot(node.getId(), p)) {
+          constructorAsses.push(`this.tags = ${baseName}__Tags;`);
+        }
+
+        if (this.groupTypes.groupsRoot(node.getId(), p)) {
+          constructorAsses.push(`this.groups = ${baseName}__Groups;`);
+        }
+
+        if (parameters.ctor.size > 0) {
+          p.line(`+params: { ${objectParams.join(", ")} };`);
+          constructorAsses.push("this.params = params;");
+        }
+
+        if (constructorAsses.length > 0) {
+          p.interrupt();
+
+          if (parameters.ctor.size > 0) {
+            p.block(`constructor(params: { ${objectParams.join(", ")} })`, p => {
+              constructorAsses.forEach(ass => {
+                p.line(ass);
+              });
+            });
+          } else {
+            p.block(`constructor()`, p => {
+              constructorAsses.forEach(ass => {
+                p.line(ass);
+              });
+            });
+          }
+        }
+
+        p.interrupt();
+
+        //TODO: convert parameters.specialize to a Set<string> for consistency?
+        const instanceParams = Array.from(parameters.instance).map(name => `${name}: this.params.${name}`);
+
+        p.block(`intern(guts: StructGutsR): ${this_}`, p => {
+          if (parameters.instance.size > 0) {
+            p.line(`return new ${baseName}__${prefix}InstanceR(guts, { ${instanceParams.join(", ")} });`);
+          } else {
+            p.line(`return new ${baseName}__${prefix}InstanceR(guts);`);
+          }
+        });
+
+        p.interrupt();
+
+        p.block(`fromAny(guts: AnyGutsR): ${this_}`, p => {
+          if (parameters.instance.size > 0) {
+            p.line(`return new ${baseName}__${prefix}InstanceR(RefedStruct.fromAny(guts), { ${instanceParams.join(", ")} });`);
+          } else {
+            p.line(`return new ${baseName}__${prefix}InstanceR(RefedStruct.fromAny(guts));`);
+          }
+        });
+
+        p.interrupt();
+
+        p.block(`deref(level: uint, arena: ArenaR, ref: Word<SegmentR>): ${this_}`, p => {
+          p.line("const guts = RefedStruct.deref(level, arena, ref, this.compiledBytes());");
+          if (parameters.instance.size > 0) {
+            p.line(`return new ${baseName}__${prefix}InstanceR(guts, { ${instanceParams.join(", ")} });`);
+          } else {
+            p.line(`return new ${baseName}__${prefix}InstanceR(guts);`);
+          }
+        });
+
+        p.interrupt();
+
+        p.block(`get(level: uint, arena: ArenaR, ref: Word<SegmentR>): null | ${this_}`, p => {
+          p.line("return isNull(ref) ? null : this.deref(level, arena, ref);");
+        });
+
+        p.interrupt();
+
+        p.block("compiledBytes(): Bytes", p => {
+          const data  = struct.getDataWordCount() << 3;
+          const pointers = struct.getPointerCount() << 3;
+          p.line(`return { data: ${data}, pointers: ${pointers} };`);
+        });
+
+        p.interrupt();
+
+        p.block(`empty(): ${this_}`, p => {
+          p.line("const guts = RefedStruct.empty(blob);");
+          if (parameters.instance.size > 0) {
+            p.line(`return new ${baseName}__${prefix}InstanceR(guts, { ${instanceParams.join(", ")} });`);
+          } else {
+            p.line(`return new ${baseName}__${prefix}InstanceR(guts);`);
+          }
+        });
+
+        if (nestedNodes !== null) {
+          let heading = true;
+          nestedNodes.forEach(nestedNode => {
+            const contained = this.index.getNode(nestedNode.getId());
+            if (contained.tag() === Node.tags.const) {
+              if (heading) {
+                p.interrupt();
+
+                p.comment("Constants");
+                heading = false;
+              }
+
+              p.interrupt();
+
+              const c = contained.getConst();
+              const uuid = toHex(nestedNode.getId());
+              const ref = `constants["${uuid}"]`;
+              this.constants.context(ref, c.getType(), c.getValue(), (type, body) => {
+                const name = nonnull(nestedNode.getName()).toString();
+                if (body === null) {
+                  p.line(`get${capitalize(name)}(): ${type} {}`);
+                } else {
+                  p.block(`get${capitalize(name)}(): ${type}`, p => {
+                    p.line(body);
+                  });
+                }
+              });
+            }
+          });
+        }
+
+        const fields = struct.getFields();
+        if (fields !== null) {
+          let heading = true;
+          fields.forEach(field => {
+            if (field.tag === Field.tags.slot) {
+              const slot = field.getSlot();
+              if (slot.getHadExplicitDefault()) {
+                if (heading) {
+                  p.comment("Defaults");
+                  heading = false;
+                }
+
+                p.interrupt();
+
+                const name = nonnull(field.getName()).toString();
+                const ref = `defaults["${uuid}"].${name}`;
+                this.constants.context(ref, slot.getType(), slot.getDefaultValue(), (type, body) => {
+                  if (body === null) {
+                    p.line(`default${capitalize(name)}(): ${type} {}`);
+                  } else {
+                    p.block(`default${capitalize(name)}(): ${type}`, p => {
+                      p.line(body);
+                    });
+                  }
+                });
+              }
+            }
+          });
+        }
+      });
+    }
+
+    p.interrupt();
+
+    {
+      /* `X__InstanceR` */
+
+      const declareParams = flatMap(Array.from(parameters.instance), name => [
+        `${name}_guts: AnyGutsR`,
+        `${name}_r: {+guts: ${name}_guts}`,
+      ]);
+
+      const objectParams = Array.from(parameters.instance).map(name => {
+        return `+${name}: CtorR<${name}_guts, ${name}_r>`;
+      });
+
+      let class_ = `export class ${baseName}__${prefix}InstanceR`;
+      if (parameters.instance.size > 0) {
+        class_ += `<${declareParams.join(", ")}>`;
+      }
+
+      p.block(class_, p => {
+        p.line("+guts: StructGutsR;");
+
+        if (parameters.instance.size > 0) {
+          p.line(`+params: { ${objectParams.join(", ")} };`);
+
+          p.interrupt();
+
+          p.block(`constructor(guts: StructGutsR, params: { ${objectParams.join(", ")} })`, p => {
+            p.line("this.guts = guts;");
+            p.line("this.params = params;");
+          });
+        } else {
+          p.interrupt();
+
+          p.block(`constructor(guts: StructGutsR)`, p => {
+            p.line("this.guts = guts;");
+          });
+        }
+
+        if (struct.getDiscriminantCount() > 0) {
+          p.interrupt();
+
+          p.block("tag(): u16", p => {
+            //TODO: Fix the offset annotation from getTag in reader-core. Its at u19 when it should be u33
+            p.line(`return this.guts.getTag(${2 * struct.getDiscriminantOffset()});`);
+          });
+        }
+
+        const fields = struct.getFields();
+        if (fields !== null) {
+          fields.forEach(field => {
+            p.interrupt();
+
+            this.structField(field, 2 * struct.getDiscriminantOffset(), p);
+          });
+        }
+      });
+    }
+
+    const fields = struct.getFields();
+    if (fields !== null) {
+      fields.forEach(field => {
+        if (field.tag() === Field.tags.group) {
+          p.interrupt();
+
+          p = this.struct(this.index.getNode(field.getGroup().getTypeId()), p);
+        }
+      });
+    }
+  }
+
+  file(node: Node__InstanceR, p: Printer): Printer {
     const nestedNodes = node.getNestedNodes();
     if (nestedNodes !== null) {
       let heading = true;
       nestedNodes.forEach(nestedNode => {
         const uuid = toHex(nestedNode.getId());
-        const contained = this.index[uuid];
+        const contained = this.index.getNode(nestedNode.getId());
         if (contained.tag() === Node.tags.const) {
           if (heading) {
             p.comment("Constants");
@@ -1331,14 +1866,14 @@ class ReadersVisitor extends Visitor<Printer> {
       });
     }
 
-    return super.file(scopes, node, p);
+    return super.file(node, p);
   }
 
-  struct(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, p: Printer): Printer {
+  struct(node: Node__InstanceR, p: Printer): Printer {
     const uuid = toHex(node.getId());
     const parameters = this.parameters[uuid];
     const struct = node.getStruct();
-    const baseName = scopes.map(s => s.name).join("_");
+    const baseName = this.index.getScopes(node.getId()).map(s => s.name).join("_");
     if (struct.getIsGroup()) {
       //TODO: This is a very common pattern. extract a function and refactor?
       const declareParams = flatMap(Array.from(parameters.instance), name => [
@@ -1391,521 +1926,21 @@ class ReadersVisitor extends Visitor<Printer> {
           fields.forEach(field => {
             p.interrupt();
 
-            this.structField(scopes, field, 2 * struct.getDiscriminantOffset(), p);
+            this.structField(field, 2 * struct.getDiscriminantOffset(), p);
           });
         }
       });
     } else {
       p.interrupt();
 
-      p.line(`/**${"*".repeat(scopes.map(s => s.name).join(".").length)}**/`);
-      p.line(`/* ${scopes.map(s => s.name).join(".")} */`);
-      p.line(`/**${"*".repeat(scopes.map(s => s.name).join(".").length)}**/`);
+      const names = this.index.getScopes(node.getId()).map(s => s.name);
+      p.line(`/**${"*".repeat(names.join(".").length)}**/`);
+      p.line(`/* ${names.join(".")} */`);
+      p.line(`/**${"*".repeat(names.join(".").length)}**/`);
 
       p.interrupt();
 
-      this.groupValues.tagsRoot(node.getId(), baseName, p);
-
-      p.interrupt();
-
-      this.groupValues.groupsRoot(node.getId(), baseName, p);
-
-      p.interrupt();
-
-      if (parameters.specialize.length > 0) {
-        /* This struct or interface introduces new generic parameters, so I need
-           a `X__GenericR` class. */
-
-        const declareParams = flatMap(Array.from(parameters.generic), name => [
-          `${name}_guts: AnyGutsR`,
-          `${name}_r: {+guts: ${name}_guts}`,
-        ]);
-
-        const objectParams = Array.from(parameters.generic).map(name => {
-          return `+${name}: CtorR<${name}_guts, ${name}_r>`;
-        });
-
-        let class_ = `export class ${baseName}__GenericR`;
-        if (parameters.generic.size > 0) {
-          class_ += `<${declareParams.join(", ")}>`;
-        }
-
-        p.block(class_, p => {
-          const constructorAsses = [];
-
-          const nestedNodes = node.getNestedNodes();
-          if (nestedNodes !== null) {
-            nestedNodes.forEach(nestedNode => {
-              const contained = this.index[toHex(nestedNode.getId())];
-              if (contained.tag() === Node.tags.enum) {
-                const localName = nonnull(nestedNode.getName()).toString();
-                const enumerants = contained.getEnum().getEnumerants();
-                if (enumerants === null || enumerants.length() === 0) {
-                  p.line(`+${localName}: {}`);
-                } else {
-                  p.line(`+${localName}: {`);
-                  p.indent(p => {
-                    enumerants.forEach((enumerant, value) => {
-                      p.line(`+${nonnull(enumerant.getName()).toString()}: ${value}`);
-                    });
-                  });
-                  p.line("};");
-                }
-
-                constructorAsses.push(`this.${localName} = ${baseName}_${localName}__Enum;`);
-              }
-            });
-          }
-
-          if (this.groupTypes.tagsRoot(node.getId(), p)) {
-            constructorAsses.push(`this.tags = ${baseName}__Tags;`);
-          }
-
-          //TODO: Test enum code embedded within structs (and interfaces)
-          if (this.groupTypes.groupsRoot(node.getId(), p)) {
-            constructorAsses.push(`this.groups = ${baseName}__Groups;`);
-          }
-
-          if (parameters.generic.size > 0) {
-            p.line(`+params: { ${objectParams.join(", ")} };`);
-            constructorAsses.push("this.params = params;");
-          }
-
-          p.interrupt();
-
-          if (constructorAsses.length > 0) {
-            if (parameters.generic.size > 0) {
-              p.block(`constructor(params: { ${objectParams.join(", ")} })`, p => {
-                constructorAsses.forEach(ass => {
-                  p.line(ass);
-                });
-              });
-            } else {
-              p.block(`constructor()`, p => {
-                constructorAsses.forEach(ass => {
-                  p.line(ass);
-                });
-              });
-            }
-          }
-
-          p.interrupt();
-
-          const declarePs = flatMap(parameters.specialize, name => [
-            `${name}_guts: AnyGutsR`,
-            `${name}_r: {+guts: ${name}_guts}`,
-          ]);
-          const argPs = parameters.specialize.map(name => `${name}: CtorR<${name}_guts, ${name}_r>`);
-          const specialPs = flatMap(Array.from(parameters.ctor), name => [
-            `${name}_guts`,
-            `${name}_r`,
-          ]);
-          let specialization = `${baseName}__CtorR`;
-          if (parameters.ctor.size > 0) {
-            /* I gotta check for existence because all of the generic parameters
-               may go unused. */
-            specialization += `<${specialPs.join(", ")}>`;
-          }
-          p.block(`specialize<${declarePs.join(", ")}>(${argPs.join(", ")}): ${specialization}`, p => {
-            const newPs = Array.from(parameters.generic).map(name => `${name}: this.params.${name}`);
-
-            /* Some of the specialize arguments may go unused, so I need to add
-               the subset that actually appear in `parameters.ctor`. */
-            parameters.specialize.forEach(name => {
-              if (parameters.ctor.has(name)) {
-                newPs.push(name);
-              }
-            });
-
-            if (parameters.ctor.size > 0) {
-              p.line(`return new ${baseName}__CtorR({ ${newPs.join(", ")} });`);
-            } else {
-              p.line(`return new ${baseName}__CtorR();`);
-            }
-          });
-
-          if (nestedNodes !== null) {
-            let heading = true;
-            nestedNodes.forEach(nestedNode => {
-              const uuid = toHex(nestedNode.getId());
-              const contained = this.index[uuid];
-              if (contained.tag() === Node.tags.const) {
-                if (heading) {
-                  p.interrupt();
-
-                  p.comment("Constants");
-                  heading = false;
-                }
-
-                p.interrupt();
-
-                const ref = `constants["${uuid}"]`;
-                const c = contained.getConst();
-                this.constants.context(ref, c.getType(), c.getValue(), (type, body) => {
-                  const name = nonnull(nestedNode.getName()).toString();
-                  if (body === null) {
-                    p.line(`get${capitalize(name)}(): ${type} {}`);
-                  } else {
-                    p.block(`get${capitalize(name)}(): ${type}`, p => {
-                      p.line(body);
-                    });
-                  }
-                });
-              }
-            });
-          }
-
-          const fields = struct.getFields();
-          if (fields !== null) {
-            let heading = true;
-            fields.forEach(field => {
-              if (field.tag === Field.tags.slot) {
-                const slot = field.getSlot();
-                if (slot.getHadExplicitDefault()) {
-                  if (heading) {
-                    p.comment("Defaults");
-                    heading = false;
-                  }
-
-                  p.interrupt();
-
-                  const name = nonnull(field.getName()).toString();
-                  const ref = `defaults["${uuid}"].${name}`;
-                  this.constants.context(ref, slot.getType(), slot.getDefaultValue(), (type, body) => {
-                    if (body === null) {
-                      p.line(`default${capitalize(name)}(): ${type} {}`);
-                    } else {
-                      p.block(`default${capitalize(name)}(): ${type}`, p => {
-                        p.line(body);
-                      });
-                    }
-                  });
-                }
-              }
-            });
-          }
-        });
-      }
-
-      p.interrupt();
-
-      {
-        /* `X__CtorR` */
-
-        let this_ = `${baseName}__InstanceR`;
-        if (parameters.instance.size > 0) {
-          const specialParams = flatMap(Array.from(parameters.instance), name => [
-            `${name}_guts`,
-            `${name}_r`,
-          ]);
-          this_ += `<${specialParams.join(", ")}>`;
-        }
-
-        const declareParams = flatMap(Array.from(parameters.ctor), name => [
-          `${name}_guts: AnyGutsR`,
-          `${name}_r: {+guts: ${name}_guts}`,
-        ]);
-
-        const objectParams = Array.from(parameters.ctor).map(name => {
-          return `+${name}: CtorR<${name}_guts, ${name}_r>`;
-        });
-
-        let class_ = `export class ${baseName}__CtorR`;
-        if (parameters.ctor.size > 0) {
-          class_ += `<${declareParams.join(", ")}>`;
-        }
-
-        class_ += ` implements StructCtorR<${this_}>`;
-
-        p.block(class_, p => {
-          const constructorAsses = [];
-
-          const nestedNodes = node.getNestedNodes();
-          if (nestedNodes !== null) {
-            nestedNodes.forEach(nestedNode => {
-              const contained = this.index[toHex(nestedNode.getId())];
-              switch (contained.tag()) {
-              case Node.tags.struct:
-              case Node.tags.interface:
-                {
-                  const localName = nonnull(nestedNode.getName()).toString();
-                  const parameters = this.parameters[toHex(nestedNode.getId())];
-                  if (parameters.specialize.length > 0) {
-                    let t = `${baseName}_${localName}__GenericR`;
-                    if (parameters.generic.size > 0) {
-                      const specialParams = flatMap(Array.from(parameters.generic), name => [
-                        `${name}_guts`,
-                        `${name}_r`,
-                      ]);
-                      t += `<${specialParams.join(", ")}>`;
-                    }
-                    p.line(`+${localName}: ${t};`);
-
-                    if (parameters.generic.size > 0) {
-                      const params = Array.from(parameters.generic).map(name => {
-                        return `${name}: this.params.${name}`;
-                      });
-                      constructorAsses.push(`this.${localName} = new ${baseName}_${localName}__GenericR({ ${params.join(", ")} });`);
-                    } else {
-                      constructorAsses.push(`this.${localName} = new ${baseName}_${localName}__GenericR();`);
-                    }
-                  } else {
-                    let t = `${baseName}_${localName}__CtorR`;
-                    if (parameters.ctor.size > 0) {
-                      const specialParams = flatMap(Array.from(parameters.ctor), name => [
-                        `${name}_guts`,
-                        `${name}_r`,
-                      ]);
-                      t += `<${specialParams.join(", ")}>`;
-                    }
-                    p.line(`+${localName}: ${t};`);
-
-                    if (parameters.ctor.size > 0) {
-                      const params = Array.from(parameters.ctor).map(name => {
-                        return `${name}: this.params.${name}`;
-                      });
-                      constructorAsses.push(`this.${localName} = new ${baseName}_${localName}__CtorR({ ${params.join(", ")} });`);
-                    } else {
-                      constructorAsses.push(`this.${localName} = new ${baseName}_${localName}__CtorR();`);
-                    }
-                  }
-                }
-                break;
-              case Node.tags.enum:
-                {
-                  const localName = nonnull(nestedNode.getName()).toString();
-                  const enumerants = contained.getEnum().getEnumerants();
-                  if (enumerants === null || enumerants.length() === 0) {
-                    p.line(`+${localName}: {}`);
-                  } else {
-                    //TODO: This bunch of enum stuff exists verbatim above. Consider factoring it out into a __Tags-like const.
-                    p.line(`+${localName}: {`);
-                    p.indent(p => {
-                      enumerants.forEach((enumerant, value) => {
-                        p.line(`+${nonnull(enumerant.getName()).toString()}: ${value}`);
-                      });
-                    });
-                    p.line("};");
-                  }
-
-                  constructorAsses.push(`this.${localName} = ${baseName}_${localName}__Enum;`);
-                }
-                break;
-              }
-            });
-          }
-
-          if (this.groupTypes.tagsRoot(node.getId(), p)) {
-            constructorAsses.push(`this.tags = ${baseName}__Tags;`);
-          }
-
-          if (this.groupTypes.groupsRoot(node.getId(), p)) {
-            constructorAsses.push(`this.groups = ${baseName}__Groups;`);
-          }
-
-          if (parameters.ctor.size > 0) {
-            p.line(`+params: { ${objectParams.join(", ")} };`);
-            constructorAsses.push("this.params = params;");
-          }
-
-          if (constructorAsses.length > 0) {
-            p.interrupt();
-
-            if (parameters.ctor.size > 0) {
-              p.block(`constructor(params: { ${objectParams.join(", ")} })`, p => {
-                constructorAsses.forEach(ass => {
-                  p.line(ass);
-                });
-              });
-            } else {
-              p.block(`constructor()`, p => {
-                constructorAsses.forEach(ass => {
-                  p.line(ass);
-                });
-              });
-            }
-          }
-
-          p.interrupt();
-
-          //TODO: convert parameters.specialize to a Set<string> for consistency?
-          const instanceParams = Array.from(parameters.instance).map(name => `${name}: this.params.${name}`);
-
-          p.block(`intern(guts: StructGutsR): ${this_}`, p => {
-            if (parameters.instance.size > 0) {
-              p.line(`return new ${baseName}__InstanceR(guts, { ${instanceParams.join(", ")} });`);
-            } else {
-              p.line(`return new ${baseName}__InstanceR(guts);`);
-            }
-          });
-
-          p.interrupt();
-
-          p.block(`fromAny(guts: AnyGutsR): ${this_}`, p => {
-            if (parameters.instance.size > 0) {
-              p.line(`return new ${baseName}__InstanceR(RefedStruct.fromAny(guts), { ${instanceParams.join(", ")} });`);
-            } else {
-              p.line(`return new ${baseName}__InstanceR(RefedStruct.fromAny(guts));`);
-            }
-          });
-
-          p.interrupt();
-
-          p.block(`deref(level: uint, arena: ArenaR, ref: Word<SegmentR>): ${this_}`, p => {
-            p.line("const guts = RefedStruct.deref(level, arena, ref, this.compiledBytes());");
-            if (parameters.instance.size > 0) {
-              p.line(`return new ${baseName}__InstanceR(guts, { ${instanceParams.join(", ")} });`);
-            } else {
-              p.line(`return new ${baseName}__InstanceR(guts);`);
-            }
-          });
-
-          p.interrupt();
-
-          p.block(`get(level: uint, arena: ArenaR, ref: Word<SegmentR>): null | ${this_}`, p => {
-            p.line("return isNull(ref) ? null : this.deref(level, arena, ref);");
-          });
-
-          p.interrupt();
-
-          p.block("compiledBytes(): Bytes", p => {
-            const data  = struct.getDataWordCount() << 3;
-            const pointers = struct.getPointerCount() << 3;
-            p.line(`return { data: ${data}, pointers: ${pointers} };`);
-          });
-
-          p.interrupt();
-
-          p.block(`empty(): ${this_}`, p => {
-            p.line("const guts = RefedStruct.empty(blob);");
-            if (parameters.instance.size > 0) {
-              p.line(`return new ${baseName}__InstanceR(guts, { ${instanceParams.join(", ")} });`);
-            } else {
-              p.line(`return new ${baseName}__InstanceR(guts);`);
-            }
-          });
-
-          if (nestedNodes !== null) {
-            let heading = true;
-            nestedNodes.forEach(nestedNode => {
-              const contained = this.index[toHex(nestedNode.getId())];
-              if (contained.tag() === Node.tags.const) {
-                if (heading) {
-                  p.interrupt();
-
-                  p.comment("Constants");
-                  heading = false;
-                }
-
-                p.interrupt();
-
-                const c = contained.getConst();
-                const uuid = toHex(nestedNode.getId());
-                const ref = `constants["${uuid}"]`;
-                this.constants.context(ref, c.getType(), c.getValue(), (type, body) => {
-                  const name = nonnull(nestedNode.getName()).toString();
-                  if (body === null) {
-                    p.line(`get${capitalize(name)}(): ${type} {}`);
-                  } else {
-                    p.block(`get${capitalize(name)}(): ${type}`, p => {
-                      p.line(body);
-                    });
-                  }
-                });
-              }
-            });
-          }
-
-          const fields = struct.getFields();
-          if (fields !== null) {
-            let heading = true;
-            fields.forEach(field => {
-              if (field.tag === Field.tags.slot) {
-                const slot = field.getSlot();
-                if (slot.getHadExplicitDefault()) {
-                  if (heading) {
-                    p.comment("Defaults");
-                    heading = false;
-                  }
-
-                  p.interrupt();
-
-                  const name = nonnull(field.getName()).toString();
-                  const ref = `defaults["${uuid}"].${name}`;
-                  this.constants.context(ref, slot.getType(), slot.getDefaultValue(), (type, body) => {
-                    if (body === null) {
-                      p.line(`default${capitalize(name)}(): ${type} {}`);
-                    } else {
-                      p.block(`default${capitalize(name)}(): ${type}`, p => {
-                        p.line(body);
-                      });
-                    }
-                  });
-                }
-              }
-            });
-          }
-        });
-      }
-
-      p.interrupt();
-
-      {
-        /* `X__InstanceR` */
-
-        const declareParams = flatMap(Array.from(parameters.instance), name => [
-          `${name}_guts: AnyGutsR`,
-          `${name}_r: {+guts: ${name}_guts}`,
-        ]);
-
-        const objectParams = Array.from(parameters.instance).map(name => {
-          return `+${name}: CtorR<${name}_guts, ${name}_r>`;
-        });
-
-        let class_ = `export class ${baseName}__InstanceR`;
-        if (parameters.instance.size > 0) {
-          class_ += `<${declareParams.join(", ")}>`;
-        }
-
-        p.block(class_, p => {
-          p.line("+guts: StructGutsR;");
-
-          if (parameters.instance.size > 0) {
-            p.line(`+params: { ${objectParams.join(", ")} };`);
-
-            p.interrupt();
-
-            p.block(`constructor(guts: StructGutsR, params: { ${objectParams.join(", ")} })`, p => {
-              p.line("this.guts = guts;");
-              p.line("this.params = params;");
-            });
-          } else {
-            p.interrupt();
-
-            p.block(`constructor(guts: StructGutsR)`, p => {
-              p.line("this.guts = guts;");
-            });
-          }
-
-          if (struct.getDiscriminantCount() > 0) {
-            p.interrupt();
-
-            p.block("tag(): u16", p => {
-              //TODO: Fix the offset annotation from getTag in reader-core. Its at u19 when it should be u33
-              p.line(`return this.guts.getTag(${2 * struct.getDiscriminantOffset()});`);
-            });
-          }
-
-          const fields = struct.getFields();
-          if (fields !== null) {
-            fields.forEach(field => {
-              p.interrupt();
-
-              this.structField(scopes, field, 2 * struct.getDiscriminantOffset(), p);
-            });
-          }
-        });
-      }
+      this.printStruct("plain", node, p);
     }
 
     const fields = struct.getFields();
@@ -1914,20 +1949,17 @@ class ReadersVisitor extends Visitor<Printer> {
         if (field.tag() === Field.tags.group) {
           p.interrupt();
 
-          const groupScopes = scopes.slice(0);
-          groupScopes.push({
-            name: nonnull(field.getName()).toString(),
-            id: field.getGroup().getTypeId(),
-          });
-          p = this.struct(groupScopes, this.index[toHex(field.getGroup().getTypeId())], p);
+          //TODO: Should this be a `visit` call instead?
+          p = this.struct(this.index.getNode(field.getGroup().getTypeId()), p);
         }
       });
     }
 
-    return super.struct(scopes, node, p);
+    return super.struct(node, p);
   }
 
-  enum(names: $ReadOnlyArray<Scope>, node: Node__InstanceR, p: Printer): Printer {
+  enum(node: Node__InstanceR, p: Printer): Printer {
+    const names = this.index.getScopes(node.getId()).map(s => s.name);
     const baseName = names.join("_");
 
     p.interrupt();
@@ -1952,20 +1984,21 @@ class ReadersVisitor extends Visitor<Printer> {
     });
     p.line("};");
 
-    return super.enum(names, node, p);
+    return super.enum(node, p);
   }
 
-  interface(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, p: Printer): Printer {
+  interface(node: Node__InstanceR, p: Printer): Printer {
     const uuid = toHex(node.getId());
     const parameters = this.parameters[uuid];
     const iface = node.getInterface();
-    const baseName = scopes.map(s => s.name).join("_");
+    const names = this.index.getScopes(node.getId()).map(s => s.name);
+    const baseName = names.join("_");
 
     p.interrupt();
 
-    p.line(`/**${"*".repeat(scopes.map(s => s.name).join(".").length)}**/`);
-    p.line(`/* ${scopes.map(s => s.name).join(".")} */`);
-    p.line(`/**${"*".repeat(scopes.map(s => s.name).join(".").length)}**/`);
+    p.line(`/**${"*".repeat(names.join(".").length)}**/`);
+    p.line(`/* ${names.join(".")} */`);
+    p.line(`/**${"*".repeat(names.join(".").length)}**/`);
 
     p.interrupt();
 
@@ -1993,7 +2026,7 @@ class ReadersVisitor extends Visitor<Printer> {
         const nestedNodes = node.getNestedNodes();
         if (nestedNodes !== null) {
           nestedNodes.forEach(nestedNode => {
-            const contained = this.index[toHex(nestedNode.getId())];
+            const contained = this.index.getNode(nestedNode.getId());
             if (contained.tag() === Node.tags.enum) {
               const localName = nonnull(nestedNode.getName()).toString();
               const enumerants = contained.getEnum().getEnumerants();
@@ -2077,7 +2110,7 @@ class ReadersVisitor extends Visitor<Printer> {
           let heading = true;
           nestedNodes.forEach(nestedNode => {
             const uuid = toHex(nestedNode.getId());
-            const contained = this.index[uuid];
+            const contained = this.index.getNode(nestedNode.getId());
             if (contained.tag() === Node.tags.const) {
               if (heading) {
                 p.interrupt();
@@ -2131,7 +2164,7 @@ class ReadersVisitor extends Visitor<Printer> {
         const nestedNodes = node.getNestedNodes();
         if (nestedNodes !== null) {
           nestedNodes.forEach(nestedNode => {
-            const contained = this.index[toHex(nestedNode.getId())];
+            const contained = this.index.getNode(nestedNode.getId());
             switch (contained.tag()) {
             case Node.tags.struct:
             case Node.tags.interface:
@@ -2211,7 +2244,7 @@ class ReadersVisitor extends Visitor<Printer> {
               p.line(`+${nonnull(method.getName()).toString()}: {`);
               p.indent(p => {
                 const paramId = method.getParamStructType();
-                const paramScopeId = this.index[toHex(paramId)].getScopeId();
+                const paramScopeId = this.index.getNode(paramId).getScopeId();
                 if (paramScopeId[0] === 0 && paramScopeId[1] === 0) {
                   const paramBaseName = `${baseName}_${nonnull(method.getName()).toString()}`;
                   let specialization = `${paramBaseName}__ParamCtorR`;
@@ -2223,7 +2256,7 @@ class ReadersVisitor extends Visitor<Printer> {
                 }
 
                 const resultId = method.getResultStructType();
-                const resultScopeId = this.index[toHex(resultId)].getScopeId();
+                const resultScopeId = this.index.getNode(resultId).getScopeId();
                 if (resultScopeId[0] === 0 && resultScopeId[1] === 0) {
                   const resultBaseName = `${baseName}_${nonnull(method.getName()).toString()}`;
                   let specialization = `${resultBaseName}__ResultCtorR`;
@@ -2266,7 +2299,7 @@ class ReadersVisitor extends Visitor<Printer> {
         if (nestedNodes !== null) {
           let heading = true;
           nestedNodes.forEach(nestedNode => {
-            const contained = this.index[toHex(nestedNode.getId())];
+            const contained = this.index.getNode(nestedNode.getId());
             if (contained.tag() === Node.tags.const) {
               if (heading) {
                 p.interrupt();
@@ -2298,45 +2331,48 @@ class ReadersVisitor extends Visitor<Printer> {
 
     const methods = iface.getMethods();
     if (methods !== null) {
-      //TODO: This uses the a$Params name. Ick. Consider assembling the base
-      //      name with the visitor. This aligns better with the schema comment
-      //      where displayName ought not to be used for code generation.
       methods.forEach(method => {
         const paramId = method.getParamStructType();
-        const paramScopeId = this.index[toHex(paramId)].getScopeId();
+        const param = this.index.getNode(paramId);
+        const paramScopeId = param.getScopeId();
         if (paramScopeId[0] === 0 && paramScopeId[1] === 0) {
-          const methodScopes = scopes.slice(0);
-          methodScopes.push({
-            name: nonnull(method.getName()).toString(),
-            id: paramId,
-          });
-          p = this.visit(methodScopes, paramId, p);
+          p.interrupt();
+
+          const names = this.index.getScopes(paramId).map(s => s.name);
+          p.line(`/**${"*".repeat(names.join(".").length + 8)}**/`);
+          p.line(`/* ${names.join(".")} (Param) */`);
+          p.line(`/**${"*".repeat(names.join(".").length + 8)}**/`);
+
+          this.printStruct("param", param, p);
         }
 
         const resultId = method.getResultStructType();
-        const resultScopeId = this.index[toHex(resultId)].getScopeId();
+        const result = this.index.getNode(resultId);
+        const resultScopeId = result.getScopeId();
         if (resultScopeId[0] === 0 && resultScopeId[1] === 0) {
-          const methodScopes = scopes.slice(0);
-          methodScopes.push({
-            name: nonnull(method.getName()).toString(),
-            id: resultId,
-          });
-          p = this.visit(methodScopes, resultId, p);
+          p.interrupt();
+
+          const names = this.index.getScopes(resultId).map(s => s.name);
+          p.line(`/**${"*".repeat(names.join(".").length + 9)}**/`);
+          p.line(`/* ${names.join(".")} (Result) */`);
+          p.line(`/**${"*".repeat(names.join(".").length + 9)}**/`);
+
+          this.printStruct("result", result, p);
         }
       });
     }
 
-    return super.interface(scopes, node, p);
+    return super.interface(node, p);
   }
 }
 
 export default function printReaderBodies(
-  index: NodeIndex,
+  index: Index,
   fileId: UInt64,
   identifiers: { [uuid: string]: string },
   parameters: ParametersIndex,
   p: Printer,
 ): void {
   //TODO: Add empty() to Data and Text? I don't think that I want to.
-  new ReadersVisitor(index, identifiers, parameters).visit([], fileId, p);
+  new ReadersVisitor(index, identifiers, parameters).visit(fileId, p);
 }

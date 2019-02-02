@@ -2,7 +2,7 @@
 
 import type { UInt64 } from "@capnp-js/uint64";
 
-import type { NodeIndex, Scope } from "../Visitor";
+import type Index from "../Index";
 import type {
   Node__InstanceR,
   Type__InstanceR,
@@ -59,93 +59,61 @@ type Consumers = {
 
 type Struct = {
   tag: "struct",
-  uuid: string,
+  id: UInt64,
 };
 
 type Group = {
   tag: "group",
-  uuid: string,
-  structUuid: string,
+  id: UInt64,
+  rootId: UInt64,
 };
 
 type Interface = {
   tag: "interface",
-  uuid: string,
+  id: UInt64,
 };
 
 type ChainMember = Struct | Group | Interface;
 
-function chainMember(index: NodeIndex, id: UInt64): ChainMember {
-  const uuid = toHex(id);
-  const node = index[uuid];
+function chainMember(index: Index, id: UInt64): ChainMember {
+  const node = index.getNode(id);
   switch (node.tag()) {
   case Node.tags.struct:
     if (node.getStruct().getIsGroup()) {
-      let anc = node.getScopeId();
-      while (index[toHex(anc)].getStruct().getIsGroup()) {
-        anc = index[toHex(anc)].getScopeId();
+      let rootId = node.getScopeId();
+      while (index.getNode(rootId).getStruct().getIsGroup()) {
+        rootId = index.getNode(rootId).getScopeId();
       }
 
       return {
         tag: "group",
-        uuid,
-        structUuid: toHex(anc),
+        id,
+        rootId,
       };
     } else {
       return {
         tag: "struct",
-        uuid,
+        id,
       };
     }
   case Node.tags.interface:
     return {
       tag: "interface",
-      uuid,
+      id,
     };
   default: throw new Error("Unexpected node tag.");
   }
 }
 
-let zeroScope = null;
-type ZeroScopeIndex = { [childId: string]: UInt64 };
-
-function chain(index: NodeIndex, sourceId: string, consumerId: UInt64): Array<ChainMember> {
-  if (zeroScope === null) {
-    zeroScope = {};
-    for (let uuid in index) {
-      const node = index[uuid];
-      if (node.tag() === Node.tags.interface) {
-        const methods = node.getInterface().getMethods();
-        if (methods !== null) {
-          methods.forEach(method => {
-            const paramNode = index[toHex(method.getParamStructType())];
-            const paramScopeId = paramNode.getScopeId();
-            if (paramScopeId[0] === 0 && paramScopeId[1] === 0) {
-              ((zeroScope: any): ZeroScopeIndex)[toHex(paramNode.getId())] = node.getId(); // eslint-disable-line flowtype/no-weak-types
-            }
-
-            const resultNode = index[toHex(method.getResultStructType())];
-            const resultScopeId = resultNode.getScopeId();
-            if (resultScopeId[0] === 0 && resultScopeId[1] === 0) {
-              ((zeroScope: any): ZeroScopeIndex)[toHex(resultNode.getId())] = node.getId(); // eslint-disable-line flowtype/no-weak-types
-            }
-          });
-        }
-      }
-    }
+function chain(index: Index, sourceId: UInt64, consumerId: UInt64): $ReadOnlyArray<ChainMember> {
+  let scopes = index.getScopes(consumerId);
+  let begin = scopes[0].node.getId();
+  while (!(begin[0] === sourceId[0] && begin[1] === sourceId[1])) {
+    scopes = scopes.slice(1);
+    begin = scopes[0].node.getId();
   }
 
-  const members = [chainMember(index, consumerId)];
-  while (members[0].uuid !== sourceId) {
-    let scopeId = index[members[0].uuid].getScopeId();
-    if (scopeId[0] === 0 && scopeId[1] === 0) {
-      scopeId = zeroScope[members[0].uuid];
-    }
-
-    members.unshift(chainMember(index, scopeId));
-  }
-
-  return members;
+  return scopes.map(scope => chainMember(index, scope.node.getId()));
 }
 
 type uint = number;
@@ -157,21 +125,21 @@ class ParametersVisitor extends Visitor<ParametersIndex> {
   +consumers: Consumers;
   depth: uint;
 
-  constructor(index: NodeIndex, consumers: Consumers) {
+  constructor(index: Index, consumers: Consumers) {
     super(index);
     this.consumers = consumers;
     this.depth = 0;
   }
 
   parametric(node: Node__InstanceR, acc: ParametersIndex): ParametersIndex {
-    const sourceId = toHex(node.getId());
+    const sourceId = node.getId();
     const parameters = node.getParameters();
     if (parameters !== null) {
       parameters.forEach((parameter, i) => {
         const name = nonnull(parameter.getName());
         const parameterName = `${name.toString()}_${this.depth - 1}`;
-        acc[sourceId].specialize.push(parameterName);
-        this.consumers[sourceId][i].forEach(consumerId => {
+        acc[toHex(sourceId)].specialize.push(parameterName);
+        this.consumers[toHex(sourceId)][i].forEach(consumerId => {
           /* Given a parameter source node, `source`, the ctor parameter list of
              that node must include every parameter of the `source` node and its
              enclosing scopes that are used by `source` and its encapsulated
@@ -182,19 +150,19 @@ class ParametersVisitor extends Visitor<ParametersIndex> {
             switch (member.tag) {
             case "struct":
             case "interface":
-              if (member.uuid !== sourceId) {
-                acc[member.uuid].generic.add(parameterName);
+              if (!(member.id[0] === sourceId[0] && member.id[1] === sourceId[1])) {
+                acc[toHex(member.id)].generic.add(parameterName);
               }
 
-              acc[member.uuid].ctor.add(parameterName);
+              acc[toHex(member.id)].ctor.add(parameterName);
 
-              if (member.uuid === toHex(consumerId)) {
-                acc[member.uuid].instance.add(parameterName);
+              if (member.id[0] === consumerId[0] && member.id[1] === consumerId[1]) {
+                acc[toHex(member.id)].instance.add(parameterName);
               }
               break;
             case "group":
-              acc[member.structUuid].instance.add(parameterName);
-              acc[member.uuid].instance.add(parameterName);
+              acc[toHex(member.rootId)].instance.add(parameterName);
+              acc[toHex(member.id)].instance.add(parameterName);
               break;
             default: throw new Error("Unrecognized chain member tag.");
             }
@@ -206,7 +174,7 @@ class ParametersVisitor extends Visitor<ParametersIndex> {
     return acc;
   }
 
-  struct(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: ParametersIndex): ParametersIndex {
+  struct(node: Node__InstanceR, acc: ParametersIndex): ParametersIndex {
     ++this.depth;
     acc = this.parametric(node, acc);
 
@@ -216,24 +184,19 @@ class ParametersVisitor extends Visitor<ParametersIndex> {
     if (fields !== null) {
       fields.forEach(field => {
         if (field.tag() === Field.tags.group) {
-          const groupScopes = scopes.slice(0);
-          groupScopes.push({
-            name: nonnull(field.getName()).toString(),
-            id: field.getGroup().getTypeId(),
-          });
-          acc = this.visit(groupScopes, field.getGroup().getTypeId(), acc);
+          acc = this.visit(field.getGroup().getTypeId(), acc);
         }
       });
     }
 
-    const next = super.struct(scopes, node, acc);
+    const next = super.struct(node, acc);
 
     --this.depth;
 
     return next;
   }
 
-  interface(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, acc: ParametersIndex): ParametersIndex {
+  interface(node: Node__InstanceR, acc: ParametersIndex): ParametersIndex {
     ++this.depth;
     acc = this.parametric(node, acc);
 
@@ -244,27 +207,17 @@ class ParametersVisitor extends Visitor<ParametersIndex> {
       methods.forEach(method => {
         const paramNodeId = method.getParamStructType();
         if (paramNodeId[0] === 0 && paramNodeId[1] === 0) {
-          const methodScopes = scopes.slice(0);
-          methodScopes.push({
-            name: nonnull(method.getName()).toString(),
-            id: paramNodeId,
-          });
-          acc = this.visit(methodScopes, paramNodeId, acc);
+          acc = this.visit(paramNodeId, acc);
         }
 
         const resultNodeId = method.getResultStructType();
         if (resultNodeId[0] === 0 && resultNodeId[1] === 0) {
-          const methodScopes = scopes.slice(0);
-          methodScopes.push({
-            name: nonnull(method.getName()).toString(),
-            id: resultNodeId,
-          });
-          acc = this.visit(methodScopes, resultNodeId, acc);
+          acc = this.visit(resultNodeId, acc);
         }
       });
     }
 
-    const next = super.interface(scopes, node, acc);
+    const next = super.interface(node, acc);
 
     --this.depth;
 
@@ -272,7 +225,7 @@ class ParametersVisitor extends Visitor<ParametersIndex> {
   }
 }
 
-export default function accumulateParameters(index: NodeIndex): ParametersIndex {
+export default function accumulateParameters(index: Index): ParametersIndex {
   function addBrandParameters(brand: null | Brand__InstanceR, consumerId: UInt64, consumers: Consumers): void {
     if (brand === null) {
       return;
@@ -330,19 +283,18 @@ export default function accumulateParameters(index: NodeIndex): ParametersIndex 
   const consumers = {};
 
   /* Initialize consumers data structure. */
-  for (let uuid in index) {
-    const node = index[uuid];
+  this.index.forEachNode(node => {
     const parameters = node.getParameters();
     if (parameters === null) {
-      consumers[uuid] = [];
+      consumers[toHex(node.getId())] = [];
     } else {
-      consumers[uuid] = parameters.map(() => []);
+      consumers[toHex(node.getId())] = parameters.map(() => []);
     }
-  }
+  });
 
   /* Populate consumers data structure. */
   for (let sourceUuid in consumers) {
-    const node = index[sourceUuid];
+    const node = index.getNode(sourceUuid);
     switch (node.tag()) {
     case Node.tags.file:
       break;
@@ -388,11 +340,11 @@ export default function accumulateParameters(index: NodeIndex): ParametersIndex 
     };
   }
   const visitor = new ParametersVisitor(index, consumers);
-  for (let uuid in index) {
-    if (index[uuid].tag() === Node.tags.file) {
-      parametersIndex = visitor.visit([], index[uuid].getId(), parametersIndex);
+  index.forEachNode(node => {
+    if (node.tag() === Node.tags.file) {
+      parametersIndex = visitor.visit(node.getId(), parametersIndex);
     }
-  }
+  });
 
   return parametersIndex;
 }
