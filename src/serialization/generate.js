@@ -143,15 +143,27 @@ export default function serialization(index: Index, strategy: Strategy, file: Re
   if (strategy.tag === "builder") {
     const baseName = path.basename(nonnull(file.getFilename()).toString());
     const source = `./${baseName}-r`;
-    if (locals.structs.size === 1) {
+    if (locals.structs.size + locals.paramStructs.size + locals.resultStructs.size === 1) {
       locals.structs.forEach(name => {
         p.line(`import type { ${name}__InstanceR } from "${source}";`);
+      });
+      locals.paramStructs.forEach(name => {
+        p.line(`import type { ${name}__ParamInstanceR } from "${source}";`);
+      });
+      locals.resultStructs.forEach(name => {
+        p.line(`import type { ${name}__ResultInstanceR } from "${source}";`);
       });
     } else if (locals.structs.size > 1) {
       p.line("import type {");
       p.indent(p => {
         locals.structs.forEach(name => {
           p.line(`${name}__InstanceR,`);
+        });
+        locals.paramStructs.forEach(name => {
+          p.line(`${name}__ParamInstanceR,`);
+        });
+        locals.resultStructs.forEach(name => {
+          p.line(`${name}__ResultInstanceR,`);
         });
       });
       p.line(`} from "${source}";`);

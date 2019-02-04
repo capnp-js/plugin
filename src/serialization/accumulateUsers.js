@@ -8,7 +8,6 @@ import type { Node__InstanceR, Type__InstanceR } from "../schema.capnp-r";
 import { toHex } from "@capnp-js/uint64";
 
 import Visitor from "../Visitor";
-import hostFile from "../util/hostFile";
 import { Field, Type } from "../schema.capnp-r";
 
 type Acc = {
@@ -293,15 +292,11 @@ export default function accumulateUsers(index: Index, fileId: UInt64, names: Set
   const collisions = {};
   for (let uuid in internalAcc.scopes) {
     const scopes = internalAcc.scopes[uuid];
+    const hostFileId = scopes[0].node.getId();
 
-//TODO: Instead of computing the host file, consider including the file node on the indexed scope chain.
-    let hostFileId = hostFile(index, scopes[0].node.getId());
-    if (hostFileId === null) {
-      hostFileId = fileId;
-    }
-
+    //TODO: Clobber util/hostFile.js
     if (!(hostFileId[0] === fileId[0] && hostFileId[1] === fileId[1])) {
-      insertCollision(hostFileId, scopes, collisions);
+      insertCollision(hostFileId, scopes.slice(1), collisions);
     }
   }
 

@@ -71,13 +71,16 @@ class BootstrapVisitor {
     }
   }
 
-  file(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, scopesIndex: ScopesIndex): void {} // eslint-disable-line no-unused-vars
+  file(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, scopesIndex: ScopesIndex): void {
+    const uuid = toHex(node.getId());
+    scopesIndex[uuid] = scopes;
+  }
 
   struct(scopes: $ReadOnlyArray<Scope>, node: Node__InstanceR, scopesIndex: ScopesIndex): void {
     const uuid = toHex(node.getId());
     scopesIndex[uuid] = scopes;
 
-    const fields = node.getStruct.getFields();
+    const fields = node.getStruct().getFields();
     if (fields !== null) {
       fields.forEach(field => {
         if (field.tag() === Field.tags.group) {
@@ -161,7 +164,7 @@ export default class Index {
       const visitor = new BootstrapVisitor(nodes);
       nodes.forEach(node => {
         if (node.tag() === Node.tags.file) {
-          visitor.visit([], node.getId(), this.scopesIndex);
+          visitor.visit([{ name: "<file>", node }], node.getId(), this.scopesIndex);
         }
       });
     }

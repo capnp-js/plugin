@@ -117,7 +117,7 @@ class LibsVisitor extends Visitor<Acc> {
         const result = this.index.getNode(resultId);
         const resultScopeId = result.getScopeId();
         if (resultScopeId[0] === 0 && resultScopeId[1] === 0) {
-          acc = this.visit(paramId, acc);
+          acc = this.visit(resultId, acc);
         }
       });
     }

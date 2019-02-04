@@ -27,49 +27,45 @@ import { Node, Brand, Field, Type, Value } from "../schema.capnp-r";
 type u16 = number;
 type u33 = number;
 
-class InstanceType {
+type ParametersSubindex = {
+  [uuid: string]: Set<string>,
+};
+
+type PointerTypeT = {
+  guts: string,
+  reader: string,
+};
+
+class PointerType {
   +index: Index;
   +identifiers: { [uuid: string]: string };
-  +parameters: ParametersIndex;
+  +parameters: ParametersSubindex;
 
-  constructor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
+  static instance(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
+    const select = {};
+    for (let uuid in parameters) {
+      select[uuid] = parameters[uuid].instance;
+    }
+
+    return new this(index, identifiers, select);
+  }
+
+  static ctor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
+    const select = {};
+    for (let uuid in parameters) {
+      select[uuid] = parameters[uuid].ctor;
+    }
+
+    return new this(index, identifiers, select);
+  }
+
+  constructor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersSubindex) {
     this.index = index;
     this.identifiers = identifiers;
     this.parameters = parameters;
   }
 
-  type(type: null | Type__InstanceR): string {
-    if (type === null) {
-      type = Type.empty();
-    }
-
-    switch (type.tag()) {
-    case Type.tags.void: return "void";
-    case Type.tags.bool: return "boolean";
-    case Type.tags.int8: return "i8";
-    case Type.tags.int16: return "i16";
-    case Type.tags.int32: return "i32";
-    case Type.tags.int64: return "Int64";
-    case Type.tags.uint8: return "u8";
-    case Type.tags.uint16: return "u16";
-    case Type.tags.uint32: return "u32";
-    case Type.tags.uint64: return "UInt64";
-    case Type.tags.float32: return "f32";
-    case Type.tags.float64: return "f64";
-    case Type.tags.enum: return "u16";
-    case Type.tags.text:
-    case Type.tags.data:
-    case Type.tags.list:
-    case Type.tags.struct:
-    case Type.tags.interface:
-    case Type.tags.anyPointer:
-      return nonnull(this.pointer(type));
-    default:
-      throw new Error("Unrecognized type tag.");
-    }
-  }
-
-  pointer(type: null | Type__InstanceR): null | string {
+  pointer(type: null | Type__InstanceR): null | PointerTypeT {
     if (type === null) {
       type = Type.empty();
     }
@@ -90,8 +86,8 @@ class InstanceType {
     case Type.tags.enum:
       return null;
 
-    case Type.tags.text: return "Text";
-    case Type.tags.data: return "Data";
+    case Type.tags.text: return { guts: "NonboolListGutsR", reader: "Text" };
+    case Type.tags.data: return { guts: "NonboolListGutsR", reader: "Data" };
     case Type.tags.list: return this.list(type.getList().getElementType());
     case Type.tags.struct:
       {
@@ -99,6 +95,7 @@ class InstanceType {
         return this.struct(struct.getTypeId(), struct.getBrand());
       }
     case Type.tags.interface:
+      // TODO
       // I'm not sure what this'll look like. I suspect that once I've got a
       // `-i.js` file of interfaces, then I'll bind a type like `Orphan` does,
       // yielding a type like "Cap<SomeInterface<T1, ..., Tn>>".
@@ -109,70 +106,87 @@ class InstanceType {
     }
   }
 
-  list(elementType: null | Type__InstanceR): string {
+  list(elementType: null | Type__InstanceR): PointerTypeT {
     if (elementType === null) {
       elementType = Type.empty();
     }
 
     switch (elementType.tag()) {
-    case Type.tags.void: return "VoidList";
-    case Type.tags.bool: return "BoolList";
-    case Type.tags.int8: return "Int8List";
-    case Type.tags.int16: return "Int16List";
-    case Type.tags.int32: return "Int32List";
-    case Type.tags.int64: return "Int64List";
-    case Type.tags.uint8: return "UInt8List";
-    case Type.tags.uint16: return "UInt16List";
-    case Type.tags.uint32: return "UInt32List";
-    case Type.tags.uint64: return "UInt64List";
-    case Type.tags.float32: return "Float32List";
-    case Type.tags.float64: return "Float64List";
-    case Type.tags.text: return "ListListR<NonboolListGutsR, Text>";
-    case Type.tags.data: return "ListListR<NonboolListGutsR, Data>";
+    case Type.tags.void: return { guts: "NonboolListGutsR", reader: "VoidList" };
+    case Type.tags.bool: return { guts: "BoolListGutsR", reader: "BoolList" };
+    case Type.tags.int8: return { guts: "NonboolListGutsR", reader: "Int8List" };
+    case Type.tags.int16: return { guts: "NonboolListGutsR", reader: "Int16List" };
+    case Type.tags.int32: return { guts: "NonboolListGutsR", reader: "Int32List" };
+    case Type.tags.int64: return { guts: "NonboolListGutsR", reader: "Int64List" };
+    case Type.tags.uint8: return { guts: "NonboolListGutsR", reader: "UInt8List" };
+    case Type.tags.uint16: return { guts: "NonboolListGutsR", reader: "UInt16List" };
+    case Type.tags.uint32: return { guts: "NonboolListGutsR", reader: "UInt32List" };
+    case Type.tags.uint64: return { guts: "NonboolListGutsR", reader: "UInt64List" };
+    case Type.tags.float32: return { guts: "NonboolListGutsR", reader: "Float32List" };
+    case Type.tags.float64: return { guts: "NonboolListGutsR", reader: "Float64List" };
+    case Type.tags.text: return { guts: "NonboolListGutsR", reader: "ListListR<NonboolListGutsR, Text>" };
+    case Type.tags.data: return { guts: "NonboolListGutsR", reader: "ListListR<NonboolListGutsR, Data>" };
     case Type.tags.list:
       {
         const t = this.list(elementType.getList().getElementType());
-        return `ListListR<NonboolListGutsR, ${t}>`;
+        return { guts: "NonboolListGutsR", reader: `ListListR<NonboolListGutsR, ${t.reader}>` };
       }
-    case Type.tags.enum: return "UInt16List";
+    case Type.tags.enum: return { guts: "NonboolListGutsR", reader: "UInt16List" };
     case Type.tags.struct:
       {
         const struct = elementType.getStruct();
         const t = this.struct(struct.getTypeId(), struct.getBrand());
-        return `StructListR<${t}>`;
+        return { guts: "NonboolListGutsR", reader: `StructListR<${t.reader}>` };
       }
     case Type.tags.interface:
       throw new Error("TODO");
     case Type.tags.anyPointer:
-      const t = this.anyPointer(elementType.getAnyPointer());
-      return `ListListR<NonboolListGutsR, ${t}>`;
+      {
+        const t = this.anyPointer(elementType.getAnyPointer());
+        return { guts: "NonboolListGutsR", reader: `ListListR<NonboolListGutsR, ${t.reader}>` };
+      }
     default:
       throw new Error("Unrecognized type tag.");
     }
   }
 
-  struct(id: UInt64, brand: null | Brand__InstanceR): string {
-    // #if _DEBUG
-    Object.keys(this.identifiers).forEach(uuid => {
-      console.log(`${uuid} -> ${this.identifiers[uuid]}`);
-    });
-    console.log(toHex(id));
-    // #endif
-
+  struct(id: UInt64, brand: null | Brand__InstanceR): PointerTypeT {
     const mangledName = this.identifiers[toHex(id)];
 
     const parameters = this.parameters[toHex(id)];
-    if (parameters.instance.size > 0) {
-      //TODO: is `parameters.instance` the correct set for const resolution? Test me.
-      const bindings = this.resolve(parameters.instance, brand);
-      const specialPs = Array.from(parameters.instance).map(name => bindings[name]);
-      return `${mangledName}__InstanceR<${specialPs.join(", ")}>`;
+    if (parameters.size > 0) {
+      const bindings = this.resolve(parameters, brand);
+
+      const specialPs = flatMap(Array.from(parameters), name => {
+        const binding = bindings[name];
+        return [ binding.guts, binding.reader ];
+      });
+
+      return {
+        guts: "StructGutsR",
+        reader: `${mangledName}__InstanceR<${specialPs.join(", ")}>`,
+      };
     } else {
-      return `${mangledName}__InstanceR`;
+      return {
+        guts: "StructGutsR",
+        reader: `${mangledName}__InstanceR`,
+      };
     }
   }
 
-  anyPointer(anyPointer: Type_anyPointer__InstanceR): string {
+  structContext(
+    id: UInt64,
+    brand: null | Brand__InstanceR,
+    cb: (guts: "StructGutsR", mangledName: string, pts: Array<PointerTypeT>) => void,
+  ): void {
+    const mangledName = this.identifiers[toHex(id)];
+    const parameters = this.parameters[toHex(id)];
+    const bindings = this.resolve(parameters, brand);
+    const pts = Array.from(parameters).map(name => bindings[name]);
+    cb("StructGutsR", mangledName, pts);
+  }
+
+  anyPointer(anyPointer: Type_anyPointer__InstanceR): PointerTypeT {
     const anyPointerG = Type.groups.anyPointer;
     switch (anyPointer.tag()) {
     case anyPointerG.tags.unconstrained:
@@ -180,9 +194,9 @@ class InstanceType {
         const unconstrainedG = anyPointerG.groups.unconstrained;
         const unconstrained = anyPointer.getUnconstrained();
         switch (unconstrained.tag()) {
-        case unconstrainedG.tags.anyKind: return "AnyValue";
-        case unconstrainedG.tags.struct: return "StructValue";
-        case unconstrainedG.tags.list: return "ListValue";
+        case unconstrainedG.tags.anyKind: return { guts: "AnyGutsR", reader: "AnyValue" };
+        case unconstrainedG.tags.struct: return { guts: "StructGutsR", reader: "StructValue" };
+        case unconstrainedG.tags.list: return { guts: "BoolListGutsR | NonboolListGutsR", reader: "ListValue" };
         case unconstrainedG.tags.capability: throw new Error("TODO"); //There exists a CapValue, but it's half-baked.
         default: throw new Error("Unrecognized unconstrained AnyPointer type.");
         }
@@ -192,7 +206,7 @@ class InstanceType {
         const parameter = anyPointer.getParameter();
         const scopeId = parameter.getScopeId();
         const name = paramName(this.index, scopeId, parameter.getParameterIndex());
-        return `${name}_r`;
+        return { guts: `${name}_guts`, reader: `${name}_r` };
       }
     case anyPointerG.tags.implicitMethodParameter:
       throw new Error("TODO");
@@ -201,7 +215,7 @@ class InstanceType {
     }
   }
 
-  resolve(parameters: Set<string>, brand: null | Brand__InstanceR): { [name: string]: string } {
+  resolve(parameters: Set<string>, brand: null | Brand__InstanceR): { [name: string]: PointerTypeT } {
     if (brand === null) {
       brand = Brand.empty();
     }
@@ -227,7 +241,10 @@ class InstanceType {
                   case Brand.Binding.tags.unbound:
                     if (unresolveds.has(name)) {
                       unresolveds.delete(name);
-                      bindings[name] = "AnyValue";
+                      bindings[name] = {
+                        guts: "AnyGutsR",
+                        reader: "AnyValue",
+                      };
                     }
                     break;
                   case Brand.Binding.tags.type:
@@ -252,9 +269,10 @@ class InstanceType {
                   const name = paramName(this.index, scopeId, position);
                   if (unresolveds.has(name)) {
                     unresolveds.delete(name);
-                    bindings[name] = `${name}_r`;
-                    //TODO: Bodies superclass that templates out this assignment?
-                    //      Because Orphans need the guts type, I expect that the builder would return an object instead of strings
+                    bindings[name] = {
+                      guts: `${name}_guts`,
+                      reader: `${name}_r`,
+                    };
                   }
                 });
               }
@@ -269,7 +287,7 @@ class InstanceType {
 
     /* Use AnyValue types for any parameters that weren't touched. */
     unresolveds.forEach(name => {
-      bindings[name] = "AnyValue";
+      bindings[name] = { guts: "AnyGutsR", reader: "AnyValue" };
     });
 
     return bindings;
@@ -628,9 +646,9 @@ class GroupValues {
 
 class GroupTypes {
   +index: Index;
-  +instanceType: InstanceType;
+  +instanceType: PointerType;
 
-  constructor(index: Index, instanceType: InstanceType) {
+  constructor(index: Index, instanceType: PointerType) {
     this.index = index;
     this.instanceType = instanceType;
   }
@@ -750,8 +768,8 @@ class GroupTypes {
               const slot = field.getSlot();
               if (slot.getHadExplicitDefault()) {
                 const name = capitalize(nonnull(field.getName()).toString());
-                const type = this.instanceType.type(slot.getType());
-                p.line(`default${name}(): ${type},`);
+                const type = nonnull(this.instanceType.pointer(slot.getType()));
+                p.line(`default${name}(): ${type.reader},`);
               }
             }
           });
@@ -762,10 +780,10 @@ class GroupTypes {
 }
 
 class Constants {
-  +instanceType: InstanceType;
+  +instanceType: PointerType;
   +ctorValue: CtorValue;
 
-  constructor(instanceType: InstanceType, ctorValue: CtorValue) {
+  constructor(instanceType: PointerType, ctorValue: CtorValue) {
     this.instanceType = instanceType;
     this.ctorValue = ctorValue;
   }
@@ -864,95 +882,9 @@ class Constants {
     case Type.tags.anyPointer:
       const ctor = nonnull(this.ctorValue.pointer(((type: any): Type__InstanceR))); // eslint-disable-line flowtype/no-weak-types
       cb(
-        nonnull(this.instanceType.pointer(type)),
+        nonnull(this.instanceType.pointer(type)).reader,
         `return ${ctor}.deref(0, blob, ${ref});`,
       );
-      break;
-    default:
-      throw new Error("Unrecognized value tag.");
-    }
-  }
-
-  print(ref: string, front: string, type: null | Type__InstanceR, value: null | Value__InstanceR, p: Printer): void {
-    if (type === null) {
-      type = Type.empty();
-    }
-
-    if (value === null) {
-      value = Value.empty();
-    }
-
-    switch (value.tag()) {
-    case Value.tags.void:
-      p.line(`${front}(): void {}`);
-      break;
-    case Value.tags.bool:
-      p.block(`${front}(): boolean`, p => {
-        p.line(`return ${((value: any): Value__InstanceR).getBool() ? "true" : "false"};`); // eslint-disable-line flowtype/no-weak-types
-      });
-      break;
-    case Value.tags.int8:
-      p.block(`${front}(): i8`, p => {
-        p.line(`return ${((value: any): Value__InstanceR).getInt8()};`); // eslint-disable-line flowtype/no-weak-types
-      });
-      break;
-    case Value.tags.int16:
-      p.block(`${front}(): i16`, p => {
-        p.line(`return ${((value: any): Value__InstanceR).getInt16()};`); // eslint-disable-line flowtype/no-weak-types
-      });
-      break;
-    case Value.tags.int32:
-      p.block(`${front}(): i32`, p => {
-        p.line(`return ${((value: any): Value__InstanceR).getInt32()};`); // eslint-disable-line flowtype/no-weak-types
-      });
-      break;
-    case Value.tags.int64:
-      p.block(`${front}(): Int64`, p => {
-        const i = ((value: any): Value__InstanceR).getInt64(); // eslint-disable-line flowtype/no-weak-types
-        p.line(`return injectI64(${i[0]}, ${i[1]});`);
-      });
-      break;
-    case Value.tags.uint8:
-      p.block(`${front}(): u8`, p => {
-        p.line(`return ${((value: any): Value__InstanceR).getUint8()};`); // eslint-disable-line flowtype/no-weak-types
-      });
-      break;
-    case Value.tags.uint16:
-      p.block(`${front}(): u16`, p => {
-        p.line(`return ${((value: any): Value__InstanceR).getUint16()};`); // eslint-disable-line flowtype/no-weak-types
-      });
-      break;
-    case Value.tags.uint32:
-      p.block(`${front}(): u32`, p => {
-        p.line(`return ${((value: any): Value__InstanceR).getUint32()};`); // eslint-disable-line flowtype/no-weak-types
-      });
-      break;
-    case Value.tags.uint64:
-      p.block(`${front}(): UInt64`, p => {
-        const u = ((value: any): Value__InstanceR).getUint64(); // eslint-disable-line flowtype/no-weak-types
-        p.line(`return injectU64(${u[0]}, ${u[1]});`);
-      });
-      break;
-    case Value.tags.float32:
-      p.block(`${front}(): f32`, p => {
-        p.line(`return ${((value: any): Value__InstanceR).getFloat32()};`); // eslint-disable-line flowtype/no-weak-types
-      });
-      break;
-    case Value.tags.float64:
-      p.block(`${front}(): f64`, p => {
-        p.line(`return ${((value: any): Value__InstanceR).getFloat64()};`); // eslint-disable-line flowtype/no-weak-types
-      });
-      break;
-    case Value.tags.text:
-    case Value.tags.data:
-    case Type.tags.list:
-    case Type.tags.struct:
-    case Type.tags.interface:
-    case Type.tags.anyPointer:
-      p.block(`${front}(): ${nonnull(this.instanceType.pointer(type))}`, p => {
-        const ctor = nonnull(this.ctorValue.pointer(((type: any): Type__InstanceR))); // eslint-disable-line flowtype/no-weak-types
-        p.line(`return ${ctor}.deref(0, blob, ${ref});`);
-      });
       break;
     default:
       throw new Error("Unrecognized value tag.");
@@ -962,7 +894,8 @@ class Constants {
 
 class ReadersVisitor extends Visitor<Printer> {
   +parameters: ParametersIndex;
-  +instanceType: InstanceType;
+  +instanceType: PointerType;
+  +ctorType: PointerType;
   +ctorValue: CtorValue;
   +constants: Constants;
   +groupTypes: GroupTypes;
@@ -971,7 +904,8 @@ class ReadersVisitor extends Visitor<Printer> {
   constructor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
     super(index);
     this.parameters = parameters;
-    this.instanceType = new InstanceType(index, identifiers, parameters);
+    this.instanceType = PointerType.instance(index, identifiers, parameters);
+    this.ctorType = PointerType.ctor(index, identifiers, parameters);
     this.ctorValue = new CtorValue(index, identifiers, parameters);
     this.constants = new Constants(this.instanceType, this.ctorValue);
     this.groupTypes = new GroupTypes(index, this.instanceType);
@@ -1252,7 +1186,7 @@ class ReadersVisitor extends Visitor<Printer> {
         case Type.tags.struct:
         case Type.tags.interface:
         case Type.tags.anyPointer:
-          p.block(`${getField}(): null | ${nonnull(this.instanceType.pointer(type))}`, p => {
+          p.block(`${getField}(): null | ${nonnull(this.instanceType.pointer(type)).reader}`, p => {
             checkTag(discrValue, discrOffset, p);
 
             p.line(`const ref = this.guts.pointersWord(${slot.getOffset() << 3});`);
@@ -1269,7 +1203,7 @@ class ReadersVisitor extends Visitor<Printer> {
       {
         const group = field.getGroup();
         const id = group.getTypeId();
-        const baseName = `${this.index.getScopes(id).map(s => s.name).join("_")}`;
+        const baseName = `${this.index.getScopes(id).slice(1).map(s => s.name).join("_")}`;
 
         const parameters = this.parameters[toHex(id)].instance;
 
@@ -1304,7 +1238,7 @@ class ReadersVisitor extends Visitor<Printer> {
   //       Try to generate some gibberish under those assumptions.
   printStruct(type: "param" | "result" | "plain", node: Node__InstanceR, p: Printer): void {
     const uuid = toHex(node.getId());
-    const baseName = this.index.getScopes(node.getId()).map(s => s.name).join("_");
+    const baseName = this.index.getScopes(node.getId()).slice(1).map(s => s.name).join("_");
     const parameters = this.parameters[uuid];
     const struct = node.getStruct();
     let prefix;
@@ -1873,7 +1807,7 @@ class ReadersVisitor extends Visitor<Printer> {
     const uuid = toHex(node.getId());
     const parameters = this.parameters[uuid];
     const struct = node.getStruct();
-    const baseName = this.index.getScopes(node.getId()).map(s => s.name).join("_");
+    const baseName = this.index.getScopes(node.getId()).slice(1).map(s => s.name).join("_");
     if (struct.getIsGroup()) {
       //TODO: This is a very common pattern. extract a function and refactor?
       const declareParams = flatMap(Array.from(parameters.instance), name => [
@@ -1933,7 +1867,7 @@ class ReadersVisitor extends Visitor<Printer> {
     } else {
       p.interrupt();
 
-      const names = this.index.getScopes(node.getId()).map(s => s.name);
+      const names = this.index.getScopes(node.getId()).slice(1).map(s => s.name);
       p.line(`/**${"*".repeat(names.join(".").length)}**/`);
       p.line(`/* ${names.join(".")} */`);
       p.line(`/**${"*".repeat(names.join(".").length)}**/`);
@@ -1959,7 +1893,7 @@ class ReadersVisitor extends Visitor<Printer> {
   }
 
   enum(node: Node__InstanceR, p: Printer): Printer {
-    const names = this.index.getScopes(node.getId()).map(s => s.name);
+    const names = this.index.getScopes(node.getId()).slice(1).map(s => s.name);
     const baseName = names.join("_");
 
     p.interrupt();
@@ -1991,7 +1925,7 @@ class ReadersVisitor extends Visitor<Printer> {
     const uuid = toHex(node.getId());
     const parameters = this.parameters[uuid];
     const iface = node.getInterface();
-    const names = this.index.getScopes(node.getId()).map(s => s.name);
+    const names = this.index.getScopes(node.getId()).slice(1).map(s => s.name);
     const baseName = names.join("_");
 
     p.interrupt();
@@ -2237,37 +2171,80 @@ class ReadersVisitor extends Visitor<Printer> {
         }
 
         const methods = iface.getMethods();
+        const constructorMethodCtors = [];
         if (methods !== null) {
           p.line("+methods: {");
           p.indent(p => {
             methods.forEach(method => {
-              p.line(`+${nonnull(method.getName()).toString()}: {`);
+              const name = nonnull(method.getName()).toString();
+              const methodBaseName = `${baseName}_${name}`;
+              let paramCtor = "";
+              let resultCtor = "";
+              p.line(`+${name}: {`);
               p.indent(p => {
                 const paramId = method.getParamStructType();
-                const paramScopeId = this.index.getNode(paramId).getScopeId();
+                const param = this.index.getNode(paramId);
+                const paramScopeId = param.getScopeId();
                 if (paramScopeId[0] === 0 && paramScopeId[1] === 0) {
-                  const paramBaseName = `${baseName}_${nonnull(method.getName()).toString()}`;
-                  let specialization = `${paramBaseName}__ParamCtorR`;
+                  const parameters = this.parameters[toHex(paramId)];
+                  let specialization = `${methodBaseName}__ParamCtorR`;
+                  if (parameters.ctor.size > 0) {
+                    const specialPs = flatMap(Array.from(parameters.ctor), name => [
+                      `${name}_guts`,
+                      `${name}_r`,
+                    ]);
+                    const objectParams = Array.from(parameters.ctor).map(name => `${name}: this.params.${name}`);
+                    specialization += `<${specialPs.join(", ")}>`;
+//TODO: Locals found these names for collision mangling, right?
+                    paramCtor = `new ${methodBaseName}__ParamCtorR({ ${objectParams.join(", ")} })`;
+                  } else {
+                    paramCtor = `new ${methodBaseName}__ParamCtorR()`;
+                  }
                   p.line(`+Param: ${specialization},`);
                 } else {
-                  const paramBaseName = `${baseName}`;
-                  let specialization = `${paramBaseName}__CtorR`;
-                  p.line(`+Param: ${specialization},`);
+                  paramCtor = this.ctorValue.struct(paramId, method.getParamBrand());
+                  this.ctorType.structContext(paramId, method.getParamBrand(), (guts, mangledName, pts) => {
+                    if (pts.length > 0) {
+                      const specialPs = flatMap(pts, pt => [pt.guts, pt.reader]);
+                      p.line(`+Param: ${mangledName}__CtorR<${specialPs.join(", ")}>,`);
+                    } else {
+                      p.line(`+Param: ${mangledName}__CtorR,`);
+                    }
+                  });
                 }
 
                 const resultId = method.getResultStructType();
                 const resultScopeId = this.index.getNode(resultId).getScopeId();
                 if (resultScopeId[0] === 0 && resultScopeId[1] === 0) {
-                  const resultBaseName = `${baseName}_${nonnull(method.getName()).toString()}`;
-                  let specialization = `${resultBaseName}__ResultCtorR`;
+                  const parameters = this.parameters[toHex(resultId)];
+                  let specialization = `${methodBaseName}__ResultCtorR`;
+                  if (parameters.ctor.size > 0) {
+                    const specialPs = flatMap(Array.from(parameters.ctor), name => [
+                      `${name}_guts`,
+                      `${name}_r`,
+                    ]);
+                    const objectParams = Array.from(parameters.ctor).map(name => `${name}: this.params.${name}`);
+                    specialization += `<${specialPs.join(", ")}>`;
+                    resultCtor = `new ${methodBaseName}__ResultCtorR({ ${objectParams.join(", ")} })`;
+                  } else {
+                    resultCtor = `new ${methodBaseName}__ResultCtorR()`;
+                  }
                   p.line(`+Result: ${specialization},`);
                 } else {
-                  const resultBaseName = `${baseName}`;
-                  let specialization = `${resultBaseName}__CtorR`;
-                  p.line(`+Result: ${specialization},`);
+                  resultCtor = this.ctorValue.struct(resultId, method.getResultBrand());
+                  this.ctorType.structContext(resultId, method.getParamBrand(), (guts, mangledName, pts) => {
+                    if (pts.length > 0) {
+                      const specialPs = flatMap(pts, pt => [pt.guts, pt.reader]);
+                      p.line(`+Result: ${mangledName}__CtorR<${specialPs.join(", ")}>,`);
+                    } else {
+                      p.line(`+Result: ${mangledName}__CtorR,`);
+                    }
+                  });
                 }
               });
               p.line("},");
+
+              constructorMethodCtors.push({ name, paramCtor, resultCtor });
             });
           });
           p.line("};");
@@ -2280,17 +2257,47 @@ class ReadersVisitor extends Visitor<Printer> {
 
         p.interrupt();
 
-        if (constructorAsses.length > 0) {
+        if (constructorAsses.length > 0 || constructorMethodCtors.length > 0) {
           if (parameters.ctor.size > 0) {
             p.block(`constructor(params: { ${objectParams.join(", ")} })`, p => {
               constructorAsses.forEach(ass => {
                 p.line(ass);
               });
+
+              if (constructorMethodCtors.length > 0) {
+                p.line("this.methods = {");
+                p.indent(p => {
+                  constructorMethodCtors.forEach(bundle => {
+                    p.line(`${bundle.name}: {`);
+                    p.indent(p => {
+                      p.line(`Param: ${bundle.paramCtor},`);
+                      p.line(`Result: ${bundle.resultCtor},`);
+                    });
+                    p.line("},");
+                  });
+                });
+                p.line("};");
+              }
             });
           } else {
             p.block(`constructor()`, p => {
               constructorAsses.forEach(ass => {
                 p.line(ass);
+
+                if (constructorMethodCtors.length > 0) {
+                  p.line("this.methods = {");
+                  p.indent(p => {
+                    constructorMethodCtors.forEach(bundle => {
+                      p.line(`${bundle.name}: {`);
+                      p.indent(p => {
+                        p.line(`Param: ${bundle.paramCtor},`);
+                        p.line(`Result: ${bundle.resultCtor},`);
+                      });
+                      p.line("},");
+                    });
+                  });
+                  p.line("};");
+                }
               });
             });
           }
@@ -2338,7 +2345,7 @@ class ReadersVisitor extends Visitor<Printer> {
         if (paramScopeId[0] === 0 && paramScopeId[1] === 0) {
           p.interrupt();
 
-          const names = this.index.getScopes(paramId).map(s => s.name);
+          const names = this.index.getScopes(paramId).slice(1).map(s => s.name);
           p.line(`/**${"*".repeat(names.join(".").length + 8)}**/`);
           p.line(`/* ${names.join(".")} (Param) */`);
           p.line(`/**${"*".repeat(names.join(".").length + 8)}**/`);
@@ -2352,7 +2359,7 @@ class ReadersVisitor extends Visitor<Printer> {
         if (resultScopeId[0] === 0 && resultScopeId[1] === 0) {
           p.interrupt();
 
-          const names = this.index.getScopes(resultId).map(s => s.name);
+          const names = this.index.getScopes(resultId).slice(1).map(s => s.name);
           p.line(`/**${"*".repeat(names.join(".").length + 9)}**/`);
           p.line(`/* ${names.join(".")} (Result) */`);
           p.line(`/**${"*".repeat(names.join(".").length + 9)}**/`);

@@ -12,7 +12,7 @@ export default function paramName(index: Index, id: UInt64, position: u16): stri
   const source = index.getNode(id);
   const parameters = nonnull(source.getParameters());
   const name = nonnull(parameters.get(position).getName()).toString();
-  const depth = index.getScopes(id).length - 1;
+  const depth = index.getScopes(id).slice(1).length - 1;
 
   return `${name}_${depth}`;
 }

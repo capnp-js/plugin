@@ -49,7 +49,6 @@ class LibsVisitor extends Visitor<Acc> {
     return this.names.has(naive) ? "capnp_" + naive : naive;
   }
 
-  //TODO: Anything for interfaces?
   struct(node: Node__InstanceR, acc: Acc): Acc {
     /* GenericR */
     const parameters = node.getParameters();
@@ -95,6 +94,36 @@ class LibsVisitor extends Visitor<Acc> {
     }
 
     return super.struct(node, acc);
+  }
+
+  interface(node: Node__InstanceR, acc: Acc): Acc {
+    /* GenericR */
+    const parameters = node.getParameters();
+    if (parameters !== null && parameters.length() > 0) {
+      acc.type["reader-core"]["AnyGutsR"] = this.mangle("AnyGutsR");
+      acc.type["builder-core"]["CtorB"] = this.mangle("CtorB");
+    }
+
+    const methods = node.getInterface().getMethods();
+    if (methods !== null) {
+      methods.forEach(method => {
+        const paramId = method.getParamStructType();
+        const param = this.index.getNode(paramId);
+        const paramScopeId = param.getScopeId();
+        if (paramScopeId[0] === 0 && paramScopeId[1] === 0) {
+          acc = this.visit(paramId, acc);
+        }
+
+        const resultId = method.getResultStructType();
+        const result = this.index.getNode(resultId);
+        const resultScopeId = result.getScopeId();
+        if (resultScopeId[0] === 0 && resultScopeId[1] === 0) {
+          acc = this.visit(resultId, acc);
+        }
+      });
+    }
+
+    return super.interface(node, acc);
   }
 
   addType(type: null | Type__InstanceR, acc: Acc): void {
