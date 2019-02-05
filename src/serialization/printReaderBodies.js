@@ -27,45 +27,23 @@ import { Node, Brand, Field, Type, Value } from "../schema.capnp-r";
 type u16 = number;
 type u33 = number;
 
-type ParametersSubindex = {
-  [uuid: string]: Set<string>,
-};
-
-type PointerTypeT = {
+type MainTypeT = {
   guts: string,
   reader: string,
 };
 
-class PointerType {
+class MainType {
   +index: Index;
   +identifiers: { [uuid: string]: string };
-  +parameters: ParametersSubindex;
+  +parameters: ParametersIndex;
 
-  static instance(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
-    const select = {};
-    for (let uuid in parameters) {
-      select[uuid] = parameters[uuid].instance;
-    }
-
-    return new this(index, identifiers, select);
-  }
-
-  static ctor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
-    const select = {};
-    for (let uuid in parameters) {
-      select[uuid] = parameters[uuid].ctor;
-    }
-
-    return new this(index, identifiers, select);
-  }
-
-  constructor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersSubindex) {
+  constructor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
     this.index = index;
     this.identifiers = identifiers;
     this.parameters = parameters;
   }
 
-  pointer(type: null | Type__InstanceR): null | PointerTypeT {
+  pointer(type: null | Type__InstanceR): null | MainTypeT {
     if (type === null) {
       type = Type.empty();
     }
@@ -106,7 +84,7 @@ class PointerType {
     }
   }
 
-  list(elementType: null | Type__InstanceR): PointerTypeT {
+  list(elementType: null | Type__InstanceR): MainTypeT {
     if (elementType === null) {
       elementType = Type.empty();
     }
@@ -150,14 +128,14 @@ class PointerType {
     }
   }
 
-  struct(id: UInt64, brand: null | Brand__InstanceR): PointerTypeT {
+  struct(id: UInt64, brand: null | Brand__InstanceR): MainTypeT {
     const mangledName = this.identifiers[toHex(id)];
 
     const parameters = this.parameters[toHex(id)];
-    if (parameters.size > 0) {
-      const bindings = this.resolve(parameters, brand);
+    if (parameters.main.length > 0) {
+      const bindings = this.resolve(parameters.main, brand);
 
-      const specialPs = flatMap(Array.from(parameters), name => {
+      const specialPs = flatMap(Array.from(parameters.main), name => {
         const binding = bindings[name];
         return [ binding.guts, binding.reader ];
       });
@@ -177,16 +155,16 @@ class PointerType {
   structContext(
     id: UInt64,
     brand: null | Brand__InstanceR,
-    cb: (guts: "StructGutsR", mangledName: string, pts: Array<PointerTypeT>) => void,
+    cb: (guts: "StructGutsR", mangledName: string, pts: Array<MainTypeT>) => void,
   ): void {
     const mangledName = this.identifiers[toHex(id)];
     const parameters = this.parameters[toHex(id)];
-    const bindings = this.resolve(parameters, brand);
-    const pts = Array.from(parameters).map(name => bindings[name]);
+    const bindings = this.resolve(parameters.main, brand);
+    const pts = Array.from(parameters.main).map(name => bindings[name]);
     cb("StructGutsR", mangledName, pts);
   }
 
-  anyPointer(anyPointer: Type_anyPointer__InstanceR): PointerTypeT {
+  anyPointer(anyPointer: Type_anyPointer__InstanceR): MainTypeT {
     const anyPointerG = Type.groups.anyPointer;
     switch (anyPointer.tag()) {
     case anyPointerG.tags.unconstrained:
@@ -215,7 +193,7 @@ class PointerType {
     }
   }
 
-  resolve(parameters: Set<string>, brand: null | Brand__InstanceR): { [name: string]: PointerTypeT } {
+  resolve(parameters: $ReadOnlyArray<string>, brand: null | Brand__InstanceR): { [name: string]: MainTypeT } {
     if (brand === null) {
       brand = Brand.empty();
     }
@@ -388,10 +366,10 @@ class CtorValue {
     const mangledName = this.identifiers[toHex(id)];
 
     const parameters = this.parameters[toHex(id)];
-    if (parameters.ctor.size > 0) {
-      const bindings = this.resolve(parameters.ctor, brand);
+    if (parameters.main.length > 0) {
+      const bindings = this.resolve(parameters.main, brand);
       //TODO: Is parameters.ctor the correct set for consts? Do I need fix accumulateParameters? I think that ctor and instance converge at leafs, so this should be fine, no? Test me.
-      const objectParams = Array.from(parameters.ctor).map(name => `${name}: ${bindings[name]}`);
+      const objectParams = Array.from(parameters.main).map(name => `${name}: ${bindings[name]}`);
       return `new ${mangledName}__CtorR({ ${objectParams.join(", ")} })`;
     } else {
       return `new ${mangledName}__CtorR()`;
@@ -427,7 +405,7 @@ class CtorValue {
     }
   }
 
-  resolve(parameters: Set<string>, brand: null | Brand__InstanceR): { [name: string]: string } {
+  resolve(parameters: $ReadOnlyArray<string>, brand: null | Brand__InstanceR): { [name: string]: string } {
     if (brand === null) {
       brand = Brand.empty();
     }
@@ -646,11 +624,12 @@ class GroupValues {
 
 class GroupTypes {
   +index: Index;
-  +instanceType: PointerType;
+  +type: MainType;
 
-  constructor(index: Index, instanceType: PointerType) {
+  //TODO: convert instanceType to plain old type, right? not value, though, right?
+  constructor(index: Index, type: MainType) {
     this.index = index;
-    this.instanceType = instanceType;
+    this.type = type;
   }
 
   peek(id: UInt64): { tagExists: boolean, groupExists: boolean } {
@@ -768,7 +747,7 @@ class GroupTypes {
               const slot = field.getSlot();
               if (slot.getHadExplicitDefault()) {
                 const name = capitalize(nonnull(field.getName()).toString());
-                const type = nonnull(this.instanceType.pointer(slot.getType()));
+                const type = nonnull(this.type.pointer(slot.getType()));
                 p.line(`default${name}(): ${type.reader},`);
               }
             }
@@ -780,11 +759,11 @@ class GroupTypes {
 }
 
 class Constants {
-  +instanceType: PointerType;
+  +type: MainType;
   +ctorValue: CtorValue;
 
-  constructor(instanceType: PointerType, ctorValue: CtorValue) {
-    this.instanceType = instanceType;
+  constructor(type: MainType, ctorValue: CtorValue) {
+    this.type = type;
     this.ctorValue = ctorValue;
   }
 
@@ -882,7 +861,7 @@ class Constants {
     case Type.tags.anyPointer:
       const ctor = nonnull(this.ctorValue.pointer(((type: any): Type__InstanceR))); // eslint-disable-line flowtype/no-weak-types
       cb(
-        nonnull(this.instanceType.pointer(type)).reader,
+        nonnull(this.type.pointer(type)).reader,
         `return ${ctor}.deref(0, blob, ${ref});`,
       );
       break;
@@ -894,8 +873,7 @@ class Constants {
 
 class ReadersVisitor extends Visitor<Printer> {
   +parameters: ParametersIndex;
-  +instanceType: PointerType;
-  +ctorType: PointerType;
+  +type: MainType;
   +ctorValue: CtorValue;
   +constants: Constants;
   +groupTypes: GroupTypes;
@@ -904,11 +882,10 @@ class ReadersVisitor extends Visitor<Printer> {
   constructor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
     super(index);
     this.parameters = parameters;
-    this.instanceType = PointerType.instance(index, identifiers, parameters);
-    this.ctorType = PointerType.ctor(index, identifiers, parameters);
+    this.type = new MainType(index, identifiers, parameters);
     this.ctorValue = new CtorValue(index, identifiers, parameters);
-    this.constants = new Constants(this.instanceType, this.ctorValue);
-    this.groupTypes = new GroupTypes(index, this.instanceType);
+    this.constants = new Constants(this.type, this.ctorValue);
+    this.groupTypes = new GroupTypes(index, this.type);
     this.groupValues = new GroupValues(index, this.constants);
   }
 
@@ -1186,7 +1163,7 @@ class ReadersVisitor extends Visitor<Printer> {
         case Type.tags.struct:
         case Type.tags.interface:
         case Type.tags.anyPointer:
-          p.block(`${getField}(): null | ${nonnull(this.instanceType.pointer(type)).reader}`, p => {
+          p.block(`${getField}(): null | ${nonnull(this.type.pointer(type)).reader}`, p => {
             checkTag(discrValue, discrOffset, p);
 
             p.line(`const ref = this.guts.pointersWord(${slot.getOffset() << 3});`);
@@ -1205,7 +1182,7 @@ class ReadersVisitor extends Visitor<Printer> {
         const id = group.getTypeId();
         const baseName = `${this.index.getScopes(id).slice(1).map(s => s.name).join("_")}`;
 
-        const parameters = this.parameters[toHex(id)].instance;
+        const parameters = this.parameters[toHex(id)].main;
 
         const specialPs = flatMap(Array.from(parameters), name => [
           `${name}_guts`,
@@ -1214,14 +1191,14 @@ class ReadersVisitor extends Visitor<Printer> {
         const objectParams = Array.from(parameters).map(name => `${name}: this.params.${name}`);
 
         let specialization = `${baseName}__InstanceR`;
-        if (parameters.size > 0) {
+        if (parameters.length > 0) {
           specialization += `<${specialPs.join(", ")}>`;
         }
 
         p.block(`${getField}(): ${specialization}`, p => {
           checkTag(discrValue, discrOffset, p);
 
-          if (parameters.size > 0) {
+          if (parameters.length > 0) {
             p.line(`return new ${baseName}__InstanceR(this.guts, { ${objectParams.join(", ")} });`);
           } else {
             p.line(`return new ${baseName}__InstanceR(this.guts);`);
@@ -1276,7 +1253,7 @@ class ReadersVisitor extends Visitor<Printer> {
       });
 
       let class_ = `export class ${baseName}__${prefix}GenericR`;
-      if (parameters.generic.size > 0) {
+      if (parameters.generic.length > 0) {
         class_ += `<${declareParams.join(", ")}>`;
       }
 
@@ -1316,7 +1293,7 @@ class ReadersVisitor extends Visitor<Printer> {
           constructorAsses.push(`this.groups = ${baseName}__Groups;`);
         }
 
-        if (parameters.generic.size > 0) {
+        if (parameters.generic.length > 0) {
           p.line(`+params: { ${objectParams.join(", ")} };`);
           constructorAsses.push("this.params = params;");
         }
@@ -1324,7 +1301,7 @@ class ReadersVisitor extends Visitor<Printer> {
         p.interrupt();
 
         if (constructorAsses.length > 0) {
-          if (parameters.generic.size > 0) {
+          if (parameters.generic.length > 0) {
             p.block(`constructor(params: { ${objectParams.join(", ")} })`, p => {
               constructorAsses.forEach(ass => {
                 p.line(ass);
@@ -1346,28 +1323,16 @@ class ReadersVisitor extends Visitor<Printer> {
           `${name}_r: {+guts: ${name}_guts}`,
         ]);
         const argPs = parameters.specialize.map(name => `${name}: CtorR<${name}_guts, ${name}_r>`);
-        const specialPs = flatMap(Array.from(parameters.ctor), name => [
+        const specialPs = flatMap(Array.from(parameters.main), name => [
           `${name}_guts`,
           `${name}_r`,
         ]);
-        let specialization = `${baseName}__${prefix}CtorR`;
-        if (parameters.ctor.size > 0) {
-          /* I gotta check for existence because all of the generic parameters
-             may go unused. */
-          specialization += `<${specialPs.join(", ")}>`;
-        }
+        const specialization = `${baseName}__${prefix}CtorR<${specialPs.join(", ")}>`;
         p.block(`specialize<${declarePs.join(", ")}>(${argPs.join(", ")}): ${specialization}`, p => {
-          const newPs = Array.from(parameters.generic).map(name => `${name}: this.params.${name}`);
+          let newPs = Array.from(parameters.generic).map(name => `${name}: this.params.${name}`);
+          newPs = newPs.concat(parameters.specialize);
 
-          /* Some of the specialize arguments may go unused, so I need to add
-             the subset that actually appear in `parameters.ctor`. */
-          parameters.specialize.forEach(name => {
-            if (parameters.ctor.has(name)) {
-              newPs.push(name);
-            }
-          });
-
-          if (parameters.ctor.size > 0) {
+          if (parameters.main.length > 0) {
             p.line(`return new ${baseName}__${prefix}CtorR({ ${newPs.join(", ")} });`);
           } else {
             p.line(`return new ${baseName}__${prefix}CtorR();`);
@@ -1443,25 +1408,25 @@ class ReadersVisitor extends Visitor<Printer> {
       /* `X__CtorR` */
 
       let this_ = `${baseName}__${prefix}InstanceR`;
-      if (parameters.instance.size > 0) {
-        const specialParams = flatMap(Array.from(parameters.instance), name => [
+      if (parameters.main.length > 0) {
+        const specialParams = flatMap(Array.from(parameters.main), name => [
           `${name}_guts`,
           `${name}_r`,
         ]);
         this_ += `<${specialParams.join(", ")}>`;
       }
 
-      const declareParams = flatMap(Array.from(parameters.ctor), name => [
+      const declareParams = flatMap(Array.from(parameters.main), name => [
         `${name}_guts: AnyGutsR`,
         `${name}_r: {+guts: ${name}_guts}`,
       ]);
 
-      const objectParams = Array.from(parameters.ctor).map(name => {
+      const objectParams = Array.from(parameters.main).map(name => {
         return `+${name}: CtorR<${name}_guts, ${name}_r>`;
       });
 
       let class_ = `export class ${baseName}__${prefix}CtorR`;
-      if (parameters.ctor.size > 0) {
+      if (parameters.main.length > 0) {
         class_ += `<${declareParams.join(", ")}>`;
       }
 
@@ -1482,7 +1447,7 @@ class ReadersVisitor extends Visitor<Printer> {
                 const parameters = this.parameters[toHex(nestedNode.getId())];
                 if (parameters.specialize.length > 0) {
                   let t = `${baseName}_${localName}__GenericR`;
-                  if (parameters.generic.size > 0) {
+                  if (parameters.generic.length > 0) {
                     const specialParams = flatMap(Array.from(parameters.generic), name => [
                       `${name}_guts`,
                       `${name}_r`,
@@ -1491,7 +1456,7 @@ class ReadersVisitor extends Visitor<Printer> {
                   }
                   p.line(`+${localName}: ${t};`);
 
-                  if (parameters.generic.size > 0) {
+                  if (parameters.generic.length > 0) {
                     const params = Array.from(parameters.generic).map(name => {
                       return `${name}: this.params.${name}`;
                     });
@@ -1501,8 +1466,8 @@ class ReadersVisitor extends Visitor<Printer> {
                   }
                 } else {
                   let t = `${baseName}_${localName}__CtorR`;
-                  if (parameters.ctor.size > 0) {
-                    const specialParams = flatMap(Array.from(parameters.ctor), name => [
+                  if (parameters.main.length > 0) {
+                    const specialParams = flatMap(Array.from(parameters.main), name => [
                       `${name}_guts`,
                       `${name}_r`,
                     ]);
@@ -1510,8 +1475,8 @@ class ReadersVisitor extends Visitor<Printer> {
                   }
                   p.line(`+${localName}: ${t};`);
 
-                  if (parameters.ctor.size > 0) {
-                    const params = Array.from(parameters.ctor).map(name => {
+                  if (parameters.main.length > 0) {
+                    const params = Array.from(parameters.main).map(name => {
                       return `${name}: this.params.${name}`;
                     });
                     constructorAsses.push(`this.${localName} = new ${baseName}_${localName}__CtorR({ ${params.join(", ")} });`);
@@ -1553,7 +1518,7 @@ class ReadersVisitor extends Visitor<Printer> {
           constructorAsses.push(`this.groups = ${baseName}__Groups;`);
         }
 
-        if (parameters.ctor.size > 0) {
+        if (parameters.main.length > 0) {
           p.line(`+params: { ${objectParams.join(", ")} };`);
           constructorAsses.push("this.params = params;");
         }
@@ -1561,7 +1526,7 @@ class ReadersVisitor extends Visitor<Printer> {
         if (constructorAsses.length > 0) {
           p.interrupt();
 
-          if (parameters.ctor.size > 0) {
+          if (parameters.main.length > 0) {
             p.block(`constructor(params: { ${objectParams.join(", ")} })`, p => {
               constructorAsses.forEach(ass => {
                 p.line(ass);
@@ -1579,10 +1544,10 @@ class ReadersVisitor extends Visitor<Printer> {
         p.interrupt();
 
         //TODO: convert parameters.specialize to a Set<string> for consistency?
-        const instanceParams = Array.from(parameters.instance).map(name => `${name}: this.params.${name}`);
+        const instanceParams = Array.from(parameters.main).map(name => `${name}: this.params.${name}`);
 
         p.block(`intern(guts: StructGutsR): ${this_}`, p => {
-          if (parameters.instance.size > 0) {
+          if (parameters.main.length > 0) {
             p.line(`return new ${baseName}__${prefix}InstanceR(guts, { ${instanceParams.join(", ")} });`);
           } else {
             p.line(`return new ${baseName}__${prefix}InstanceR(guts);`);
@@ -1592,7 +1557,7 @@ class ReadersVisitor extends Visitor<Printer> {
         p.interrupt();
 
         p.block(`fromAny(guts: AnyGutsR): ${this_}`, p => {
-          if (parameters.instance.size > 0) {
+          if (parameters.main.length > 0) {
             p.line(`return new ${baseName}__${prefix}InstanceR(RefedStruct.fromAny(guts), { ${instanceParams.join(", ")} });`);
           } else {
             p.line(`return new ${baseName}__${prefix}InstanceR(RefedStruct.fromAny(guts));`);
@@ -1603,7 +1568,7 @@ class ReadersVisitor extends Visitor<Printer> {
 
         p.block(`deref(level: uint, arena: ArenaR, ref: Word<SegmentR>): ${this_}`, p => {
           p.line("const guts = RefedStruct.deref(level, arena, ref, this.compiledBytes());");
-          if (parameters.instance.size > 0) {
+          if (parameters.main.length > 0) {
             p.line(`return new ${baseName}__${prefix}InstanceR(guts, { ${instanceParams.join(", ")} });`);
           } else {
             p.line(`return new ${baseName}__${prefix}InstanceR(guts);`);
@@ -1628,7 +1593,7 @@ class ReadersVisitor extends Visitor<Printer> {
 
         p.block(`empty(): ${this_}`, p => {
           p.line("const guts = RefedStruct.empty(blob);");
-          if (parameters.instance.size > 0) {
+          if (parameters.main.length > 0) {
             p.line(`return new ${baseName}__${prefix}InstanceR(guts, { ${instanceParams.join(", ")} });`);
           } else {
             p.line(`return new ${baseName}__${prefix}InstanceR(guts);`);
@@ -1703,24 +1668,24 @@ class ReadersVisitor extends Visitor<Printer> {
     {
       /* `X__InstanceR` */
 
-      const declareParams = flatMap(Array.from(parameters.instance), name => [
+      const declareParams = flatMap(Array.from(parameters.main), name => [
         `${name}_guts: AnyGutsR`,
         `${name}_r: {+guts: ${name}_guts}`,
       ]);
 
-      const objectParams = Array.from(parameters.instance).map(name => {
+      const objectParams = Array.from(parameters.main).map(name => {
         return `+${name}: CtorR<${name}_guts, ${name}_r>`;
       });
 
       let class_ = `export class ${baseName}__${prefix}InstanceR`;
-      if (parameters.instance.size > 0) {
+      if (parameters.main.length > 0) {
         class_ += `<${declareParams.join(", ")}>`;
       }
 
       p.block(class_, p => {
         p.line("+guts: StructGutsR;");
 
-        if (parameters.instance.size > 0) {
+        if (parameters.main.length > 0) {
           p.line(`+params: { ${objectParams.join(", ")} };`);
 
           p.interrupt();
@@ -1810,30 +1775,30 @@ class ReadersVisitor extends Visitor<Printer> {
     const baseName = this.index.getScopes(node.getId()).slice(1).map(s => s.name).join("_");
     if (struct.getIsGroup()) {
       //TODO: This is a very common pattern. extract a function and refactor?
-      const declareParams = flatMap(Array.from(parameters.instance), name => [
+      const declareParams = flatMap(Array.from(parameters.main), name => [
         `${name}_guts: AnyGutsR`,
         `${name}_r: {+guts: ${name}_guts}`,
       ]);
 
-      const objectParams = Array.from(parameters.instance).map(name => {
+      const objectParams = Array.from(parameters.main).map(name => {
         return `+${name}: CtorR<${name}_guts, ${name}_r>`;
       });
 
       let class_ = `export class ${baseName}__InstanceR`;
-      if (parameters.instance.size > 0) {
+      if (parameters.main.length > 0) {
         class_ += `<${declareParams.join(", ")}>`;
       }
 
       p.block(class_, p => {
         p.line("+guts: StructGutsR;");
 
-        if (parameters.instance.size > 0) {
+        if (parameters.main.length > 0) {
           p.line(`+params: { ${objectParams.join(", ")} };`);
         }
 
         p.interrupt();
 
-        if (parameters.instance.size > 0) {
+        if (parameters.main.length > 0) {
           p.block(`constructor(guts: StructGutsR, params: { ${objectParams.join(", ")} })`, p => {
             p.line("this.guts = guts;");
             p.line("this.params = params;");
@@ -1950,7 +1915,7 @@ class ReadersVisitor extends Visitor<Printer> {
       });
 
       let class_ = `export class ${baseName}__GenericR`;
-      if (parameters.generic.size > 0) {
+      if (parameters.generic.length > 0) {
         class_ += `<${declareParams.join(", ")}>`;
       }
 
@@ -1982,7 +1947,7 @@ class ReadersVisitor extends Visitor<Printer> {
         }
 
         //TODO: Test enum code embedded within structs (and interfaces)
-        if (parameters.generic.size > 0) {
+        if (parameters.generic.length > 0) {
           p.line(`+params: { ${objectParams.join(", ")} };`);
           constructorAsses.push("this.params = params;");
         }
@@ -1990,7 +1955,7 @@ class ReadersVisitor extends Visitor<Printer> {
         if (constructorAsses.length > 0) {
           p.interrupt();
 
-          if (parameters.generic.size > 0) {
+          if (parameters.generic.length > 0) {
             p.block(`constructor(params: { ${objectParams.join(", ")} })`, p => {
               constructorAsses.forEach(ass => {
                 p.line(ass);
@@ -2012,28 +1977,16 @@ class ReadersVisitor extends Visitor<Printer> {
           `${name}_r: {+guts: ${name}_guts}`,
         ]);
         const argPs = parameters.specialize.map(name => `${name}: CtorR<${name}_guts, ${name}_r>`);
-        const specialPs = flatMap(Array.from(parameters.ctor), name => [
+        const specialPs = flatMap(Array.from(parameters.main), name => [
           `${name}_guts`,
           `${name}_r`,
         ]);
-        let specialization = `${baseName}__CtorR`;
-        if (parameters.ctor.size > 0) {
-          /* I gotta check for existence because all of the generic parameters
-             may go unused. */
-          specialization += `<${specialPs.join(", ")}>`;
-        }
+        const specialization = `${baseName}__CtorR<${specialPs.join(", ")}>`;
         p.block(`specialize<${declarePs.join(", ")}>(${argPs.join(", ")}): ${specialization}`, p => {
-          const newPs = Array.from(parameters.generic).map(name => `${name}: this.params.${name}`);
+          let newPs = Array.from(parameters.generic).map(name => `${name}: this.params.${name}`);
+          newPs = newPs.concat(parameters.specialize);
 
-          /* Some of the specialize arguments may go unused, so I need to add
-             the subset that actually appear in `parameters.ctor`. */
-          parameters.specialize.forEach(name => {
-            if (parameters.ctor.has(name)) {
-              newPs.push(name);
-            }
-          });
-
-          if (parameters.ctor.size > 0) {
+          if (parameters.main.length > 0) {
             p.line(`return new ${baseName}__CtorR({ ${newPs.join(", ")} });`);
           } else {
             p.line(`return new ${baseName}__CtorR();`);
@@ -2078,17 +2031,17 @@ class ReadersVisitor extends Visitor<Printer> {
     {
       /* `X__CtorR` */
 
-      const declareParams = flatMap(Array.from(parameters.ctor), name => [
+      const declareParams = flatMap(Array.from(parameters.main), name => [
         `${name}_guts: AnyGutsR`,
         `${name}_r: {+guts: ${name}_guts}`,
       ]);
 
-      const objectParams = Array.from(parameters.ctor).map(name => {
+      const objectParams = Array.from(parameters.main).map(name => {
         return `+${name}: CtorR<${name}_guts, ${name}_r>`;
       });
 
       let class_ = `export class ${baseName}__CtorR`;
-      if (parameters.ctor.size > 0) {
+      if (parameters.main.length > 0) {
         class_ += `<${declareParams.join(", ")}>`;
       }
 
@@ -2107,7 +2060,7 @@ class ReadersVisitor extends Visitor<Printer> {
                 const parameters = this.parameters[toHex(nestedNode.getId())];
                 if (parameters.specialize.length > 0) {
                   let t = `${baseName}_${localName}__GenericR`;
-                  if (parameters.generic.size > 0) {
+                  if (parameters.generic.length > 0) {
                     const specialParams = flatMap(Array.from(parameters.generic), name => [
                       `${name}_guts`,
                       `${name}_r`,
@@ -2116,7 +2069,7 @@ class ReadersVisitor extends Visitor<Printer> {
                   }
                   p.line(`+${localName}: ${t};`);
 
-                  if (parameters.generic.size > 0) {
+                  if (parameters.generic.length > 0) {
                     const params = Array.from(parameters.generic).map(name => {
                       return `${name}: this.params.${name}`;
                     });
@@ -2126,8 +2079,8 @@ class ReadersVisitor extends Visitor<Printer> {
                   }
                 } else {
                   let t = `${baseName}_${localName}__CtorR`;
-                  if (parameters.ctor.size > 0) {
-                    const specialParams = flatMap(Array.from(parameters.ctor), name => [
+                  if (parameters.main.length > 0) {
+                    const specialParams = flatMap(Array.from(parameters.main), name => [
                       `${name}_guts`,
                       `${name}_r`,
                     ]);
@@ -2135,8 +2088,8 @@ class ReadersVisitor extends Visitor<Printer> {
                   }
                   p.line(`+${localName}: ${t};`);
 
-                  if (parameters.ctor.size > 0) {
-                    const params = Array.from(parameters.ctor).map(name => {
+                  if (parameters.main.length > 0) {
+                    const params = Array.from(parameters.main).map(name => {
                       return `${name}: this.params.${name}`;
                     });
                     constructorAsses.push(`this.${localName} = new ${baseName}_${localName}__CtorR({ ${params.join(", ")} });`);
@@ -2188,14 +2141,13 @@ class ReadersVisitor extends Visitor<Printer> {
                 if (paramScopeId[0] === 0 && paramScopeId[1] === 0) {
                   const parameters = this.parameters[toHex(paramId)];
                   let specialization = `${methodBaseName}__ParamCtorR`;
-                  if (parameters.ctor.size > 0) {
-                    const specialPs = flatMap(Array.from(parameters.ctor), name => [
+                  if (parameters.main.length > 0) {
+                    const specialPs = flatMap(Array.from(parameters.main), name => [
                       `${name}_guts`,
                       `${name}_r`,
                     ]);
-                    const objectParams = Array.from(parameters.ctor).map(name => `${name}: this.params.${name}`);
+                    const objectParams = Array.from(parameters.main).map(name => `${name}: this.params.${name}`);
                     specialization += `<${specialPs.join(", ")}>`;
-//TODO: Locals found these names for collision mangling, right?
                     paramCtor = `new ${methodBaseName}__ParamCtorR({ ${objectParams.join(", ")} })`;
                   } else {
                     paramCtor = `new ${methodBaseName}__ParamCtorR()`;
@@ -2203,7 +2155,7 @@ class ReadersVisitor extends Visitor<Printer> {
                   p.line(`+Param: ${specialization},`);
                 } else {
                   paramCtor = this.ctorValue.struct(paramId, method.getParamBrand());
-                  this.ctorType.structContext(paramId, method.getParamBrand(), (guts, mangledName, pts) => {
+                  this.type.structContext(paramId, method.getParamBrand(), (guts, mangledName, pts) => {
                     if (pts.length > 0) {
                       const specialPs = flatMap(pts, pt => [pt.guts, pt.reader]);
                       p.line(`+Param: ${mangledName}__CtorR<${specialPs.join(", ")}>,`);
@@ -2218,12 +2170,12 @@ class ReadersVisitor extends Visitor<Printer> {
                 if (resultScopeId[0] === 0 && resultScopeId[1] === 0) {
                   const parameters = this.parameters[toHex(resultId)];
                   let specialization = `${methodBaseName}__ResultCtorR`;
-                  if (parameters.ctor.size > 0) {
-                    const specialPs = flatMap(Array.from(parameters.ctor), name => [
+                  if (parameters.main.length > 0) {
+                    const specialPs = flatMap(Array.from(parameters.main), name => [
                       `${name}_guts`,
                       `${name}_r`,
                     ]);
-                    const objectParams = Array.from(parameters.ctor).map(name => `${name}: this.params.${name}`);
+                    const objectParams = Array.from(parameters.main).map(name => `${name}: this.params.${name}`);
                     specialization += `<${specialPs.join(", ")}>`;
                     resultCtor = `new ${methodBaseName}__ResultCtorR({ ${objectParams.join(", ")} })`;
                   } else {
@@ -2232,7 +2184,7 @@ class ReadersVisitor extends Visitor<Printer> {
                   p.line(`+Result: ${specialization},`);
                 } else {
                   resultCtor = this.ctorValue.struct(resultId, method.getResultBrand());
-                  this.ctorType.structContext(resultId, method.getParamBrand(), (guts, mangledName, pts) => {
+                  this.type.structContext(resultId, method.getParamBrand(), (guts, mangledName, pts) => {
                     if (pts.length > 0) {
                       const specialPs = flatMap(pts, pt => [pt.guts, pt.reader]);
                       p.line(`+Result: ${mangledName}__CtorR<${specialPs.join(", ")}>,`);
@@ -2250,7 +2202,7 @@ class ReadersVisitor extends Visitor<Printer> {
           p.line("};");
         }
 
-        if (parameters.ctor.size > 0) {
+        if (parameters.main.length > 0) {
           p.line(`+params: { ${objectParams.join(", ")} };`);
           constructorAsses.push("this.params = params;");
         }
@@ -2258,7 +2210,7 @@ class ReadersVisitor extends Visitor<Printer> {
         p.interrupt();
 
         if (constructorAsses.length > 0 || constructorMethodCtors.length > 0) {
-          if (parameters.ctor.size > 0) {
+          if (parameters.main.length > 0) {
             p.block(`constructor(params: { ${objectParams.join(", ")} })`, p => {
               constructorAsses.forEach(ass => {
                 p.line(ass);
