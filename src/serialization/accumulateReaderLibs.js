@@ -14,6 +14,7 @@ import { Brand, Field, Type } from "../schema.capnp-r";
 import Visitor from "../Visitor";
 
 type Acc = {
+  +aliases: { [naive: string]: string },
   +type: {
     +int64: { [naive: string]: string },
     +uint64: { [naive: string]: string },
@@ -126,9 +127,46 @@ class LibsVisitor extends Visitor<Acc> {
   }
 
   const(node: Node__InstanceR, acc: Acc): Acc {
+    this.addAlias(node.getConst().getType(), acc);
     this.addType(node.getConst().getType(), acc);
 
     return super.const(node, acc);
+  }
+
+  addAlias(type: null | Type__InstanceR, acc: Acc): void {
+    if (type === null) {
+      type = Type.empty();
+    }
+
+    switch (type.tag()) {
+    case Type.tags.void:
+    case Type.tags.bool:
+      break;
+    case Type.tags.int8:
+      acc.aliases["i8"] = "number";
+      break;
+    case Type.tags.int16:
+      acc.aliases["i16"] = "number";
+      break;
+    case Type.tags.int32:
+      acc.aliases["i32"] = "number";
+      break;
+    case Type.tags.uint8:
+      acc.aliases["u8"] = "number";
+      break;
+    case Type.tags.uint16:
+      acc.aliases["u16"] = "number";
+      break;
+    case Type.tags.uint32:
+      acc.aliases["u32"] = "number";
+      break;
+    case Type.tags.float32:
+      acc.aliases["f32"] = "number";
+      break;
+    case Type.tags.float64:
+      acc.aliases["f64"] = "number";
+      break;
+    }
   }
 
   addType(type: null | Type__InstanceR, acc: Acc): void {
@@ -341,6 +379,7 @@ class LibsVisitor extends Visitor<Acc> {
 
 export default function accumulateReaderLibs(index: Index, fileId: UInt64, names: Set<string>): Libs {
   const internalAcc = new LibsVisitor(index, names).visit(fileId, {
+    aliases: {},
     type: {
       int64: {},
       uint64: {},

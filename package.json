@@ -10,8 +10,9 @@
     "build": "gulp lib",
     "refresh": "rm -f package-lock.json && npm run clean && npm unpublish --force && rm -rf node_modules/@capnp-js && npm run build && npm publish",
     "clean": "gulp clean",
+    "compile-schema": "gulp compile",
     "test-flow": "flow check --strip-root --show-all-errors --color=always src",
-    "test": "gulp build && capnp compile -o./bin/capnpc-js-json:test --src-prefix=test -I./test test/schema.capnp && mocha test/cgr.js",
+    "test": "npm run test-flow",
     "flow": "flow"
   },
   "repository": {

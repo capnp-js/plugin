@@ -313,9 +313,17 @@ export function classes(index: Index, values: null | Values, strategy: Strategy,
 
   /* Type aliases */
   {
-    const keys = Object.keys(users.aliases);
+    const aliases = {};
+    for (let key in libs.aliases) {
+      aliases[key] = libs.aliases[key];
+    }
+    for (let key in users.aliases) {
+      aliases[key] = users.aliases[key];
+    }
+
+    const keys = Object.keys(aliases);
     keys.sort();
-    keys.forEach(alias => p.line(`type ${alias} = ${users.aliases[alias]};`));
+    keys.forEach(alias => p.line(`type ${alias} = ${aliases[alias]};`));
   }
 
   p.interrupt();

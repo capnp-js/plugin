@@ -1,3 +1,4 @@
+import { exec } from "child_process";
 import del from "del";
 import gulp from "gulp";
 import babel from "gulp-babel";
@@ -58,6 +59,7 @@ const eslintConfig = {
 export function clean() {
   return del([
     "lib/",
+    "test/*.js",
   ], {force: true});
 }
 
@@ -76,13 +78,29 @@ export function lib() {
     .pipe(gulp.dest("lib/"));
 }
 
-export function schema() {
-  const presets = [["@babel/preset-env", {targets: {node: "8.9"}, modules: "commonjs"}]];
+export function compile() {
+  function file(filename) {
+    const plugin = process.env.PWD + "/lib/bin/flow.js";
+    return new Promise((resolve, reject) => {
+      exec(
+        `capnp compile --src-prefix test/schema -o ${plugin}:test ${process.env.PWD}/test/schema/${filename}`,
+        (error, stdout, stderr) => {
+          if (error !== null && error.code !== 0) {
+            console.log("stdout: " + stdout);
+            console.log("stderr: " + stderr);
+            reject(error.code);
+          } else {
+            resolve(0);
+          }
+        },
+      );
+    });
+  }
 
-  return gulp.src("src/schema.capnp.js")
-    .pipe(eslint(eslintConfig))
-    .pipe(eslint.format())
-    .pipe(eslint.failAfterError())
-    .pipe(babel({plugins: ["@babel/transform-flow-strip-types"], presets}))
-    .pipe(gulp.dest("lib"));
+  return Promise.all([
+    file("const-int8.capnp"),
+    file("const-int16.capnp"),
+    file("const-int32.capnp"),
+    file("const-int64.capnp"),
+  ]);
 }

@@ -2,6 +2,7 @@
 
 export type Libs = {
   +names: Set<string>,
+  +aliases: { [naive: string]: string },
   +type: {
     +int64: { [naive: string]: string },
     +uint64: { [naive: string]: string },

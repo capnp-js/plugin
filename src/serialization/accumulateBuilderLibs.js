@@ -14,6 +14,7 @@ import { Brand, Field, Type } from "../schema.capnp-r";
 import Visitor from "../Visitor";
 
 type Acc = {
+  +aliases: { [naive: string]: string },
   +type: {
     int64: { [naive: string]: string },
     uint64: { [naive: string]: string },
@@ -447,6 +448,7 @@ export default function accumulateBuilderLibs(index: Index, fileId: UInt64, name
   }
 
   const internalAcc = new LibsVisitor(index, names).visit(fileId, {
+    aliases: {},
     type: {
       int64: {},
       uint64: {},
