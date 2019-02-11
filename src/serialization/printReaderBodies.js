@@ -13,6 +13,10 @@ import type {
   Type_anyPointer__InstanceR,
 } from "../schema.capnp-r";
 import type { ParametersIndex } from "./accumulateParameters";
+import type {
+  MetaWord,
+  Values,
+} from "./accumulateValues";
 
 import { toHex } from "@capnp-js/uint64";
 import { nonnull } from "@capnp-js/nullary";
@@ -480,11 +484,9 @@ class CtorValue {
 
 class GroupValues {
   +index: Index;
-  +constants: Constants;
 
-  constructor(index: Index, constants: Constants) {
+  constructor(index: Index) {
     this.index = index;
-    this.constants = constants;
   }
 
   peek(id: UInt64): { tagExists: boolean, groupExists: boolean } {
@@ -594,29 +596,6 @@ class GroupValues {
           });
           p.line("},");
         }
-
-        //TODO: This includes nonpointers among the defaults, no? That's a bug, no?
-        const fields = node.getStruct().getFields();
-        if (fields !== null) {
-          fields.forEach(field => {
-            if (field.tag() === Field.tags.slot) {
-              const slot = field.getSlot();
-              if (slot.getHadExplicitDefault()) {
-                const name = nonnull(field.getName()).toString();
-                const ref = `defaults["${toHex(id)}"].${name}`;
-                this.constants.context(ref, slot.getType(), slot.getDefaultValue(), (type, body) => {
-                  if (body === null) {
-                    p.line(`default${capitalize(name)}(): ${type} {}`);
-                  } else {
-                    p.line(`default${capitalize(name)}(): ${type} {`);
-                    p.indent(p => p.line(body));
-                    p.line("},");
-                  }
-                });
-              }
-            }
-          });
-        }
       });
     }
   }
@@ -624,12 +603,10 @@ class GroupValues {
 
 class GroupTypes {
   +index: Index;
-  +type: MainType;
 
   //TODO: convert instanceType to plain old type, right? not value, though, right?
-  constructor(index: Index, type: MainType) {
+  constructor(index: Index) {
     this.index = index;
-    this.type = type;
   }
 
   peek(id: UInt64): { tagExists: boolean, groupExists: boolean } {
@@ -739,36 +716,24 @@ class GroupTypes {
           });
           p.line("},");
         }
-
-        const fields = node.getStruct().getFields();
-        if (fields !== null) {
-          fields.forEach(field => {
-            if (field.tag() === Field.tags.slot) {
-              const slot = field.getSlot();
-              if (slot.getHadExplicitDefault()) {
-                const name = capitalize(nonnull(field.getName()).toString());
-                const type = nonnull(this.type.pointer(slot.getType()));
-                p.line(`default${name}(): ${type.reader},`);
-              }
-            }
-          });
-        }
       });
     }
   }
 }
 
 class Constants {
+  +values: null | Values;
   +type: MainType;
   +ctorValue: CtorValue;
 
-  constructor(type: MainType, ctorValue: CtorValue) {
+  constructor(values: null | Values, type: MainType, ctorValue: CtorValue) {
+    this.values = values;
     this.type = type;
     this.ctorValue = ctorValue;
   }
 
   context(
-    ref: string,
+    id: UInt64,
     type: null | Type__InstanceR,
     value: null | Value__InstanceR,
     cb: (type: string, body: null | string) => void,
@@ -859,6 +824,8 @@ class Constants {
     case Type.tags.struct:
     case Type.tags.interface:
     case Type.tags.anyPointer:
+      const meta = nonnull(this.values).constants[toHex(id)];
+      const ref = `{ segment: blob.segments[${meta.segmentId}], position: ${meta.position} }`;
       const ctor = nonnull(this.ctorValue.pointer(((type: any): Type__InstanceR))); // eslint-disable-line flowtype/no-weak-types
       cb(
         nonnull(this.type.pointer(type)).reader,
@@ -873,23 +840,25 @@ class Constants {
 
 class ReadersVisitor extends Visitor<Printer> {
   +parameters: ParametersIndex;
+  +values: null | Values;
   +type: MainType;
   +ctorValue: CtorValue;
   +constants: Constants;
   +groupTypes: GroupTypes;
   +groupValues: GroupValues;
 
-  constructor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
+  constructor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex, values: null | Values) {
     super(index);
     this.parameters = parameters;
+    this.values = values;
     this.type = new MainType(index, identifiers, parameters);
     this.ctorValue = new CtorValue(index, identifiers, parameters);
-    this.constants = new Constants(this.type, this.ctorValue);
-    this.groupTypes = new GroupTypes(index, this.type);
-    this.groupValues = new GroupValues(index, this.constants);
+    this.constants = new Constants(values, this.type, this.ctorValue);
+    this.groupTypes = new GroupTypes(index);
+    this.groupValues = new GroupValues(index);
   }
 
-  structField(field: Field__InstanceR, discrOffset: u33, p: Printer): void {
+  structField(field: Field__InstanceR, defs: null | { [name: string]: MetaWord }, discrOffset: u33, p: Printer): void {
     function checkTag(discrValue: u16, discrOffset: u33, p: Printer): void {
       if (discrValue !== Field.getNoDiscriminant()) {
         p.line(`this.guts.checkTag(${discrValue}, ${discrOffset});`);
@@ -912,9 +881,13 @@ class ReadersVisitor extends Visitor<Printer> {
 
         switch (type.tag()) {
         case Type.tags.void:
-          p.block(`${getField}(): void`, p => {
-            checkTag(discrValue, discrOffset, p);
-          });
+          if (discrValue !== Field.getNoDiscriminant()) {
+            p.block(`${getField}(): void`, p => {
+              checkTag(discrValue, discrOffset, p);
+            });
+          } else {
+            p.line(`${getField}(): void {}`);
+          }
           break;
         case Type.tags.bool:
           p.block(`${getField}(): boolean`, p => {
@@ -1163,13 +1136,37 @@ class ReadersVisitor extends Visitor<Printer> {
         case Type.tags.struct:
         case Type.tags.interface:
         case Type.tags.anyPointer:
-          p.block(`${getField}(): null | ${nonnull(this.type.pointer(type)).reader}`, p => {
-            checkTag(discrValue, discrOffset, p);
+          if (slot.getHadExplicitDefault()) {
+            p.block(`${getField}(): ${nonnull(this.type.pointer(type)).reader}`, p => {
+              checkTag(discrValue, discrOffset, p);
 
-            p.line(`const ref = this.guts.pointersWord(${slot.getOffset() << 3});`);
-            const ctor = nonnull(this.ctorValue.pointer(type));
-            p.line(`return ref === null ? null : ${ctor}.get(this.guts.level, this.guts.arena, ref);`);
-          });
+              p.line(`const ref = this.guts.pointersWord(${slot.getOffset() << 3});`);
+              const ctor = nonnull(this.ctorValue.pointer(type));
+              const def = nonnull(defs)[name.toString()];
+              p.ifElse(
+                "ref === null",
+                p => {
+                  p.line(`return ${ctor}.deref(this.guts.level, blob, {`);
+                  p.indent(p => {
+                    p.line(`segment: blob.segments[${def.segmentId}],`);
+                    p.line(`position: ${def.position},`);
+                  });
+                  p.line("});");
+                },
+                p => {
+                  p.line(`return ${ctor}.deref(this.guts.level, this.guts.arena, ref);`);
+                }
+              );
+            });
+          } else {
+            p.block(`${getField}(): null | ${nonnull(this.type.pointer(type)).reader}`, p => {
+              checkTag(discrValue, discrOffset, p);
+
+              p.line(`const ref = this.guts.pointersWord(${slot.getOffset() << 3});`);
+              const ctor = nonnull(this.ctorValue.pointer(type));
+              p.line(`return ref === null ? null : ${ctor}.get(this.guts.level, this.guts.arena, ref);`);
+            });
+          }
           break;
         default:
           throw new Error("Unrecognized type tag.");
@@ -1218,6 +1215,7 @@ class ReadersVisitor extends Visitor<Printer> {
     const baseName = this.index.getScopes(node.getId()).slice(1).map(s => s.name).join("_");
     const parameters = this.parameters[uuid];
     const struct = node.getStruct();
+    const defs = this.values === null ? null : this.values.defaults[uuid];
     let prefix;
     switch (type) {
     case "param":
@@ -1342,7 +1340,6 @@ class ReadersVisitor extends Visitor<Printer> {
         if (nestedNodes !== null) {
           let heading = true;
           nestedNodes.forEach(nestedNode => {
-            const uuid = toHex(nestedNode.getId());
             const contained = this.index.getNode(nestedNode.getId());
             if (contained.tag() === Node.tags.const) {
               if (heading) {
@@ -1354,9 +1351,8 @@ class ReadersVisitor extends Visitor<Printer> {
 
               p.interrupt();
 
-              const ref = `constants["${uuid}"]`;
               const c = contained.getConst();
-              this.constants.context(ref, c.getType(), c.getValue(), (type, body) => {
+              this.constants.context(nestedNode.getId(), c.getType(), c.getValue(), (type, body) => {
                 const name = nonnull(nestedNode.getName()).toString();
                 if (body === null) {
                   p.line(`get${capitalize(name)}(): ${type} {}`);
@@ -1366,36 +1362,6 @@ class ReadersVisitor extends Visitor<Printer> {
                   });
                 }
               });
-            }
-          });
-        }
-
-        const fields = struct.getFields();
-        if (fields !== null) {
-          let heading = true;
-          fields.forEach(field => {
-            if (field.tag === Field.tags.slot) {
-              const slot = field.getSlot();
-              if (slot.getHadExplicitDefault()) {
-                if (heading) {
-                  p.comment("Defaults");
-                  heading = false;
-                }
-
-                p.interrupt();
-
-                const name = nonnull(field.getName()).toString();
-                const ref = `defaults["${uuid}"].${name}`;
-                this.constants.context(ref, slot.getType(), slot.getDefaultValue(), (type, body) => {
-                  if (body === null) {
-                    p.line(`default${capitalize(name)}(): ${type} {}`);
-                  } else {
-                    p.block(`default${capitalize(name)}(): ${type}`, p => {
-                      p.line(body);
-                    });
-                  }
-                });
-              }
             }
           });
         }
@@ -1592,7 +1558,7 @@ class ReadersVisitor extends Visitor<Printer> {
         p.interrupt();
 
         p.block(`empty(): ${this_}`, p => {
-          p.line("const guts = RefedStruct.empty(blob);");
+          p.line("const guts = RefedStruct.empty(empty);");
           if (parameters.main.length > 0) {
             p.line(`return new ${baseName}__${prefix}InstanceR(guts, { ${instanceParams.join(", ")} });`);
           } else {
@@ -1615,9 +1581,7 @@ class ReadersVisitor extends Visitor<Printer> {
               p.interrupt();
 
               const c = contained.getConst();
-              const uuid = toHex(nestedNode.getId());
-              const ref = `constants["${uuid}"]`;
-              this.constants.context(ref, c.getType(), c.getValue(), (type, body) => {
+              this.constants.context(nestedNode.getId(), c.getType(), c.getValue(), (type, body) => {
                 const name = nonnull(nestedNode.getName()).toString();
                 if (body === null) {
                   p.line(`get${capitalize(name)}(): ${type} {}`);
@@ -1627,36 +1591,6 @@ class ReadersVisitor extends Visitor<Printer> {
                   });
                 }
               });
-            }
-          });
-        }
-
-        const fields = struct.getFields();
-        if (fields !== null) {
-          let heading = true;
-          fields.forEach(field => {
-            if (field.tag === Field.tags.slot) {
-              const slot = field.getSlot();
-              if (slot.getHadExplicitDefault()) {
-                if (heading) {
-                  p.comment("Defaults");
-                  heading = false;
-                }
-
-                p.interrupt();
-
-                const name = nonnull(field.getName()).toString();
-                const ref = `defaults["${uuid}"].${name}`;
-                this.constants.context(ref, slot.getType(), slot.getDefaultValue(), (type, body) => {
-                  if (body === null) {
-                    p.line(`default${capitalize(name)}(): ${type} {}`);
-                  } else {
-                    p.block(`default${capitalize(name)}(): ${type}`, p => {
-                      p.line(body);
-                    });
-                  }
-                });
-              }
             }
           });
         }
@@ -1716,19 +1650,8 @@ class ReadersVisitor extends Visitor<Printer> {
           fields.forEach(field => {
             p.interrupt();
 
-            this.structField(field, 2 * struct.getDiscriminantOffset(), p);
+            this.structField(field, defs, 2 * struct.getDiscriminantOffset(), p);
           });
-        }
-      });
-    }
-
-    const fields = struct.getFields();
-    if (fields !== null) {
-      fields.forEach(field => {
-        if (field.tag() === Field.tags.group) {
-          p.interrupt();
-
-          p = this.struct(this.index.getNode(field.getGroup().getTypeId()), p);
         }
       });
     }
@@ -1739,7 +1662,6 @@ class ReadersVisitor extends Visitor<Printer> {
     if (nestedNodes !== null) {
       let heading = true;
       nestedNodes.forEach(nestedNode => {
-        const uuid = toHex(nestedNode.getId());
         const contained = this.index.getNode(nestedNode.getId());
         if (contained.tag() === Node.tags.const) {
           if (heading) {
@@ -1749,10 +1671,9 @@ class ReadersVisitor extends Visitor<Printer> {
 
           p.interrupt();
 
-          const ref = `constants["${uuid}"]`;
           const name = nonnull(nestedNode.getName()).toString();
           const c = contained.getConst();
-          this.constants.context(ref, c.getType(), c.getValue(), (type, body) => {
+          this.constants.context(nestedNode.getId(), c.getType(), c.getValue(), (type, body) => {
             if (body === null) {
               p.line(`export function get${capitalize(name)}(): ${type} {}`);
             } else {
@@ -1772,6 +1693,7 @@ class ReadersVisitor extends Visitor<Printer> {
     const uuid = toHex(node.getId());
     const parameters = this.parameters[uuid];
     const struct = node.getStruct();
+    const defs = this.values === null ? null : this.values.defaults[uuid];
     const baseName = this.index.getScopes(node.getId()).slice(1).map(s => s.name).join("_");
     if (struct.getIsGroup()) {
       //TODO: This is a very common pattern. extract a function and refactor?
@@ -1825,7 +1747,7 @@ class ReadersVisitor extends Visitor<Printer> {
           fields.forEach(field => {
             p.interrupt();
 
-            this.structField(field, 2 * struct.getDiscriminantOffset(), p);
+            this.structField(field, defs, 2 * struct.getDiscriminantOffset(), p);
           });
         }
       });
@@ -1996,7 +1918,6 @@ class ReadersVisitor extends Visitor<Printer> {
         if (nestedNodes !== null) {
           let heading = true;
           nestedNodes.forEach(nestedNode => {
-            const uuid = toHex(nestedNode.getId());
             const contained = this.index.getNode(nestedNode.getId());
             if (contained.tag() === Node.tags.const) {
               if (heading) {
@@ -2008,9 +1929,8 @@ class ReadersVisitor extends Visitor<Printer> {
 
               p.interrupt();
 
-              const ref = `constants["${uuid}"]`;
               const c = contained.getConst();
-              this.constants.context(ref, c.getType(), c.getValue(), (type, body) => {
+              this.constants.context(nestedNode.getId(), c.getType(), c.getValue(), (type, body) => {
                 const name = nonnull(nestedNode.getName()).toString();
                 if (body === null) {
                   p.line(`get${capitalize(name)}(): ${type} {}`);
@@ -2270,9 +2190,7 @@ class ReadersVisitor extends Visitor<Printer> {
               p.interrupt();
 
               const c = contained.getConst();
-              const uuid = toHex(nestedNode.getId());
-              const ref = `constants["${uuid}"]`;
-              this.constants.context(ref, c.getType(), c.getValue(), (type, body) => {
+              this.constants.context(nestedNode.getId(), c.getType(), c.getValue(), (type, body) => {
                 const name = nonnull(nestedNode.getName()).toString();
                 if (body === null) {
                   p.line(`get${capitalize(name)}(): ${type} {}`);
@@ -2330,8 +2248,9 @@ export default function printReaderBodies(
   fileId: UInt64,
   identifiers: { [uuid: string]: string },
   parameters: ParametersIndex,
+  values: null | Values,
   p: Printer,
 ): void {
   //TODO: Add empty() to Data and Text? I don't think that I want to.
-  new ReadersVisitor(index, identifiers, parameters).visit(fileId, p);
+  new ReadersVisitor(index, identifiers, parameters, values).visit(fileId, p);
 }

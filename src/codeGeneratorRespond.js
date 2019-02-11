@@ -2,11 +2,8 @@
 
 import type { CodeGeneratorRequest__InstanceR } from "./schema.capnp-r";
 
-import { writeFile } from "fs";
-import { nonnull } from "@capnp-js/nullary";
-
 import Index from "./Index";
-import generateSerialization from "./serialization/generate";
+import { values, classes } from "./serialization/generate";
 
 const readerStrategy = {
   tag: "reader",
@@ -34,17 +31,10 @@ export default function codeGeneratorRespond(request: CodeGeneratorRequest__Inst
   const requestedFiles = request.getRequestedFiles();
   if (requestedFiles !== null) {
     requestedFiles.forEach(requestedFile => {
-      [ readerStrategy, builderStrategy ].forEach(strategy => {
-        const source = nonnull(requestedFile.getFilename()).toString();
-        const prefix = source.charAt(0) === "." ? "" : "./";
-        const filename = prefix + strategy.filename(source) + ".js";
-        const content = generateSerialization(index, strategy, requestedFile);
+      const vs = values(index, requestedFile);
 
-        writeFile(filename, content, { encoding: "utf8" }, err => {
-          if (err) {
-            throw err;
-          }
-        });
+      [ readerStrategy, builderStrategy ].forEach(strategy => {
+        classes(index, vs, strategy, requestedFile);
       });
     });
   }

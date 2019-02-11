@@ -64,7 +64,6 @@ class LibsVisitor extends Visitor<Acc> {
     }
 
     /* CtorR */
-    acc.value["reader-arena"]["deserializeUnsafe"] = "deserializeUnsafe";
     acc.type["reader-core"]["StructCtorR"] = this.mangle("StructCtorR");
     acc.type["reader-core"]["StructGutsR"] = this.mangle("StructGutsR");
     acc.type["reader-core"]["ArenaR"] = this.mangle("ArenaR");
@@ -74,6 +73,7 @@ class LibsVisitor extends Visitor<Acc> {
     acc.type.memory["Word"] = this.mangle("Word");
     acc.value.memory["isNull"] = "isNull";
     acc.value["reader-core"]["RefedStruct"] = this.mangle("RefedStruct");
+    acc.value["reader-arena"]["empty"] = "empty";
 
     /* InstanceR */
     const fields = node.getStruct().getFields();
@@ -126,7 +126,6 @@ class LibsVisitor extends Visitor<Acc> {
   }
 
   const(node: Node__InstanceR, acc: Acc): Acc {
-    acc.value["reader-arena"]["deserializeUnsafe"] = "deserializeUnsafe";
     this.addType(node.getConst().getType(), acc);
 
     return super.const(node, acc);

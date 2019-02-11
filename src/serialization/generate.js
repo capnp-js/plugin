@@ -2,8 +2,10 @@
 
 import type Index from "../Index";
 import type { CodeGeneratorRequest_RequestedFile__InstanceR } from "../schema.capnp-r";
+import type { Values } from "./accumulateValues";
 
 import * as path from "path";
+import { writeFile } from "fs";
 import { nonnull } from "@capnp-js/nullary";
 import { toHex } from "@capnp-js/uint64";
 
@@ -21,13 +23,46 @@ import printBuilderInstantiations from "./printBuilderInstantiations";
 
 type RequestedFile = CodeGeneratorRequest_RequestedFile__InstanceR;
 
+function baseFilename(file: RequestedFile): string {
+  const source = nonnull(file.getFilename()).toString();
+  const prefix = source.charAt(0) === "." ? "" : "./";
+
+  return prefix + source;
+}
+
+export function values(index: Index, file: RequestedFile): null | Values {
+  const vs = accumulateValues(index, file.getId());
+  if (vs !== null) {
+    const p = new Printer(2);
+
+    p.line("/* @flow */");
+    p.interrupt();
+    p.line("import type { Reader } from \"@capnp-js/reader-arena\";");
+    p.line("import { deserializeUnsafe } from \"@capnp-js/reader-arena\";");
+    p.interrupt();
+    p.line(`const blob: Reader = deserializeUnsafe("${vs.blob}");`);
+    p.line("export default blob;");
+
+    const filename = baseFilename(file) + "-blob.js";
+    writeFile(filename, p.text, { encoding: "utf8" }, err => {
+      if (err) {
+        throw err;
+      }
+    });
+
+    return vs;
+  } else {
+    return null;
+  }
+}
+
 export type Strategy = {
   tag: "reader" | "builder",
   filename(base: string): string,
   suffix(base: string): string,
 };
 
-export default function serialization(index: Index, strategy: Strategy, file: RequestedFile): string {
+export function classes(index: Index, values: null | Values, strategy: Strategy, file: RequestedFile): void {
   const p = new Printer(2);
 
   p.line("/* @flow */");
@@ -189,11 +224,11 @@ export default function serialization(index: Index, strategy: Strategy, file: Re
       });
 
       for (let fileUuid in users.imports) {
-        let fileName = strategy.filename(table[fileUuid]);
-        if (fileName.charAt(0) === "/") {
+        let filename = strategy.filename(table[fileUuid]);
+        if (filename.charAt(0) === "/") {
           throw new Error("Non-relative imports are not supported.");
-        } else if (fileName.charAt(0) !== ".") {
-          fileName = "./" + fileName;
+        } else if (filename.charAt(0) !== ".") {
+          filename = "./" + filename;
         }
 
         if (Object.keys(users.imports[fileUuid]).length === 1) {
@@ -201,10 +236,10 @@ export default function serialization(index: Index, strategy: Strategy, file: Re
             const localBaseName = users.imports[fileUuid][naiveBaseName];
             const naiveName = strategy.suffix(`${naiveBaseName}__Instance`);
             if (naiveBaseName === localBaseName) {
-              p.line(`import type { ${naiveName} } from "${fileName}";`);
+              p.line(`import type { ${naiveName} } from "${filename}";`);
             } else {
               const localName = strategy.suffix(`${localBaseName}__Instance`);
-              p.line(`import type { ${naiveName} as ${localName} } from "${fileName}";`);
+              p.line(`import type { ${naiveName} as ${localName} } from "${filename}";`);
             }
           });
         } else {
@@ -221,18 +256,18 @@ export default function serialization(index: Index, strategy: Strategy, file: Re
               }
             });
           });
-          p.line(`} from "${fileName}";`);
+          p.line(`} from "${filename}";`);
         }
       }
 
       p.interrupt();
 
       for (let fileUuid in users.imports) {
-        let fileName = strategy.filename(table[fileUuid]);
-        if (fileName.charAt(0) === "/") {
+        let filename = strategy.filename(table[fileUuid]);
+        if (filename.charAt(0) === "/") {
           throw new Error("Non-relative imports are not supported.");
-        } else if (fileName.charAt(0) !== ".") {
-          fileName = "./" + fileName;
+        } else if (filename.charAt(0) !== ".") {
+          filename = "./" + filename;
         }
 
         if (Object.keys(users.imports[fileUuid]).length === 1) {
@@ -240,10 +275,10 @@ export default function serialization(index: Index, strategy: Strategy, file: Re
             const localBaseName = users.imports[fileUuid][naiveBaseName];
             const naiveName = strategy.suffix(`${naiveBaseName}__Ctor`);
             if (naiveBaseName === localBaseName) {
-              p.line(`import { ${naiveName} } from "${fileName}";`);
+              p.line(`import { ${naiveName} } from "${filename}";`);
             } else {
               const localName = strategy.suffix(`${localBaseName}__Ctor`);
-              p.line(`import { ${naiveName} as ${localName} } from "${fileName}";`);
+              p.line(`import { ${naiveName} as ${localName} } from "${filename}";`);
             }
           });
         } else {
@@ -260,10 +295,18 @@ export default function serialization(index: Index, strategy: Strategy, file: Re
               }
             });
           });
-          p.line(`} from "${fileName}";`);
+          p.line(`} from "${filename}";`);
         }
       }
     }
+  }
+
+  p.interrupt();
+
+  /* Constant and default values */
+  if (values !== null) {
+    const blob = baseFilename(file) + "-blob";
+    p.line(`import blob from "${blob}";`);
   }
 
   p.interrupt();
@@ -277,63 +320,7 @@ export default function serialization(index: Index, strategy: Strategy, file: Re
 
   p.interrupt();
 
-  /* Section 4: Static Data (reader only)
-     Pointer default and constant values require an arena to host their values.
-     (The `empty()` method on Struct constructors require an arena also.) A
-     single "blob" arena contains all of this data. */
-  if (strategy.tag === "reader") {
-    const values = accumulateValues(index, file.getId());
-    if (libs.value["reader-arena"]["deserializeUnsafe"]) {
-      p.line(`const blob = deserializeUnsafe("${values.blob}");`);
-
-      if (Object.keys(values.defaults).length !== 0) {
-        p.interrupt();
-
-        p.line("const defaults = {");
-        for (let hostUuid in values.defaults) {
-          const words = values.defaults[hostUuid];
-          p.indent(p => {
-            p.line(`"${hostUuid}": {`);
-            for (let name in words) {
-              const metaRef = words[name];
-              p.indent(p => {
-                p.line(`${name}: {`);
-                p.indent(p => {
-                  p.line(`segment: blob.segment(${metaRef.segmentId}),`);
-                  p.line(`position: ${metaRef.position},`);
-                });
-                p.line("},");
-              });
-            }
-            p.line("},");
-          });
-        }
-        p.line("};");
-      }
-
-      if (Object.keys(values.constants).length !== 0) {
-        p.interrupt();
-
-        p.line("const constants = {");
-        for (let uuid in values.constants) {
-          const metaRef = values.constants[uuid];
-          p.indent(p => {
-            p.line(`"${uuid}": {`);
-            p.indent(p => {
-              p.line(`segment: blob.segment(${metaRef.segmentId}),`);
-              p.line(`position: ${metaRef.position},`);
-            });
-            p.line("},");
-          });
-        }
-        p.line("};");
-      }
-    }
-  }
-
-  p.interrupt();
-
-  /* Section 5: Translated Nodes
+  /* Section 4: Translated Nodes
      Translate Cap'n Proto schema nodes into JavaScript classes. */
 
   /* Generic parametrizations */
@@ -341,15 +328,15 @@ export default function serialization(index: Index, strategy: Strategy, file: Re
 
   /* Print bodies */
   if (strategy.tag === "reader") {
-    printReaderBodies(index, file.getId(), identifiers, parameters, p);
+    printReaderBodies(index, file.getId(), identifiers, parameters, values, p);
   } else {
     (strategy.tag: "builder");
-    printBuilderBodies(index, file.getId(), identifiers, parameters, p);
+    printBuilderBodies(index, file.getId(), identifiers, parameters, values, p);
   }
 
   p.interrupt();
 
-  /* Section 6: Export instantiations of file scoped types from the schema. */
+  /* Section 5: Export instantiations of file scoped types from the schema. */
   if (strategy.tag === "reader") {
     printReaderInstantiations(index, file.getId(), parameters, p);
   } else {
@@ -357,7 +344,12 @@ export default function serialization(index: Index, strategy: Strategy, file: Re
     printBuilderInstantiations(index, file.getId(), parameters, p);
   }
 
-  return p.text;
+  const filename = strategy.filename(baseFilename(file)) + ".js";
+  writeFile(filename, p.text, { encoding: "utf8" }, err => {
+    if (err) {
+      throw err;
+    }
+  });
 
   /*
      * A section of library imports. These imports all begin with a

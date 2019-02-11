@@ -137,6 +137,23 @@ export default class Printer {
     this.interrupted = false;
   }
 
+  if(predicate: string, ifCb: (p: this) => void): void {
+    this.text += " ".repeat(this.level * this.indentWidth);
+    this.text += "if (";
+    this.text += predicate;
+    this.text += ") {\n";
+
+    ++this.level;
+    this.interrupted = true;
+    ifCb(this);
+    --this.level;
+
+    this.text += " ".repeat(this.level * this.indentWidth);
+    this.text += "}\n";
+
+    this.interrupted = false;
+  }
+
   ifElse(predicate: string, ifCb: (p: this) => void, elseCb: (p: this) => void): void {
     this.text += " ".repeat(this.level * this.indentWidth);
     this.text += "if (";

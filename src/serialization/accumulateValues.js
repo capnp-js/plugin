@@ -31,7 +31,7 @@ export type MetaWord = {
 
 //TODO: Should the blob from an earlier visitor intertwine with the logic here?
 //      At least it decides whether to begin this stage at all.
-type Values = {
+export type Values = {
   blob: string,
   defaults: {
     [hostUuid: string]: {
@@ -44,7 +44,7 @@ type Values = {
 };
 
 type Acc = {
-  blob: Builder,
+  blob: null | Builder,
   defaults: {
     [hostUuid: string]: {
       [name: string]: MetaWord,
@@ -57,6 +57,10 @@ type Acc = {
 
 class ValuesVisitor extends Visitor<Acc> {
   allocateDefault(hostUuid: string, field: string, acc: Acc): Word<SegmentB> {
+    if (acc.blob === null) {
+      acc.blob = Builder.fresh(2048, new Unlimited());
+    }
+
     if (!acc.defaults[hostUuid]) {
       acc.defaults[hostUuid] = {};
     }
@@ -71,6 +75,10 @@ class ValuesVisitor extends Visitor<Acc> {
   }
 
   allocateConstant(uuid: string, acc: Acc): Word<SegmentB> {
+    if (acc.blob === null) {
+      acc.blob = Builder.fresh(2048, new Unlimited());
+    }
+
     const ref = acc.blob.allocate(8);
     acc.constants[uuid] = {
       segmentId: ref.segment.id,
@@ -125,7 +133,7 @@ class ValuesVisitor extends Visitor<Acc> {
               const value = this.getValue(nonnull(slot.getDefaultValue()));
               if (value !== null) {
                 const ref = this.allocateDefault(hostUuid, name, acc);
-                value.guts.set(0, acc.blob, ref);
+                value.guts.set(0, ((acc.blob: any): Builder), ref); // eslint-disable-line flowtype/no-weak-types
               }
             }
           }
@@ -157,7 +165,7 @@ class ValuesVisitor extends Visitor<Acc> {
     if (value !== null) {
       const uuid = toHex(node.getId()).toString();
       const ref = this.allocateConstant(uuid, acc);
-      value.guts.set(0, acc.blob, ref);
+      value.guts.set(0, ((acc.blob: any): Builder), ref); // eslint-disable-line flowtype/no-weak-types
     }
 
     return super.const(node, acc);
@@ -171,34 +179,37 @@ const start = startStream(new Uint8Array(2048));
 const pack = packing(new Uint8Array(2048));
 const align = alignment(3);
 
-export default function accumulateValues(index: Index, fileId: UInt64): Values {
-  const blob = Builder.fresh(2048, new Unlimited());
+export default function accumulateValues(index: Index, fileId: UInt64): null | Values {
   const internalAcc = new ValuesVisitor(index).visit(fileId, {
-    blob,
+    blob: null,
     defaults: {},
     constants: {},
   });
 
-  let b64 = "";
-  const raws = blob.segments.map(s => s.raw.subarray(0, s.end));
-
-  const header = base64(align(pack(start(raws))));
-  if (header instanceof Error) {
-    throw header;
+  if (internalAcc.blob === null) {
+    return null;
   } else {
-    b64 += header;
-  }
+    let b64 = "";
+    const raws = internalAcc.blob.segments.map(s => s.raw.subarray(0, s.end));
 
-  const body = base64(align(pack(injectArray(raws))));
-  if (body instanceof Error) {
-    throw body;
-  } else {
-    b64 += body;
-  }
+    const header = base64(align(pack(start(raws))));
+    if (header instanceof Error) {
+      throw header;
+    } else {
+      b64 += header;
+    }
 
-  return {
-    blob: b64,
-    defaults: internalAcc.defaults,
-    constants: internalAcc.constants,
-  };
+    const body = base64(align(pack(injectArray(raws))));
+    if (body instanceof Error) {
+      throw body;
+    } else {
+      b64 += body;
+    }
+
+    return {
+      blob: b64,
+      defaults: internalAcc.defaults,
+      constants: internalAcc.constants,
+    };
+  }
 }

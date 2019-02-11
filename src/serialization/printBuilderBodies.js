@@ -12,6 +12,10 @@ import type {
   Type_anyPointer__InstanceR,
 } from "../schema.capnp-r";
 import type { ParametersIndex } from "./accumulateParameters";
+import type {
+  MetaWord,
+  Values,
+} from "./accumulateValues";
 
 import { toHex } from "@capnp-js/uint64";
 import { nonnull } from "@capnp-js/nullary";
@@ -948,17 +952,25 @@ class BuildersVisitor extends Visitor<Printer> {
   +ctorValue: CtorValue;
   +groupTypes: GroupTypes;
   +groupValues: GroupValues;
+  +values: null | Values;
 
-  constructor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex) {
+  constructor(index: Index, identifiers: { [uuid: string]: string }, parameters: ParametersIndex, values: null | Values) {
     super(index);
     this.parameters = parameters;
     this.type = new MainType(index, identifiers, parameters);
     this.ctorValue = new CtorValue(index, identifiers, parameters);
     this.groupTypes = new GroupTypes(index);
     this.groupValues = new GroupValues(index);
+    this.values = values;
   }
 
-  structField(field: Field__InstanceR, discrOffset: u33, union: UnionLayout, p: Printer): void {
+  structField(
+    field: Field__InstanceR,
+    defs: null | { [name: string]: MetaWord },
+    discrOffset: u33,
+    union: UnionLayout,
+    p: Printer
+  ): void {
     function checkTag(discrValue: u16, discrOffset: u33, p: Printer): void {
       if (discrValue !== Field.getNoDiscriminant()) {
         p.line(`this.guts.checkTag(${discrValue}, ${discrOffset});`);
@@ -969,14 +981,14 @@ class BuildersVisitor extends Visitor<Printer> {
       if (discrValue !== Field.getNoDiscriminant()) {
         p.line(`this.guts.setTag(${discrValue}, ${discrOffset}, {`);
         p.indent(p => {
-          const partialDBs = union.maskedBytes.map(p => `[${p.offset}, ${p.mask}]`);
-          p.line(`partialDataBytes: [ ${partialDBs.join(", ")} ],`);
+          const partialDBs = union.maskedBytes.map(p => `[${p.offset},${p.mask}]`);
+          p.line(`partialDataBytes: [${partialDBs.join(", ")}],`);
 
-          const dataBs = union.dataSequences.map(p => `[${p.offset}, ${p.length}]`);
-          p.line(`dataBytes: [ ${dataBs.join(", ")} ],`);
+          const dataBs = union.dataSequences.map(p => `[${p.offset},${p.length}]`);
+          p.line(`dataBytes: [${dataBs.join(", ")}],`);
 
           const pointersBs = union.pointersSequences.map(p => `[${p.offset}, ${p.length}]`);
-          p.line(`pointersBytes: [ ${pointersBs.join(", ")} ],`);
+          p.line(`pointersBytes: [${pointersBs.join(", ")}],`);
         });
         p.line("});");
       }
@@ -986,14 +998,14 @@ class BuildersVisitor extends Visitor<Printer> {
       if (discrValue !== Field.getNoDiscriminant()) {
         p.line(`this.guts.initTag(${discrValue}, ${discrOffset}, {`);
         p.indent(p => {
-          const partialDBs = union.maskedBytes.map(p => `[${p.offset}, ${p.mask}]`);
-          p.line(`partialDataBytes: [ ${partialDBs.join(", ")} ],`);
+          const partialDBs = union.maskedBytes.map(p => `[${p.offset},${p.mask}]`);
+          p.line(`partialDataBytes: [${partialDBs.join(", ")}],`);
 
-          const dataBs = union.dataSequences.map(p => `[${p.offset}, ${p.length}]`);
-          p.line(`dataBytes: [ ${dataBs.join(", ")} ],`);
+          const dataBs = union.dataSequences.map(p => `[${p.offset},${p.length}]`);
+          p.line(`dataBytes: [${dataBs.join(", ")}],`);
 
-          const pointersBs = union.pointersSequences.map(p => `[${p.offset}, ${p.length}]`);
-          p.line(`pointersBytes: [ ${pointersBs.join(", ")} ],`);
+          const pointersBs = union.pointersSequences.map(p => `[${p.offset},${p.length}]`);
+          p.line(`pointersBytes: [${pointersBs.join(", ")}],`);
         });
         p.line("});");
       }
@@ -1019,12 +1031,17 @@ class BuildersVisitor extends Visitor<Printer> {
 
         switch (type.tag()) {
         case Type.tags.void:
-          p.block(`${getField}(): void`, p => {
-            checkTag(discrValue, discrOffset, p);
-          });
-          p.block(`${setField}(): void`, p => {
-            setTag(discrValue, discrOffset, p);
-          });
+          if (discrValue !== Field.getNoDiscriminant()) {
+            p.block(`${getField}(): void`, p => {
+              checkTag(discrValue, discrOffset, p);
+            });
+            p.block(`${setField}(): void`, p => {
+              setTag(discrValue, discrOffset, p);
+            });
+          } else {
+            p.line(`${getField}(): void {}`);
+            p.line(`${setField}(): void {}`);
+          }
           break;
         case Type.tags.bool:
           p.block(`${getField}(): boolean`, p => {
@@ -1287,26 +1304,55 @@ class BuildersVisitor extends Visitor<Printer> {
         case Type.tags.interface:
         case Type.tags.anyPointer:
           const it = nonnull(this.type.pointer(type));
-          p.block(`${getField}(): null | ${it.builder}`, p => {
-            checkTag(discrValue, discrOffset, p);
+          if (slot.getHadExplicitDefault()) {
+            p.block(`${getField}(): ${it.builder}`, p => {
+              checkTag(discrValue, discrOffset, p);
 
-            p.line(`const ref = this.guts.pointersWord(${slot.getOffset() << 3});`);
-            const ctor = nonnull(this.ctorValue.pointer(type));
-            p.line(`return ${ctor}.get(this.guts.level, this.guts.arena, ref);`);
-          });
+              p.line(`const ref = this.guts.pointersWord(${slot.getOffset() << 3});`);
+              const ctor = nonnull(this.ctorValue.pointer(type));
+              const def = nonnull(defs)[name.toString()];
+              p.if("isNull(ref)", p => {
+                p.line(`pointerCopy(blob, { segment: blob.segments[${def.segmentId}], position: ${def.position} }, this.guts.level, this.guts.arena, ref);`);
+              });
+              p.line(`return ${ctor}.deref(this.guts.level, this.guts.arena, ref);`);
+            });
+          } else {
+            p.block(`${getField}(): null | ${it.builder}`, p => {
+              checkTag(discrValue, discrOffset, p);
+
+              p.line(`const ref = this.guts.pointersWord(${slot.getOffset() << 3});`);
+              const ctor = nonnull(this.ctorValue.pointer(type));
+              p.line(`return ${ctor}.get(this.guts.level, this.guts.arena, ref);`);
+            });
+          }
           p.block(`${setField}(value: ${it.reader} | ${it.builder}): void`, p => {
             setTag(discrValue, discrOffset, p);
 
             p.line(`const ref = this.guts.pointersWord(${slot.getOffset() << 3});`);
             p.line("value.guts.set(this.guts.level, this.guts.arena, ref);");
           });
-          p.block(`${disownField}(): null | Orphan<${it.guts}, ${it.reader}, ${it.builder}>`, p => {
-            checkTag(discrValue, discrOffset, p);
+          if (slot.getHadExplicitDefault()) {
+            p.block(`${disownField}(): Orphan<${it.guts}, ${it.reader}, ${it.builder}>`, p => {
+              checkTag(discrValue, discrOffset, p);
 
-            p.line(`const ref = this.guts.pointersWord(${slot.getOffset() << 3});`);
-            const ctor = nonnull(this.ctorValue.pointer(type));
-            p.line(`return ${ctor}.disown(this.guts.level, this.guts.arena, ref);`);
-          });
+              p.line(`const ref = this.guts.pointersWord(${slot.getOffset() << 3});`);
+              const ctor = nonnull(this.ctorValue.pointer(type));
+              const def = nonnull(defs)[name.toString()];
+
+              p.if("isNull(ref)", p => {
+                p.line(`pointerCopy(blob, { segment: blob.segments[${def.segmentId}], position: ${def.position} }, this.guts.level, this.guts.arena, ref);`);
+              });
+              p.line(`return ${ctor}.unref(this.guts.level, this.guts.arena, ref);`);
+            });
+          } else {
+            p.block(`${disownField}(): null | Orphan<${it.guts}, ${it.reader}, ${it.builder}>`, p => {
+              checkTag(discrValue, discrOffset, p);
+
+              p.line(`const ref = this.guts.pointersWord(${slot.getOffset() << 3});`);
+              const ctor = nonnull(this.ctorValue.pointer(type));
+              p.line(`return ${ctor}.disown(this.guts.level, this.guts.arena, ref);`);
+            });
+          }
           p.block(`${adoptField}(orphan: Orphan<${it.guts}, ${it.reader}, ${it.builder}>): void`, p => {
             setTag(discrValue, discrOffset, p);
 //TODO: Should this clobber the target pointer before orphan.guts.adopt has the opportunity to throw?
@@ -1374,6 +1420,7 @@ class BuildersVisitor extends Visitor<Printer> {
     const baseName = this.index.getScopes(node.getId()).slice(1).map(s => s.name).join("_");
     const parameters = this.parameters[uuid];
     const struct  = node.getStruct();
+    const defs = this.values === null ? null : this.values.defaults[uuid];
     let prefix;
     switch (type) {
     case "param":
@@ -1694,16 +1741,16 @@ class BuildersVisitor extends Visitor<Printer> {
 
         p.interrupt();
 
+        p.block(`unref(level: uint, arena: ArenaB, ref: Word<SegmentB>): Orphan<StructGutsR, ${thisR}, ${thisB}>`, p => {
+          p.line("const p = arena.pointer(ref);");
+          p.line("arena.zero(ref, 8);");
+          p.line("return new Orphan(this, arena, p);");
+        });
+
+        p.interrupt();
+
         p.block(`disown(level: uint, arena: ArenaB, ref: Word<SegmentB>): null | Orphan<StructGutsR, ${thisR}, ${thisB}>`, p => {
-          p.ifElse(
-            "isNull(ref)",
-            p => p.line("return null;"),
-            p => {
-              p.line("const p = arena.pointer(ref);");
-              p.line("arena.zero(ref, 8);");
-              p.line("return new Orphan(this, arena, p);");
-            }
-          );
+          p.line("return isNull(ref) ? null : this.unref(level, arena, ref);");
         });
 
         p.interrupt();
@@ -1799,19 +1846,8 @@ class BuildersVisitor extends Visitor<Printer> {
           fields.forEach(field => {
             p.interrupt();
 
-            this.structField(field, 2 * struct.getDiscriminantOffset(), union, p);
+            this.structField(field, defs, 2 * struct.getDiscriminantOffset(), union, p);
           });
-        }
-      });
-    }
-
-    const fields = struct.getFields();
-    if (fields !== null) {
-      fields.forEach(field => {
-        if (field.tag() === Field.tags.group) {
-          p.interrupt();
-
-          p = this.struct(this.index.getNode(field.getGroup().getTypeId()), p);
         }
       });
     }
@@ -1821,6 +1857,7 @@ class BuildersVisitor extends Visitor<Printer> {
     const uuid = toHex(node.getId());
     const parameters = this.parameters[uuid];
     const struct = node.getStruct();
+    const defs = this.values === null ? null : this.values.defaults[uuid];
     const baseName = this.index.getScopes(node.getId()).slice(1).map(s => s.name).join("_");
     if (struct.getIsGroup()) {
       //TODO: This is a very common pattern. extract a function and refactor?
@@ -1882,7 +1919,7 @@ class BuildersVisitor extends Visitor<Printer> {
           fields.forEach(field => {
             p.interrupt();
 
-            this.structField(field, 2 * struct.getDiscriminantOffset(), union, p);
+            this.structField(field, defs, 2 * struct.getDiscriminantOffset(), union, p);
           });
         }
       });
@@ -2336,8 +2373,9 @@ export default function printReaderBodies(
   fileId: UInt64,
   identifiers: { [uuid: string]: string },
   parameters: ParametersIndex,
+  values: null | Values,
   p: Printer,
 ): void {
   //TODO: Add empty() to Data and Text? I don't think that I want to.
-  new BuildersVisitor(index, identifiers, parameters).visit(fileId, p);
+  new BuildersVisitor(index, identifiers, parameters, values).visit(fileId, p);
 }
