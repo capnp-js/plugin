@@ -10,12 +10,9 @@ import { toHex } from "@capnp-js/uint64";
 import Visitor from "../Visitor";
 import { Field, Type } from "../schema.capnp-r";
 
-type Acc = {
-  scopes: { [uuid: string]: $ReadOnlyArray<Scope> },
-  aliases: { [name: string]: string },
-};
+type Acc = { [uuid: string]: $ReadOnlyArray<Scope> };
 
-interface MangledUsers {
+interface Users {
   +imports: {
     [fileUuid: string]: {
       [naive: string]: string,
@@ -24,20 +21,9 @@ interface MangledUsers {
   +identifiers: { [uuid: string]: string };
 }
 
-export interface Users extends MangledUsers {
-  +aliases: { [name: string]: string },
-}
-
 class UsersVisitor extends Visitor<Acc> {
   struct(node: Node__InstanceR, acc: Acc): Acc {
-    acc.aliases["uint"] = "number";
-
     const struct = node.getStruct();
-
-    if (struct.getDiscriminantCount() > 0) {
-      acc.aliases["u16"] = "number";
-    }
-
     const fields = struct.getFields();
     if (fields !== null) {
       fields.forEach(field => {
@@ -70,7 +56,7 @@ class UsersVisitor extends Visitor<Acc> {
         if (paramScopeId[0] === 0 && paramScopeId[1] === 0) {
           acc = this.visit(paramId, acc);
         } else {
-          acc.scopes[toHex(paramId)] = this.index.getScopes(paramId);
+          acc[toHex(paramId)] = this.index.getScopes(paramId);
         }
 
         const resultId = method.getResultStructType();
@@ -79,7 +65,7 @@ class UsersVisitor extends Visitor<Acc> {
         if (resultScopeId[0] === 0 && resultScopeId[1] === 0) {
           acc = this.visit(paramId, acc);
         } else {
-          acc.scopes[toHex(resultId)] = this.index.getScopes(resultId);
+          acc[toHex(resultId)] = this.index.getScopes(resultId);
         }
       });
     }
@@ -95,54 +81,38 @@ class UsersVisitor extends Visitor<Acc> {
     switch (type.tag()) {
     case Type.tags.void:
     case Type.tags.bool:
-      break;
     case Type.tags.int8:
-      acc.aliases["i8"] = "number";
-      break;
     case Type.tags.int16:
-      acc.aliases["i16"] = "number";
-      break;
     case Type.tags.int32:
-      acc.aliases["i32"] = "number";
-      break;
     case Type.tags.int64:
-      break;
     case Type.tags.uint8:
-      acc.aliases["u8"] = "number";
-      break;
     case Type.tags.uint16:
-      acc.aliases["u16"] = "number";
-      break;
     case Type.tags.uint32:
-      acc.aliases["u32"] = "number";
-      break;
     case Type.tags.uint64:
-      break;
     case Type.tags.float32:
-      acc.aliases["f32"] = "number";
-      break;
     case Type.tags.float64:
-      acc.aliases["f64"] = "number";
-      break;
     case Type.tags.text:
     case Type.tags.data:
+    case Type.tags.enum:
       break;
+
     case Type.tags.list:
       this.addType(type.getList().getElementType(), acc);
       break;
-    case Type.tags.enum:
-      acc.aliases["u16"] = "number";
-      break;
+
     case Type.tags.struct:
       {
         const id = type.getStruct().getTypeId();
-        acc.scopes[toHex(id)] = this.index.getScopes(id);
+        acc[toHex(id)] = this.index.getScopes(id);
       }
       break;
+
     case Type.tags.interface:
       throw new Error("TODO?");
+
     case Type.tags.anyPointer:
       break;
+
     default:
       throw new Error("Unrecognized type tag.");
     }
@@ -230,7 +200,7 @@ type Path = {
   local: Array<string>,
 };
 
-function mangle(names: Set<string>, path: Path, collisions: NameCollisions, mangled: MangledUsers): void {
+function mangle(names: Set<string>, path: Path, collisions: NameCollisions, mangled: Users): void {
   Object.keys(collisions).forEach(naive => {
     const uuids = Object.keys(collisions[naive]);
 
@@ -284,19 +254,16 @@ function mangle(names: Set<string>, path: Path, collisions: NameCollisions, mang
 }
 
 export default function accumulateUsers(index: Index, fileId: UInt64, names: Set<string>): Users {
-  const internalAcc = new UsersVisitor(index).visit(fileId, {
-    scopes: {},
-    aliases: {},
-  });
+  const scopes = new UsersVisitor(index).visit(fileId, {});
 
   const collisions = {};
-  for (let uuid in internalAcc.scopes) {
-    const scopes = internalAcc.scopes[uuid];
-    const hostFileId = scopes[0].node.getId();
+  for (let uuid in scopes) {
+    const path = scopes[uuid];
+    const hostFileId = path[0].node.getId();
 
     //TODO: Clobber util/hostFile.js
     if (!(hostFileId[0] === fileId[0] && hostFileId[1] === fileId[1])) {
-      insertCollision(hostFileId, scopes.slice(1), collisions);
+      insertCollision(hostFileId, path.slice(1), collisions);
     }
   }
 
@@ -306,9 +273,5 @@ export default function accumulateUsers(index: Index, fileId: UInt64, names: Set
   };
   mangle(names, { naive: [], local: [] }, collisions, mangled);
 
-  return {
-    imports: mangled.imports,
-    identifiers: mangled.identifiers,
-    aliases: internalAcc.aliases,
-  };
+  return mangled;
 }

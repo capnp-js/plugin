@@ -78,6 +78,13 @@ export function lib() {
     .pipe(gulp.dest("lib/"));
 }
 
+export function lint_compiled() {
+  return gulp.src("test/*.js")
+    .pipe(eslint(eslintConfig))
+    .pipe(eslint.format())
+    .pipe(eslint.failAfterError());
+}
+
 export function compile() {
   function file(filename) {
     const plugin = process.env.PWD + "/lib/bin/flow.js";
@@ -200,5 +207,7 @@ export function compile() {
     file("defField-genericStructInt16List.capnp"),
     file("defField-genericStructStruct.capnp"),
     file("defField-genericStructText.capnp"),
+    file("union1.capnp"),
+    file("union2.capnp"),
   ]);
 }

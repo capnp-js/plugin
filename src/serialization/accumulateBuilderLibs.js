@@ -62,7 +62,7 @@ class LibsVisitor extends Visitor<Acc> {
     }
 
     /* CtorR */
-    acc.type["reader-core"]["AnyGutsR"] = this.mangle("AnyGutsR");
+    acc.aliases["uint"] = "number";
     acc.type["reader-core"]["StructGutsR"] = this.mangle("StructGutsR");
     acc.type["builder-core"]["StructCtorB"] = this.mangle("StructCtorB");
     acc.type["builder-core"]["ArenaB"] = this.mangle("ArenaB");
@@ -77,6 +77,10 @@ class LibsVisitor extends Visitor<Acc> {
     acc.value["builder-core"]["Orphan"] = this.mangle("Orphan"); //TODO: this should prevent type Orphan from getting brought in. Consider a method that does this check instead of my assignments.
 
     /* InstanceR */
+    if (node.getStruct().getDiscriminantCount() > 0) {
+      acc.aliases["u16"] = "number";
+    }
+
     acc.type["reader-core"]["CtorR"] = this.mangle("CtorR");
     acc.type["reader-core"]["StructGutsR"] = this.mangle("StructGutsR");
     const fields = node.getStruct().getFields();
@@ -84,6 +88,7 @@ class LibsVisitor extends Visitor<Acc> {
       fields.forEach(field => {
         switch (field.tag()) {
         case Field.tags.slot:
+          this.addAlias(field.getSlot().getType(), acc);
           this.addType(field.getSlot().getType(), acc);
           break;
         case Field.tags.group:
@@ -128,6 +133,44 @@ class LibsVisitor extends Visitor<Acc> {
     return super.interface(node, acc);
   }
 
+  addAlias(type: null | Type__InstanceR, acc: Acc): void {
+    if (type === null) {
+      type = Type.empty();
+    }
+
+    switch (type.tag()) {
+    case Type.tags.void:
+    case Type.tags.bool:
+      break;
+    case Type.tags.int8:
+      acc.aliases["i8"] = "number";
+      break;
+    case Type.tags.int16:
+      acc.aliases["i16"] = "number";
+      break;
+    case Type.tags.int32:
+      acc.aliases["i32"] = "number";
+      break;
+    case Type.tags.uint8:
+      acc.aliases["u8"] = "number";
+      break;
+    case Type.tags.uint16:
+      acc.aliases["u16"] = "number";
+      break;
+    case Type.tags.uint32:
+      acc.aliases["u32"] = "number";
+      break;
+    case Type.tags.float32:
+      acc.aliases["f32"] = "number";
+      break;
+    case Type.tags.float64:
+      acc.aliases["f64"] = "number";
+      break;
+    case Type.tags.enum:
+      acc.aliases["u16"] = "number";
+    }
+  }
+
   addType(type: null | Type__InstanceR, acc: Acc): void {
     if (type === null) {
       type = Type.empty();
@@ -168,14 +211,12 @@ class LibsVisitor extends Visitor<Acc> {
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["reader-core"]["Text"] = this.mangle("TextR");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan"); //TODO: mangle with capnp_, not capnpJs_
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["Text"] = this.mangle("Text");
       break;
     case Type.tags.data:
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["reader-core"]["Data"] = this.mangle("DataR");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["Data"] = this.mangle("Data");
       break;
     case Type.tags.list:
@@ -192,45 +233,47 @@ class LibsVisitor extends Visitor<Acc> {
     case Type.tags.interface:
       throw new Error("TODO");
     case Type.tags.anyPointer:
-      const anyPointerGroup = Type.groups.anyPointer;
-      const anyPointer = type.getAnyPointer();
-      switch (anyPointer.tag()) {
-      case anyPointerGroup.tags.unconstrained:
-        {
-          const unconstrainedGroup = anyPointerGroup.groups.unconstrained;
-          const unconstrained = anyPointer.getUnconstrained();
-          switch (unconstrained.tag()) {
-          case unconstrainedGroup.tags.anyKind:
-            acc.type["reader-core"]["AnyValue"] = this.mangle("AnyValueR");
-            acc.type["reader-core"]["AnyGutsR"] = this.mangle("AnyGutsR");
-            acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-            acc.value["builder-core"]["AnyValue"] = this.mangle("AnyValue");
-            break;
-          case unconstrainedGroup.tags.struct:
-            acc.type["reader-core"]["StructValue"] = this.mangle("StructValueR");
-            acc.type["reader-core"]["StructGutsR"] = this.mangle("StructGutsR");
-            acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-            acc.value["builder-core"]["StructValue"] = this.mangle("StructValue");
-            break;
-          case unconstrainedGroup.tags.list:
-            acc.type["reader-core"]["ListValue"] = this.mangle("ListValueR");
-            acc.type["reader-core"]["BoolListGutsR"] = this.mangle("BoolListGutsR");
-            acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
-            acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-            acc.value["builder-core"]["ListValue"] = this.mangle("ListValue");
-            break;
-          case unconstrainedGroup.tags.capability:
-            throw new Error("TODO");
-          default:
-            throw new Error("Unrecognized unconstrained-AnyPointer tag.");
+      {
+        const anyPointerGroup = Type.groups.anyPointer;
+        const anyPointer = type.getAnyPointer();
+        switch (anyPointer.tag()) {
+        case anyPointerGroup.tags.unconstrained:
+          {
+            const unconstrainedGroup = anyPointerGroup.groups.unconstrained;
+            const unconstrained = anyPointer.getUnconstrained();
+            switch (unconstrained.tag()) {
+            case unconstrainedGroup.tags.anyKind:
+              acc.type["reader-core"]["AnyValue"] = this.mangle("AnyValueR");
+              acc.type["reader-core"]["AnyGutsR"] = this.mangle("AnyGutsR");
+              acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
+              acc.value["builder-core"]["AnyValue"] = this.mangle("AnyValue");
+              break;
+            case unconstrainedGroup.tags.struct:
+              acc.type["reader-core"]["StructValue"] = this.mangle("StructValueR");
+              acc.type["reader-core"]["StructGutsR"] = this.mangle("StructGutsR");
+              acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
+              acc.value["builder-core"]["StructValue"] = this.mangle("StructValue");
+              break;
+            case unconstrainedGroup.tags.list:
+              acc.type["reader-core"]["ListValue"] = this.mangle("ListValueR");
+              acc.type["reader-core"]["BoolListGutsR"] = this.mangle("BoolListGutsR");
+              acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+              acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
+              acc.value["builder-core"]["ListValue"] = this.mangle("ListValue");
+              break;
+            case unconstrainedGroup.tags.capability:
+              throw new Error("TODO");
+            default:
+              throw new Error("Unrecognized unconstrained-AnyPointer tag.");
+            }
           }
+        case anyPointerGroup.tags.parameter:
+          break; //TODO: Can a parameter name collide with anything? My hunch is no given the underscores. If collisions can occur, then consider `__r` instead of `_r`.
+        case anyPointerGroup.tags.implicitMethodParameter:
+          throw new Error("TODO");
+        default:
+          throw new Error("Unrecognized any pointer tag.");
         }
-      case anyPointerGroup.tags.parameter:
-        break; //TODO: Can a parameter name collide with anything? My hunch is no given the underscores. If collisions can occur, then consider `__r` instead of `_r`.
-      case anyPointerGroup.tags.implicitMethodParameter:
-        throw new Error("TODO");
-      default:
-        throw new Error("Unrecognized type tag.");
       }
       break;
     default:
@@ -249,84 +292,72 @@ class LibsVisitor extends Visitor<Acc> {
       acc.type["reader-core"]["VoidList"] = this.mangle("VoidListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["VoidList"] = this.mangle("VoidList");
       break;
     case Type.tags.bool:
       acc.type["reader-core"]["BoolList"] = this.mangle("BoolListR");
       acc.type["reader-core"]["BoolListGutsR"] = this.mangle("BoolListGutsR");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["BoolList"] = this.mangle("BoolList");
       break;
     case Type.tags.int8:
       acc.type["reader-core"]["Int8List"] = this.mangle("Int8ListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["Int8List"] = this.mangle("Int8List");
       break;
     case Type.tags.int16:
       acc.type["reader-core"]["Int16List"] = this.mangle("Int16ListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["Int16List"] = this.mangle("Int16List");
       break;
     case Type.tags.int32:
       acc.type["reader-core"]["Int32List"] = this.mangle("Int32ListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["Int32List"] = this.mangle("Int32List");
       break;
     case Type.tags.int64:
       acc.type["reader-core"]["Int64List"] = this.mangle("Int64ListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["Int64List"] = this.mangle("Int64List");
       break;
     case Type.tags.uint8:
       acc.type["reader-core"]["UInt8List"] = this.mangle("UInt8ListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["UInt8List"] = this.mangle("UInt8List");
       break;
     case Type.tags.uint16:
       acc.type["reader-core"]["UInt16List"] = this.mangle("UInt16ListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["UInt16List"] = this.mangle("UInt16List");
       break;
     case Type.tags.uint32:
       acc.type["reader-core"]["UInt32List"] = this.mangle("UInt32ListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["UInt32List"] = this.mangle("UInt32List");
       break;
     case Type.tags.uint64:
       acc.type["reader-core"]["UInt64List"] = this.mangle("UInt64ListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["UInt64List"] = this.mangle("UInt64List");
       break;
     case Type.tags.float32:
       acc.type["reader-core"]["Float32List"] = this.mangle("Float32ListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["Float32List"] = this.mangle("Float32List");
       break;
     case Type.tags.float64:
       acc.type["reader-core"]["Float64List"] = this.mangle("Float64ListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["Float64List"] = this.mangle("Float64List");
       break;
     case Type.tags.text:
@@ -335,7 +366,6 @@ class LibsVisitor extends Visitor<Acc> {
       acc.type["reader-core"]["Text"] = this.mangle("TextR");
       acc.type["builder-core"]["ListListB"] = this.mangle("ListListB");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["Text"] = this.mangle("Text");
       acc.value["builder-core"]["lists"] = "lists";
       break;
@@ -345,7 +375,6 @@ class LibsVisitor extends Visitor<Acc> {
       acc.type["reader-core"]["Data"] = this.mangle("DataR");
       acc.type["builder-core"]["ListListB"] = this.mangle("ListListB");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["Data"] = this.mangle("Data");
       acc.value["builder-core"]["lists"] = "lists";
       break;
@@ -354,7 +383,6 @@ class LibsVisitor extends Visitor<Acc> {
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["builder-core"]["ListListB"] = this.mangle("ListListB");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["lists"] = "lists";
       this.addList(elementType.getList().getElementType(), acc);
       break;
@@ -362,7 +390,6 @@ class LibsVisitor extends Visitor<Acc> {
       acc.type["reader-core"]["UInt16List"] = this.mangle("UInt16ListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["UInt16List"] = this.mangle("UInt16List");
       break;
     case Type.tags.struct:
@@ -370,45 +397,45 @@ class LibsVisitor extends Visitor<Acc> {
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["builder-core"]["StructListB"] = this.mangle("StructListB");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
       acc.value["builder-core"]["structs"] = "structs";
       break;
     case Type.tags.interface:
       throw new Error("TODO");
     case Type.tags.anyPointer:
-      const anyPointerGroup = Type.groups.anyPointer;
-      const anyPointer = elementType.getAnyPointer();
-      switch (anyPointer.tag()) {
-      case anyPointerGroup.tags.unconstrained:
-        {
-          const unconstrainedGroup = anyPointerGroup.groups.unconstrained;
-          const unconstrained = anyPointer.getUnconstrained();
-          switch (unconstrained.tag()) {
-          case unconstrainedGroup.tags.anyKind:
-            throw new Error("Forbidden type: List(AnyPointer).");
-          case unconstrainedGroup.tags.struct:
-            throw new Error("Forbidden type: List(AnyStruct).");
-          case unconstrainedGroup.tags.list:
-            //TODO: None of my current schemata use a `List(AnyList)`. Be sure that this gets tested.
-            acc.type["reader-core"]["BoolListGutsR"] = this.mangle("BoolListGutsR");
-            acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
-            acc.type["reader-core"]["ListValue"] = this.mangle("ListValueR");
-            acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-            acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
-            acc.value["builder-core"]["ListValue"] = this.mangle("ListValue");
-            break;
-          case unconstrainedGroup.tags.capability:
-            throw new Error("TODO");
-          default:
-            throw new Error("Unrecognized unconstrained-AnyPointer tag.");
+      {
+        const anyPointerGroup = Type.groups.anyPointer;
+        const anyPointer = elementType.getAnyPointer();
+        switch (anyPointer.tag()) {
+        case anyPointerGroup.tags.unconstrained:
+          {
+            const unconstrainedGroup = anyPointerGroup.groups.unconstrained;
+            const unconstrained = anyPointer.getUnconstrained();
+            switch (unconstrained.tag()) {
+            case unconstrainedGroup.tags.anyKind:
+              throw new Error("Forbidden type: List(AnyPointer).");
+            case unconstrainedGroup.tags.struct:
+              throw new Error("Forbidden type: List(AnyStruct).");
+            case unconstrainedGroup.tags.list:
+              //TODO: None of my current schemata use a `List(AnyList)`. Be sure that this gets tested.
+              acc.type["reader-core"]["BoolListGutsR"] = this.mangle("BoolListGutsR");
+              acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+              acc.type["reader-core"]["ListValue"] = this.mangle("ListValueR");
+              acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
+              acc.value["builder-core"]["ListValue"] = this.mangle("ListValue");
+              break;
+            case unconstrainedGroup.tags.capability:
+              throw new Error("TODO");
+            default:
+              throw new Error("Unrecognized unconstrained-AnyPointer tag.");
+            }
           }
+        case anyPointerGroup.tags.parameter:
+          throw new Error("Forbidden type: List(T) for some parameter T");
+        case anyPointerGroup.tags.implicitMethodParameter:
+          throw new Error("TODO");
+        default:
+          throw new Error("Unrecognized any pointer tag.");
         }
-      case anyPointerGroup.tags.parameter:
-        throw new Error("Forbidden type: List(T) for some parameter T");
-      case anyPointerGroup.tags.implicitMethodParameter:
-        throw new Error("TODO");
-      default:
-        throw new Error("Unrecognized type tag.");
       }
       break;
     default:
@@ -418,7 +445,6 @@ class LibsVisitor extends Visitor<Acc> {
 
   addStruct(brand: null | Brand__InstanceR, acc: Acc): void {
     //TODO: I never touch the struct's id. Don't I need to? I expect imported structs to bust.
-    acc.value["copy-pointers"]["pointerCopy"] = "pointerCopy";
     if (brand !== null) {
       const scopes = brand.getScopes();
       if (scopes !== null) {

@@ -65,6 +65,7 @@ class LibsVisitor extends Visitor<Acc> {
     }
 
     /* CtorR */
+    acc.aliases["uint"] = "number";
     acc.type["reader-core"]["StructCtorR"] = this.mangle("StructCtorR");
     acc.type["reader-core"]["StructGutsR"] = this.mangle("StructGutsR");
     acc.type["reader-core"]["ArenaR"] = this.mangle("ArenaR");
@@ -77,11 +78,16 @@ class LibsVisitor extends Visitor<Acc> {
     acc.value["reader-arena"]["empty"] = "empty";
 
     /* InstanceR */
+    if (node.getStruct().getDiscriminantCount() > 0) {
+      acc.aliases["u16"] = "number";
+    }
+
     const fields = node.getStruct().getFields();
     if (fields !== null) {
       fields.forEach(field => {
         switch (field.tag()) {
         case Field.tags.slot:
+          this.addAlias(field.getSlot().getType(), acc);
           this.addType(field.getSlot().getType(), acc);
           break;
         case Field.tags.group:
@@ -127,8 +133,47 @@ class LibsVisitor extends Visitor<Acc> {
   }
 
   const(node: Node__InstanceR, acc: Acc): Acc {
-    this.addAlias(node.getConst().getType(), acc);
-    this.addType(node.getConst().getType(), acc);
+    let type = node.getConst().getType();
+    if (type === null) {
+      type = Type.empty();
+    }
+
+    this.addAlias(type, acc);
+    switch (type.tag()) {
+    case Type.tags.void:
+    case Type.tags.bool:
+    case Type.tags.int8:
+    case Type.tags.int16:
+    case Type.tags.int32:
+    case Type.tags.uint8:
+    case Type.tags.uint16:
+    case Type.tags.uint32:
+    case Type.tags.float32:
+    case Type.tags.float64:
+    case Type.tags.enum:
+      break;
+
+    case Type.tags.int64:
+      acc.type.int64["Int64"] = this.mangle("Int64");
+      acc.value.int64["inject"] = "injectI64";
+      break;
+    case Type.tags.uint64:
+      acc.type.uint64["UInt64"] = this.mangle("UInt64");
+      acc.value.uint64["inject"] = "injectU64";
+      break;
+
+    case Type.tags.text:
+    case Type.tags.data:
+    case Type.tags.list:
+    case Type.tags.struct:
+    case Type.tags.interface:
+    case Type.tags.anyPointer:
+      this.addType(node.getConst().getType(), acc);
+      break;
+
+    default:
+      throw new Error("Unrecognized type tag.");
+    }
 
     return super.const(node, acc);
   }
@@ -200,7 +245,6 @@ class LibsVisitor extends Visitor<Acc> {
       acc.value["reader-core"]["Data"] = this.mangle("Data");
       break;
     case Type.tags.list:
-      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       this.addParameterList(type.getList().getElementType(), acc);
       break;
     case Type.tags.struct:
@@ -211,39 +255,41 @@ class LibsVisitor extends Visitor<Acc> {
     case Type.tags.interface:
       throw new Error("TODO");
     case Type.tags.anyPointer:
-      const anyPointerGroup = Type.groups.anyPointer;
-      const anyPointer = type.getAnyPointer();
-      switch (anyPointer.tag()) {
-      case anyPointerGroup.tags.unconstrained:
-        {
-          const unconstrainedGroup = anyPointerGroup.groups.unconstrained;
-          const unconstrained = anyPointer.getUnconstrained();
-          switch (unconstrained.tag()) {
-          case unconstrainedGroup.tags.anyKind:
-            acc.type["reader-core"]["AnyGutsR"] = this.mangle("AnyGutsR");
-            acc.value["reader-core"]["AnyValue"] = this.mangle("AnyValue");
-            break;
-          case unconstrainedGroup.tags.struct:
-            acc.type["reader-core"]["StructGutsR"] = this.mangle("StructGutsR");
-            acc.value["reader-core"]["StructValue"] = this.mangle("StructValue");
-            break;
-          case unconstrainedGroup.tags.list:
-            acc.type["reader-core"]["BoolListGutsR"] = this.mangle("BoolListGutsR");
-            acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
-            acc.value["reader-core"]["ListValue"] = this.mangle("ListValue");
-            break;
-          case unconstrainedGroup.tags.capability:
-            throw new Error("TODO");
-          default:
-            throw new Error("Unrecognized unconstrained-AnyPointer tag.");
+      {
+        const anyPointerGroup = Type.groups.anyPointer;
+        const anyPointer = type.getAnyPointer();
+        switch (anyPointer.tag()) {
+        case anyPointerGroup.tags.unconstrained:
+          {
+            const unconstrainedGroup = anyPointerGroup.groups.unconstrained;
+            const unconstrained = anyPointer.getUnconstrained();
+            switch (unconstrained.tag()) {
+            case unconstrainedGroup.tags.anyKind:
+              acc.type["reader-core"]["AnyGutsR"] = this.mangle("AnyGutsR");
+              acc.value["reader-core"]["AnyValue"] = this.mangle("AnyValue");
+              break;
+            case unconstrainedGroup.tags.struct:
+              acc.type["reader-core"]["StructGutsR"] = this.mangle("StructGutsR");
+              acc.value["reader-core"]["StructValue"] = this.mangle("StructValue");
+              break;
+            case unconstrainedGroup.tags.list:
+              acc.type["reader-core"]["BoolListGutsR"] = this.mangle("BoolListGutsR");
+              acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+              acc.value["reader-core"]["ListValue"] = this.mangle("ListValue");
+              break;
+            case unconstrainedGroup.tags.capability:
+              throw new Error("TODO");
+            default:
+              throw new Error("Unrecognized unconstrained-AnyPointer tag.");
+            }
           }
+        case anyPointerGroup.tags.parameter:
+          break; //TODO: Can a parameter name collide with anything? My hunch is no given the underscores. If collisions can occure, then consider `__r` instead of `_r`.
+        case anyPointerGroup.tags.implicitMethodParameter:
+          throw new Error("TODO");
+        default:
+          throw new Error("Unrecognized any pointer tag.");
         }
-      case anyPointerGroup.tags.parameter:
-        break; //TODO: Can a parameter name collide with anything? My hunch is no given the underscores. If collisions can occure, then consider `__r` instead of `_r`.
-      case anyPointerGroup.tags.implicitMethodParameter:
-        throw new Error("TODO");
-      default:
-        throw new Error("Unrecognized type tag.");
       }
       break;
     default:
@@ -302,35 +348,37 @@ class LibsVisitor extends Visitor<Acc> {
     case Type.tags.interface:
       throw new Error("TODO");
     case Type.tags.anyPointer:
-      const anyPointerGroup = Type.groups.anyPointer;
-      const anyPointer = type.getAnyPointer();
-      switch (anyPointer.tag()) {
-      case anyPointerGroup.tags.unconstrained:
-        {
-          const unconstrainedGroup = anyPointerGroup.groups.unconstrained;
-          const unconstrained = anyPointer.getUnconstrained();
-          switch (unconstrained.tag()) {
-          case unconstrainedGroup.tags.anyKind:
-            acc.value["reader-core"]["AnyValue"] = this.mangle("AnyValue");
-            break;
-          case unconstrainedGroup.tags.struct:
-            acc.value["reader-core"]["StructValue"] = this.mangle("StructValue");
-            break;
-          case unconstrainedGroup.tags.list:
-            acc.value["reader-core"]["ListValue"] = this.mangle("ListValue");
-            break;
-          case unconstrainedGroup.tags.capability:
-            throw new Error("TODO");
-          default:
-            throw new Error("Unrecognized unconstrained-AnyPointer tag.");
+      {
+        const anyPointerGroup = Type.groups.anyPointer;
+        const anyPointer = type.getAnyPointer();
+        switch (anyPointer.tag()) {
+        case anyPointerGroup.tags.unconstrained:
+          {
+            const unconstrainedGroup = anyPointerGroup.groups.unconstrained;
+            const unconstrained = anyPointer.getUnconstrained();
+            switch (unconstrained.tag()) {
+            case unconstrainedGroup.tags.anyKind:
+              acc.value["reader-core"]["AnyValue"] = this.mangle("AnyValue");
+              break;
+            case unconstrainedGroup.tags.struct:
+              acc.value["reader-core"]["StructValue"] = this.mangle("StructValue");
+              break;
+            case unconstrainedGroup.tags.list:
+              acc.value["reader-core"]["ListValue"] = this.mangle("ListValue");
+              break;
+            case unconstrainedGroup.tags.capability:
+              throw new Error("TODO");
+            default:
+              throw new Error("Unrecognized unconstrained-AnyPointer tag.");
+            }
           }
+        case anyPointerGroup.tags.parameter:
+          break; //TODO: Can a parameter name collide with anything? My hunch is no given the underscores. If collisions can occure, then consider `__r` instead of `_r`.
+        case anyPointerGroup.tags.implicitMethodParameter:
+          throw new Error("TODO");
+        default:
+          throw new Error("Unrecognized any pointer tag.");
         }
-      case anyPointerGroup.tags.parameter:
-        break; //TODO: Can a parameter name collide with anything? My hunch is no given the underscores. If collisions can occure, then consider `__r` instead of `_r`.
-      case anyPointerGroup.tags.implicitMethodParameter:
-        throw new Error("TODO");
-      default:
-        throw new Error("Unrecognized type tag.");
       }
       break;
     default:
@@ -422,36 +470,38 @@ class LibsVisitor extends Visitor<Acc> {
     case Type.tags.interface:
       throw new Error("TODO");
     case Type.tags.anyPointer:
-      const anyPointerGroup = Type.groups.anyPointer;
-      const anyPointer = elementType.getAnyPointer();
-      switch (anyPointer.tag()) {
-      case anyPointerGroup.tags.unconstrained:
-        {
-          const unconstrainedGroup = anyPointerGroup.groups.unconstrained;
-          const unconstrained = anyPointer.getUnconstrained();
-          switch (unconstrained.tag()) {
-          case unconstrainedGroup.tags.anyKind:
-            throw new Error("Forbidden type: List(AnyPointer).");
-          case unconstrainedGroup.tags.struct:
-            throw new Error("Forbidden type: List(AnyStruct).");
-          case unconstrainedGroup.tags.list:
-            //TODO: None of my current schemata use a `List(AnyList)`. Be sure that this gets tested.
-            acc.type["reader-core"]["BoolListGutsR"] = this.mangle("BoolListGutsR");
-            acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
-            acc.value["reader-core"]["ListValue"] = this.mangle("ListValue");
-            break;
-          case unconstrainedGroup.tags.capability:
-            throw new Error("TODO");
-          default:
-            throw new Error("Unrecognized unconstrained-AnyPointer tag.");
+      {
+        const anyPointerGroup = Type.groups.anyPointer;
+        const anyPointer = elementType.getAnyPointer();
+        switch (anyPointer.tag()) {
+        case anyPointerGroup.tags.unconstrained:
+          {
+            const unconstrainedGroup = anyPointerGroup.groups.unconstrained;
+            const unconstrained = anyPointer.getUnconstrained();
+            switch (unconstrained.tag()) {
+            case unconstrainedGroup.tags.anyKind:
+              throw new Error("Forbidden type: List(AnyPointer).");
+            case unconstrainedGroup.tags.struct:
+              throw new Error("Forbidden type: List(AnyStruct).");
+            case unconstrainedGroup.tags.list:
+              //TODO: None of my current schemata use a `List(AnyList)`. Be sure that this gets tested.
+              acc.type["reader-core"]["BoolListGutsR"] = this.mangle("BoolListGutsR");
+              acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+              acc.value["reader-core"]["ListValue"] = this.mangle("ListValue");
+              break;
+            case unconstrainedGroup.tags.capability:
+              throw new Error("TODO");
+            default:
+              throw new Error("Unrecognized unconstrained-AnyPointer tag.");
+            }
           }
+        case anyPointerGroup.tags.parameter:
+          throw new Error("Forbidden type: List(T) for some parameter T");
+        case anyPointerGroup.tags.implicitMethodParameter:
+          throw new Error("TODO");
+        default:
+          throw new Error("Unrecognized any pointer tag.");
         }
-      case anyPointerGroup.tags.parameter:
-        throw new Error("Forbidden type: List(T) for some parameter T");
-      case anyPointerGroup.tags.implicitMethodParameter:
-        throw new Error("TODO");
-      default:
-        throw new Error("Unrecognized type tag.");
       }
       break;
     default:
@@ -530,36 +580,38 @@ class LibsVisitor extends Visitor<Acc> {
     case Type.tags.interface:
       throw new Error("TODO");
     case Type.tags.anyPointer:
-      const anyPointerGroup = Type.groups.anyPointer;
-      const anyPointer = elementType.getAnyPointer();
-      switch (anyPointer.tag()) {
-      case anyPointerGroup.tags.unconstrained:
-        {
-          const unconstrainedGroup = anyPointerGroup.groups.unconstrained;
-          const unconstrained = anyPointer.getUnconstrained();
-          switch (unconstrained.tag()) {
-          case unconstrainedGroup.tags.anyKind:
-            throw new Error("Forbidden type: List(AnyPointer).");
-          case unconstrainedGroup.tags.struct:
-            throw new Error("Forbidden type: List(AnyStruct).");
-          case unconstrainedGroup.tags.list:
-            //TODO: None of my current schemata use a `List(AnyList)`. Be sure that this gets tested.
-            acc.type["reader-core"]["BoolListGutsR"] = this.mangle("BoolListGutsR");
-            acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
-            acc.value["reader-core"]["ListValue"] = this.mangle("ListValue");
-            break;
-          case unconstrainedGroup.tags.capability:
-            throw new Error("TODO");
-          default:
-            throw new Error("Unrecognized unconstrained-AnyPointer tag.");
+      {
+        const anyPointerGroup = Type.groups.anyPointer;
+        const anyPointer = elementType.getAnyPointer();
+        switch (anyPointer.tag()) {
+        case anyPointerGroup.tags.unconstrained:
+          {
+            const unconstrainedGroup = anyPointerGroup.groups.unconstrained;
+            const unconstrained = anyPointer.getUnconstrained();
+            switch (unconstrained.tag()) {
+            case unconstrainedGroup.tags.anyKind:
+              throw new Error("Forbidden type: List(AnyPointer).");
+            case unconstrainedGroup.tags.struct:
+              throw new Error("Forbidden type: List(AnyStruct).");
+            case unconstrainedGroup.tags.list:
+              //TODO: None of my current schemata use a `List(AnyList)`. Be sure that this gets tested.
+              acc.type["reader-core"]["BoolListGutsR"] = this.mangle("BoolListGutsR");
+              acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+              acc.value["reader-core"]["ListValue"] = this.mangle("ListValue");
+              break;
+            case unconstrainedGroup.tags.capability:
+              throw new Error("TODO");
+            default:
+              throw new Error("Unrecognized unconstrained-AnyPointer tag.");
+            }
           }
+        case anyPointerGroup.tags.parameter:
+          throw new Error("Forbidden type: List(T) for some parameter T");
+        case anyPointerGroup.tags.implicitMethodParameter:
+          throw new Error("TODO");
+        default:
+          throw new Error("Unrecognized any pointer tag.");
         }
-      case anyPointerGroup.tags.parameter:
-        throw new Error("Forbidden type: List(T) for some parameter T");
-      case anyPointerGroup.tags.implicitMethodParameter:
-        throw new Error("TODO");
-      default:
-        throw new Error("Unrecognized type tag.");
       }
       break;
     default:

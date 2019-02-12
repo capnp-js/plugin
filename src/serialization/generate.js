@@ -169,6 +169,13 @@ export function classes(index: Index, values: null | Values, strategy: Strategy,
     }
   }
 
+  /* pointerCopy */
+  if (strategy.tag === "builder" && values !== null) {
+    if (Object.keys(values.defaults).length > 0) {
+      p.line("import { pointerCopy } from \"@capnp-js/copy-pointers\";");
+    }
+  }
+
   p.interrupt();
 
   /* Section 2: Reader Imports (builder only)
@@ -306,24 +313,23 @@ export function classes(index: Index, values: null | Values, strategy: Strategy,
   /* Constant and default values */
   if (values !== null) {
     const blob = baseFilename(file) + "-blob";
-    p.line(`import blob from "${blob}";`);
+    if (strategy.tag === "reader") {
+      p.line(`import blob from "${blob}";`);
+    } else {
+      (strategy.tag: "builder");
+      if (Object.keys(values.defaults).length > 0) {
+        p.line(`import blob from "${blob}";`);
+      }
+    }
   }
 
   p.interrupt();
 
   /* Type aliases */
   {
-    const aliases = {};
-    for (let key in libs.aliases) {
-      aliases[key] = libs.aliases[key];
-    }
-    for (let key in users.aliases) {
-      aliases[key] = users.aliases[key];
-    }
-
-    const keys = Object.keys(aliases);
+    const keys = Object.keys(libs.aliases);
     keys.sort();
-    keys.forEach(alias => p.line(`type ${alias} = ${aliases[alias]};`));
+    keys.forEach(alias => p.line(`type ${alias} = ${libs.aliases[alias]};`));
   }
 
   p.interrupt();
