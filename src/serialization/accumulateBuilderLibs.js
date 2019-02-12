@@ -429,6 +429,7 @@ class LibsVisitor extends Visitor<Acc> {
               throw new Error("Unrecognized unconstrained-AnyPointer tag.");
             }
           }
+          break;
         case anyPointerGroup.tags.parameter:
           throw new Error("Forbidden type: List(T) for some parameter T");
         case anyPointerGroup.tags.implicitMethodParameter:
