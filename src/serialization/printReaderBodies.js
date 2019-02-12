@@ -818,6 +818,12 @@ class Constants {
         `return ${((value: any): Value__InstanceR).getFloat64()};`, // eslint-disable-line flowtype/no-weak-types
       );
       break;
+    case Value.tags.enum:
+      cb(
+        "u16",
+        `return ${((value: any): Value__InstanceR).getEnum()};`, // eslint-disable-line flowtype/no-weak-types
+      );
+      break;
     case Value.tags.text:
     case Value.tags.data:
     case Type.tags.list:

@@ -154,10 +154,14 @@ class LibsVisitor extends Visitor<Acc> {
       break;
     case Type.tags.int64:
       acc.type.int64["Int64"] = this.mangle("Int64");
+      acc["all-value"]["read-data"] = "decode";
+      acc["all-value"]["write-data"] = "encode";
       acc.value.int64["inject"] = "injectI64";
       break;
     case Type.tags.uint64:
       acc.type.uint64["UInt64"] = this.mangle("UInt64");
+      acc["all-value"]["read-data"] = "decode";
+      acc["all-value"]["write-data"] = "encode";
       acc.value.uint64["inject"] = "injectU64";
       break;
     case Type.tags.text:
@@ -228,6 +232,9 @@ class LibsVisitor extends Visitor<Acc> {
       default:
         throw new Error("Unrecognized type tag.");
       }
+      break;
+    default:
+      throw new Error("Unrecognized type tag.");
     }
   }
 
@@ -403,6 +410,9 @@ class LibsVisitor extends Visitor<Acc> {
       default:
         throw new Error("Unrecognized type tag.");
       }
+      break;
+    default:
+      throw new Error("Unrecognized type tag.");
     }
   }
 

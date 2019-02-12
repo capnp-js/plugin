@@ -166,6 +166,88 @@ class LibsVisitor extends Visitor<Acc> {
     case Type.tags.float64:
       acc.aliases["f64"] = "number";
       break;
+    case Type.tags.enum:
+      acc.aliases["u16"] = "number";
+    }
+  }
+
+  addParameterType(type: null | Type__InstanceR, acc: Acc): void {
+    if (type === null) {
+      type = Type.empty();
+    }
+
+    switch (type.tag()) {
+    case Type.tags.void:
+    case Type.tags.bool:
+    case Type.tags.int8:
+    case Type.tags.int16:
+    case Type.tags.int32:
+    case Type.tags.uint8:
+    case Type.tags.uint16:
+    case Type.tags.uint32:
+    case Type.tags.float32:
+    case Type.tags.float64:
+    case Type.tags.int64:
+    case Type.tags.uint64:
+    case Type.tags.enum:
+      break;
+    case Type.tags.text:
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.value["reader-core"]["Text"] = this.mangle("Text");
+      break;
+    case Type.tags.data:
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.value["reader-core"]["Data"] = this.mangle("Data");
+      break;
+    case Type.tags.list:
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      this.addParameterList(type.getList().getElementType(), acc);
+      break;
+    case Type.tags.struct:
+      acc.type["reader-core"]["StructGutsR"] = this.mangle("StructGutsR");
+      this.addStruct(type.getStruct().getBrand(), acc);
+      //TODO: Eslint rule for `//fall through` switch statements.
+      break;
+    case Type.tags.interface:
+      throw new Error("TODO");
+    case Type.tags.anyPointer:
+      const anyPointerGroup = Type.groups.anyPointer;
+      const anyPointer = type.getAnyPointer();
+      switch (anyPointer.tag()) {
+      case anyPointerGroup.tags.unconstrained:
+        {
+          const unconstrainedGroup = anyPointerGroup.groups.unconstrained;
+          const unconstrained = anyPointer.getUnconstrained();
+          switch (unconstrained.tag()) {
+          case unconstrainedGroup.tags.anyKind:
+            acc.type["reader-core"]["AnyGutsR"] = this.mangle("AnyGutsR");
+            acc.value["reader-core"]["AnyValue"] = this.mangle("AnyValue");
+            break;
+          case unconstrainedGroup.tags.struct:
+            acc.type["reader-core"]["StructGutsR"] = this.mangle("StructGutsR");
+            acc.value["reader-core"]["StructValue"] = this.mangle("StructValue");
+            break;
+          case unconstrainedGroup.tags.list:
+            acc.type["reader-core"]["BoolListGutsR"] = this.mangle("BoolListGutsR");
+            acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+            acc.value["reader-core"]["ListValue"] = this.mangle("ListValue");
+            break;
+          case unconstrainedGroup.tags.capability:
+            throw new Error("TODO");
+          default:
+            throw new Error("Unrecognized unconstrained-AnyPointer tag.");
+          }
+        }
+      case anyPointerGroup.tags.parameter:
+        break; //TODO: Can a parameter name collide with anything? My hunch is no given the underscores. If collisions can occure, then consider `__r` instead of `_r`.
+      case anyPointerGroup.tags.implicitMethodParameter:
+        throw new Error("TODO");
+      default:
+        throw new Error("Unrecognized type tag.");
+      }
+      break;
+    default:
+      throw new Error("Unrecognized type tag.");
     }
   }
 
@@ -193,10 +275,12 @@ class LibsVisitor extends Visitor<Acc> {
       break;
     case Type.tags.int64:
       acc.type.int64["Int64"] = this.mangle("Int64");
+      acc["all-value"]["read-data"] = "decode";
       acc.value.int64["inject"] = "injectI64";
       break;
     case Type.tags.uint64:
       acc.type.uint64["UInt64"] = this.mangle("UInt64");
+      acc["all-value"]["read-data"] = "decode";
       acc.value.uint64["inject"] = "injectU64";
       break;
     case Type.tags.text:
@@ -248,6 +332,130 @@ class LibsVisitor extends Visitor<Acc> {
       default:
         throw new Error("Unrecognized type tag.");
       }
+      break;
+    default:
+      throw new Error("Unrecognized type tag.");
+    }
+  }
+
+  addParameterList(elementType: null | Type__InstanceR, acc: Acc): void {
+    if (elementType === null) {
+      elementType = Type.empty();
+    }
+
+    switch (elementType.tag()) {
+    case Type.tags.void:
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.value["reader-core"]["VoidList"] = this.mangle("VoidList");
+      break;
+    case Type.tags.bool:
+      acc.type["reader-core"]["BoolListGutsR"] = this.mangle("BoolListGutsR");
+      acc.value["reader-core"]["BoolList"] = this.mangle("BoolList");
+      break;
+    case Type.tags.int8:
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.value["reader-core"]["Int8List"] = this.mangle("Int8List");
+      break;
+    case Type.tags.int16:
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.value["reader-core"]["Int16List"] = this.mangle("Int16List");
+      break;
+    case Type.tags.int32:
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.value["reader-core"]["Int32List"] = this.mangle("Int32List");
+      break;
+    case Type.tags.int64:
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.value["reader-core"]["Int64List"] = this.mangle("Int64List");
+      break;
+    case Type.tags.uint8:
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.value["reader-core"]["UInt8List"] = this.mangle("UInt8List");
+      break;
+    case Type.tags.uint16:
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.value["reader-core"]["UInt16List"] = this.mangle("UInt16List");
+      break;
+    case Type.tags.uint32:
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.value["reader-core"]["UInt32List"] = this.mangle("UInt32List");
+      break;
+    case Type.tags.uint64:
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.value["reader-core"]["UInt64List"] = this.mangle("UInt64List");
+      break;
+    case Type.tags.float32:
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.value["reader-core"]["Float32List"] = this.mangle("Float32List");
+      break;
+    case Type.tags.float64:
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.value["reader-core"]["Float64List"] = this.mangle("Float64List");
+      break;
+    case Type.tags.text:
+      acc.type["reader-core"]["ListListR"] = this.mangle("ListListR");
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.value["reader-core"]["Text"] = this.mangle("Text");
+      acc.value["reader-core"]["lists"] = "lists";
+      break;
+    case Type.tags.data:
+      acc.type["reader-core"]["ListListR"] = this.mangle("ListListR");
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.value["reader-core"]["Data"] = this.mangle("Data");
+      acc.value["reader-core"]["lists"] = "lists";
+      break;
+    case Type.tags.list:
+      acc.type["reader-core"]["ListListR"] = this.mangle("ListListR");
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.value["reader-core"]["lists"] = "lists";
+      this.addList(elementType.getList().getElementType(), acc);
+      break;
+    case Type.tags.enum:
+      acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+      acc.type["reader-core"]["UInt16List"] = this.mangle("UInt16List");
+      break;
+    case Type.tags.struct:
+      acc.type["reader-core"]["StructGutsR"] = this.mangle("StructGutsR");
+      acc.type["reader-core"]["StructListR"] = this.mangle("StructListR");
+      acc.value["reader-core"]["structs"] = "structs";
+      break;
+    case Type.tags.interface:
+      throw new Error("TODO");
+    case Type.tags.anyPointer:
+      const anyPointerGroup = Type.groups.anyPointer;
+      const anyPointer = elementType.getAnyPointer();
+      switch (anyPointer.tag()) {
+      case anyPointerGroup.tags.unconstrained:
+        {
+          const unconstrainedGroup = anyPointerGroup.groups.unconstrained;
+          const unconstrained = anyPointer.getUnconstrained();
+          switch (unconstrained.tag()) {
+          case unconstrainedGroup.tags.anyKind:
+            throw new Error("Forbidden type: List(AnyPointer).");
+          case unconstrainedGroup.tags.struct:
+            throw new Error("Forbidden type: List(AnyStruct).");
+          case unconstrainedGroup.tags.list:
+            //TODO: None of my current schemata use a `List(AnyList)`. Be sure that this gets tested.
+            acc.type["reader-core"]["BoolListGutsR"] = this.mangle("BoolListGutsR");
+            acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
+            acc.value["reader-core"]["ListValue"] = this.mangle("ListValue");
+            break;
+          case unconstrainedGroup.tags.capability:
+            throw new Error("TODO");
+          default:
+            throw new Error("Unrecognized unconstrained-AnyPointer tag.");
+          }
+        }
+      case anyPointerGroup.tags.parameter:
+        throw new Error("Forbidden type: List(T) for some parameter T");
+      case anyPointerGroup.tags.implicitMethodParameter:
+        throw new Error("TODO");
+      default:
+        throw new Error("Unrecognized type tag.");
+      }
+      break;
+    default:
+      throw new Error("Unrecognized type tag.");
     }
   }
 
@@ -353,6 +561,9 @@ class LibsVisitor extends Visitor<Acc> {
       default:
         throw new Error("Unrecognized type tag.");
       }
+      break;
+    default:
+      throw new Error("Unrecognized type tag.");
     }
   }
 
@@ -366,7 +577,7 @@ class LibsVisitor extends Visitor<Acc> {
             if (bind !== null) {
               bind.forEach(binding => {
                 if (binding.tag() === Brand.Binding.tags.type) {
-                  this.addType(binding.getType(), acc);
+                  this.addParameterType(binding.getType(), acc);
                 }
               });
             }
