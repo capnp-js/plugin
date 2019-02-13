@@ -312,7 +312,8 @@ export function classes(index: Index, values: null | Values, strategy: Strategy,
 
   /* Constant and default values */
   if (values !== null) {
-    const blob = baseFilename(file) + "-blob";
+    const baseName = path.basename(nonnull(file.getFilename()).toString());
+    const blob = `./${baseName}-blob`;
     if (strategy.tag === "reader") {
       p.line(`import blob from "${blob}";`);
     } else {

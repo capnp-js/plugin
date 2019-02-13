@@ -16,6 +16,7 @@ import { startEncodeSync as startStream } from "@capnp-js/trans-stream";
 import { transEncodeSync as packing } from "@capnp-js/trans-packing";
 import { transEncodeSync as alignment } from "@capnp-js/trans-align-bytes";
 import { finishEncodeSync as base64 } from "@capnp-js/trans-base64";
+import { concat } from "@capnp-js/trans-concat";
 
 import Visitor from "../Visitor";
 import { nonnull } from "@capnp-js/nullary";
@@ -189,27 +190,16 @@ export default function accumulateValues(index: Index, fileId: UInt64): null | V
   if (internalAcc.blob === null) {
     return null;
   } else {
-    let b64 = "";
     const raws = internalAcc.blob.segments.map(s => s.raw.subarray(0, s.end));
-
-    const header = base64(align(pack(start(raws))));
-    if (header instanceof Error) {
-      throw header;
+    const b64 = base64(align(pack(concat(start(raws), injectArray(raws)))));
+    if (b64 instanceof Error) {
+      throw b64;
     } else {
-      b64 += header;
+      return {
+        blob: b64,
+        defaults: internalAcc.defaults,
+        constants: internalAcc.constants,
+      };
     }
-
-    const body = base64(align(pack(injectArray(raws))));
-    if (body instanceof Error) {
-      throw body;
-    } else {
-      b64 += body;
-    }
-
-    return {
-      blob: b64,
-      defaults: internalAcc.defaults,
-      constants: internalAcc.constants,
-    };
   }
 }

@@ -1076,7 +1076,8 @@ class ReadersVisitor extends Visitor<Printer> {
 
             /* Manually grab the default's bit pattern from the Float32
                location. */
-            const def = int32(slot.guts.segment.raw, slot.guts.layout.dataSection + 4);
+            const guts = nonnull(slot.getDefaultValue()).guts;
+            const def = int32(guts.segment.raw, guts.layout.dataSection + 4);
             p.ifElse(
               "d + 4 <= this.guts.layout.pointersSection",
               p => {
@@ -1097,9 +1098,10 @@ class ReadersVisitor extends Visitor<Printer> {
 
             /* Manually grab the default's bit pattern from the Float64
                location. */
+            const guts = nonnull(slot.getDefaultValue()).guts;
             const def = [
-              int32(slot.guts.segment.raw, slot.guts.layout.dataSection + 12),
-              int32(slot.guts.segment.raw, slot.guts.layout.dataSection + 8),
+              int32(guts.segment.raw, guts.layout.dataSection + 12),
+              int32(guts.segment.raw, guts.layout.dataSection + 8),
             ];
             p.ifElse(
               "d + 8 <= this.guts.layout.pointersSection",

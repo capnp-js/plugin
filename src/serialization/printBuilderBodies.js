@@ -981,10 +981,10 @@ class BuildersVisitor extends Visitor<Printer> {
       if (discrValue !== Field.getNoDiscriminant()) {
         p.line(`this.guts.setTag(${discrValue}, ${discrOffset}, {`);
         p.indent(p => {
-          const partialDBs = union.maskedBytes.map(p => `[${p.offset},${p.mask}]`);
+          const partialDBs = union.maskedBytes.map(p => `[${p.offset}, ${p.mask}]`);
           p.line(`partialDataBytes: [${partialDBs.join(", ")}],`);
 
-          const dataBs = union.dataSequences.map(p => `[${p.offset},${p.length}]`);
+          const dataBs = union.dataSequences.map(p => `[${p.offset}, ${p.length}]`);
           p.line(`dataBytes: [${dataBs.join(", ")}],`);
 
           const pointersBs = union.pointersSequences.map(p => `[${p.offset}, ${p.length}]`);
@@ -998,13 +998,13 @@ class BuildersVisitor extends Visitor<Printer> {
       if (discrValue !== Field.getNoDiscriminant()) {
         p.line(`this.guts.initTag(${discrValue}, ${discrOffset}, {`);
         p.indent(p => {
-          const partialDBs = union.maskedBytes.map(p => `[${p.offset},${p.mask}]`);
+          const partialDBs = union.maskedBytes.map(p => `[${p.offset}, ${p.mask}]`);
           p.line(`partialDataBytes: [${partialDBs.join(", ")}],`);
 
-          const dataBs = union.dataSequences.map(p => `[${p.offset},${p.length}]`);
+          const dataBs = union.dataSequences.map(p => `[${p.offset}, ${p.length}]`);
           p.line(`dataBytes: [${dataBs.join(", ")}],`);
 
-          const pointersBs = union.pointersSequences.map(p => `[${p.offset},${p.length}]`);
+          const pointersBs = union.pointersSequences.map(p => `[${p.offset}, ${p.length}]`);
           p.line(`pointersBytes: [${pointersBs.join(", ")}],`);
         });
         p.line("});");
@@ -1227,7 +1227,10 @@ class BuildersVisitor extends Visitor<Printer> {
 
             /* Manually grab the default's bit pattern from the Float32
                location. */
-            const def = int32(slot.guts.segment.raw, slot.guts.layout.dataSection + 4);
+//TODO: If default was not explicitly provided, then don't include the `${def} ^`.
+//      The following `nonnull` seems reliable, but it isn't necessary.
+            const guts = nonnull(slot.getDefaultValue()).guts;
+            const def = int32(guts.segment.raw, guts.layout.dataSection + 4);
             p.line("const bytes = decode.int32(this.guts.segment.raw, d);");
             p.line(`return decode.float32(${def} ^ bytes);`);
           });
@@ -1238,7 +1241,8 @@ class BuildersVisitor extends Visitor<Printer> {
 
             /* Manually grab the default's bit pattern from the Float32
                location. */
-            const def = int32(slot.guts.segment.raw, slot.guts.layout.dataSection + 4);
+            const guts = nonnull(slot.getDefaultValue()).guts;
+            const def = int32(guts.segment.raw, guts.layout.dataSection + 4);
             p.line("const bytes = encode.float32(value);");
             p.line(`encode.int32(${def} ^ bytes, this.guts.segment.raw, d);`);
           });
@@ -1251,9 +1255,10 @@ class BuildersVisitor extends Visitor<Printer> {
 
             /* Manually grab the default's bit pattern from the Float64
                location. */
+            const guts = nonnull(slot.getDefaultValue()).guts;
             const def = [
-              int32(slot.guts.segment.raw, slot.guts.layout.dataSection + 12),
-              int32(slot.guts.segment.raw, slot.guts.layout.dataSection + 8),
+              int32(guts.segment.raw, guts.layout.dataSection + 12),
+              int32(guts.segment.raw, guts.layout.dataSection + 8),
             ];
             p.line("const bytes = injectI64(");
             p.indent(p => {
@@ -1270,9 +1275,10 @@ class BuildersVisitor extends Visitor<Printer> {
 
             /* Manually grab the default's bit pattern from the Float64
                location. */
+            const guts = nonnull(slot.getDefaultValue()).guts;
             const def = [
-              int32(slot.guts.segment.raw, slot.guts.layout.dataSection + 12),
-              int32(slot.guts.segment.raw, slot.guts.layout.dataSection + 8),
+              int32(guts.segment.raw, guts.layout.dataSection + 12),
+              int32(guts.segment.raw, guts.layout.dataSection + 8),
             ];
             p.line("const bytes = encode.float64(value);");
             p.line(`encode.int32(${def[0]} ^ bytes[0], this.guts.segment.raw, d+4);`);

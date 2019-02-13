@@ -10,10 +10,13 @@
     "build": "gulp lib",
     "refresh": "rm -f package-lock.json && npm run clean && npm unpublish --force && rm -rf node_modules/@capnp-js && npm run build && npm publish",
     "clean": "gulp clean",
-    "compile-schema": "gulp compile",
-    "test-flow": "flow check --strip-root --show-all-errors --color=always src",
-    "test": "npm run test-flow",
-    "flow": "flow"
+    "compile-schema": "gulp compile && gulp lint",
+    "test-flow": "flow check --merge-timeout 20000 --strip-root --show-all-errors --color=always src",
+    "test-integration": "mocha --require @babel/register integration/test",
+    "test": "npm run test-flow && npm run test-integration",
+    "start-flow": "flow start --merge-timeout 20000",
+    "flow": "flow",
+    "stop-flow": "flow stop"
   },
   "repository": {
     "type": "git",
@@ -43,7 +46,8 @@
     "gulp-babel": "^8.0.0",
     "gulp-eslint": "^5.0.0",
     "gulp-ext-replace": "^0.3.0",
-    "gulp-jscc": "^1.2.0"
+    "gulp-jscc": "^1.2.0",
+    "mocha": "^5.2.0"
   },
   "dependencies": {
     "@capnp-js/base-arena": "^0.4.0",
@@ -57,10 +61,27 @@
     "@capnp-js/reader-arena": "^0.4.0",
     "@capnp-js/trans-align-bytes": "^0.4.0",
     "@capnp-js/trans-base64": "^0.4.0",
+    "@capnp-js/trans-concat": "^0.4.0",
     "@capnp-js/trans-inject": "^0.4.0",
     "@capnp-js/trans-packing": "^0.4.0",
     "@capnp-js/trans-readable": "^0.4.0",
     "@capnp-js/trans-stream": "^0.4.0",
     "@capnp-js/uint64": "^0.4.0"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "node": "8.9"
+          },
+          "modules": "commonjs"
+        }
+      ]
+    ],
+    "plugins": [
+      "@babel/transform-flow-strip-types"
+    ]
   }
 }
