@@ -1,41 +1,46 @@
 /* @flow */
 
-import type { Bytes } from "@capnp-js/layout";
-import type { SegmentR, Word } from "@capnp-js/memory";
 import type { Int64 } from "@capnp-js/int64";
 import type { UInt64 } from "@capnp-js/uint64";
+import type { Bytes } from "@capnp-js/layout";
 import type {
-  ArenaR,
+  SegmentR,
+  Word,
+} from "@capnp-js/memory";
+import type {
   AnyGutsR,
-  StructGutsR,
+  ArenaR,
   StructCtorR,
+  StructGutsR,
   StructListR,
 } from "@capnp-js/reader-core";
 
 import * as decode from "@capnp-js/read-data";
-import { deserializeUnsafe } from "@capnp-js/reader-arena";
 import { inject as injectI64 } from "@capnp-js/int64";
 import { inject as injectU64 } from "@capnp-js/uint64";
 import { isNull } from "@capnp-js/memory";
 import {
-  RefedStruct,
-  Data,
   AnyValue,
+  Data,
+  RefedStruct,
   Text,
   structs,
 } from "@capnp-js/reader-core";
+import { empty } from "@capnp-js/reader-arena";
 
-const blob = deserializeUnsafe("EAEAAA");
-
-type uint = number;
-type i8 = number;
-type i16 = number;
-type i32 = number;
-type u8 = number;
-type u16 = number;
-type u32 = number;
 type f32 = number;
 type f64 = number;
+type i16 = number;
+type i32 = number;
+type i8 = number;
+type u16 = number;
+type u32 = number;
+type u8 = number;
+type uint = number;
+
+/********/
+/* Node */
+/********/
 
 const Node__Tags = {
   file: 0,
@@ -100,11 +105,11 @@ export class Node__CtorR implements StructCtorR<Node__InstanceR> {
   }
 
   compiledBytes(): Bytes {
-    return {data: 40, pointers: 48};
+    return { data: 40, pointers: 48 };
   }
 
   empty(): Node__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new Node__InstanceR(guts);
   }
 }
@@ -122,11 +127,11 @@ export class Node__InstanceR {
 
   /* id */
   getId(): UInt64 {
-    const b = this.guts.layout.dataSection;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 0;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
@@ -141,53 +146,37 @@ export class Node__InstanceR {
 
   /* displayNamePrefixLength */
   getDisplayNamePrefixLength(): u32 {
-    const b = this.guts.layout.dataSection + 8;
-    if (b + 4 <= this.guts.layout.pointersSection) {
-      return decode.int32(this.guts.segment.raw, b) >>> 0;
+    const d = this.guts.layout.dataSection + 8;
+    if (d + 4 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint32(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 
   /* scopeId */
   getScopeId(): UInt64 {
-    const b = this.guts.layout.dataSection + 16;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 16;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
     }
   }
 
-  /* parameters */
-  getParameters(): null | StructListR<Node_Parameter__InstanceR> {
-    const ref = this.guts.pointersWord(40);
-    return ref === null ? null : structs(Node.Parameter).get(this.guts.level, this.guts.arena, ref);
-  }
-
-  /* isGeneric */
-  getIsGeneric(): boolean {
-    const b = this.guts.layout.dataSection + 36;
-    if (b < this.guts.layout.pointersSection) {
-      return !!decode.bit(this.guts.segment.raw, b, 0);
-    } else {
-      return false;
-    }
-  }
-
   /* nestedNodes */
   getNestedNodes(): null | StructListR<Node_NestedNode__InstanceR> {
     const ref = this.guts.pointersWord(8);
-    return ref === null ? null : structs(Node.NestedNode).get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : structs(new Node_NestedNode__CtorR()).get(this.guts.level, this.guts.arena, ref);
   }
 
   /* annotations */
   getAnnotations(): null | StructListR<Annotation__InstanceR> {
     const ref = this.guts.pointersWord(16);
-    return ref === null ? null : structs(Annotation).get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : structs(new Annotation__CtorR()).get(this.guts.level, this.guts.arena, ref);
   }
 
   /* file */
@@ -197,27 +186,48 @@ export class Node__InstanceR {
 
   /* struct */
   getStruct(): Node_struct__InstanceR {
+    this.guts.checkTag(1, 12);
     return new Node_struct__InstanceR(this.guts);
   }
 
   /* enum */
   getEnum(): Node_enum__InstanceR {
+    this.guts.checkTag(2, 12);
     return new Node_enum__InstanceR(this.guts);
   }
 
   /* interface */
   getInterface(): Node_interface__InstanceR {
+    this.guts.checkTag(3, 12);
     return new Node_interface__InstanceR(this.guts);
   }
 
   /* const */
   getConst(): Node_const__InstanceR {
+    this.guts.checkTag(4, 12);
     return new Node_const__InstanceR(this.guts);
   }
 
   /* annotation */
   getAnnotation(): Node_annotation__InstanceR {
+    this.guts.checkTag(5, 12);
     return new Node_annotation__InstanceR(this.guts);
+  }
+
+  /* parameters */
+  getParameters(): null | StructListR<Node_Parameter__InstanceR> {
+    const ref = this.guts.pointersWord(40);
+    return ref === null ? null : structs(new Node_Parameter__CtorR()).get(this.guts.level, this.guts.arena, ref);
+  }
+
+  /* isGeneric */
+  getIsGeneric(): boolean {
+    const d = this.guts.layout.dataSection + 36;
+    if (d < this.guts.layout.pointersSection) {
+      return !!decode.bit(this.guts.segment.raw, d, 0);
+    } else {
+      return false;
+    }
   }
 }
 
@@ -230,43 +240,39 @@ export class Node_struct__InstanceR {
 
   /* dataWordCount */
   getDataWordCount(): u16 {
-    this.guts.checkTag(1, 12);
-    const b = this.guts.layout.dataSection + 14;
-    if (b + 2 <= this.guts.layout.pointersSection) {
-      return decode.uint16(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 14;
+    if (d + 2 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint16(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 
   /* pointerCount */
   getPointerCount(): u16 {
-    this.guts.checkTag(1, 12);
-    const b = this.guts.layout.dataSection + 24;
-    if (b + 2 <= this.guts.layout.pointersSection) {
-      return decode.uint16(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 24;
+    if (d + 2 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint16(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 
   /* preferredListEncoding */
   getPreferredListEncoding(): u16 {
-    this.guts.checkTag(1, 12);
-    const b = this.guts.layout.dataSection + 26;
-    if (b + 2 <= this.guts.layout.pointersSection) {
-      return decode.uint16(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 26;
+    if (d + 2 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint16(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 
   /* isGroup */
   getIsGroup(): boolean {
-    this.guts.checkTag(1, 12);
-    const b = this.guts.layout.dataSection + 28;
-    if (b < this.guts.layout.pointersSection) {
-      return !!decode.bit(this.guts.segment.raw, b, 0);
+    const d = this.guts.layout.dataSection + 28;
+    if (d < this.guts.layout.pointersSection) {
+      return !!decode.bit(this.guts.segment.raw, d, 0);
     } else {
       return false;
     }
@@ -274,31 +280,28 @@ export class Node_struct__InstanceR {
 
   /* discriminantCount */
   getDiscriminantCount(): u16 {
-    this.guts.checkTag(1, 12);
-    const b = this.guts.layout.dataSection + 30;
-    if (b + 2 <= this.guts.layout.pointersSection) {
-      return decode.uint16(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 30;
+    if (d + 2 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint16(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 
   /* discriminantOffset */
   getDiscriminantOffset(): u32 {
-    this.guts.checkTag(1, 12);
-    const b = this.guts.layout.dataSection + 32;
-    if (b + 4 <= this.guts.layout.pointersSection) {
-      return decode.int32(this.guts.segment.raw, b) >>> 0;
+    const d = this.guts.layout.dataSection + 32;
+    if (d + 4 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint32(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 
   /* fields */
   getFields(): null | StructListR<Field__InstanceR> {
-    this.guts.checkTag(1, 12);
     const ref = this.guts.pointersWord(24);
-    return ref === null ? null : structs(Field).get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : structs(new Field__CtorR()).get(this.guts.level, this.guts.arena, ref);
   }
 }
 
@@ -311,9 +314,8 @@ export class Node_enum__InstanceR {
 
   /* enumerants */
   getEnumerants(): null | StructListR<Enumerant__InstanceR> {
-    this.guts.checkTag(2, 12);
     const ref = this.guts.pointersWord(24);
-    return ref === null ? null : structs(Enumerant).get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : structs(new Enumerant__CtorR()).get(this.guts.level, this.guts.arena, ref);
   }
 }
 
@@ -326,16 +328,14 @@ export class Node_interface__InstanceR {
 
   /* methods */
   getMethods(): null | StructListR<Method__InstanceR> {
-    this.guts.checkTag(3, 12);
     const ref = this.guts.pointersWord(24);
-    return ref === null ? null : structs(Method).get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : structs(new Method__CtorR()).get(this.guts.level, this.guts.arena, ref);
   }
 
   /* superclasses */
   getSuperclasses(): null | StructListR<Superclass__InstanceR> {
-    this.guts.checkTag(3, 12);
     const ref = this.guts.pointersWord(32);
-    return ref === null ? null : structs(Superclass).get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : structs(new Superclass__CtorR()).get(this.guts.level, this.guts.arena, ref);
   }
 }
 
@@ -348,16 +348,14 @@ export class Node_const__InstanceR {
 
   /* type */
   getType(): null | Type__InstanceR {
-    this.guts.checkTag(4, 12);
     const ref = this.guts.pointersWord(24);
-    return ref === null ? null : Type.get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : new Type__CtorR().get(this.guts.level, this.guts.arena, ref);
   }
 
   /* value */
   getValue(): null | Value__InstanceR {
-    this.guts.checkTag(4, 12);
     const ref = this.guts.pointersWord(32);
-    return ref === null ? null : Value.get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : new Value__CtorR().get(this.guts.level, this.guts.arena, ref);
   }
 }
 
@@ -370,17 +368,15 @@ export class Node_annotation__InstanceR {
 
   /* type */
   getType(): null | Type__InstanceR {
-    this.guts.checkTag(5, 12);
     const ref = this.guts.pointersWord(24);
-    return ref === null ? null : Type.get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : new Type__CtorR().get(this.guts.level, this.guts.arena, ref);
   }
 
   /* targetsFile */
   getTargetsFile(): boolean {
-    this.guts.checkTag(5, 12);
-    const b = this.guts.layout.dataSection + 14;
-    if (b < this.guts.layout.pointersSection) {
-      return !!decode.bit(this.guts.segment.raw, b, 0);
+    const d = this.guts.layout.dataSection + 14;
+    if (d < this.guts.layout.pointersSection) {
+      return !!decode.bit(this.guts.segment.raw, d, 0);
     } else {
       return false;
     }
@@ -388,10 +384,9 @@ export class Node_annotation__InstanceR {
 
   /* targetsConst */
   getTargetsConst(): boolean {
-    this.guts.checkTag(5, 12);
-    const b = this.guts.layout.dataSection + 14;
-    if (b < this.guts.layout.pointersSection) {
-      return !!decode.bit(this.guts.segment.raw, b, 1);
+    const d = this.guts.layout.dataSection + 14;
+    if (d < this.guts.layout.pointersSection) {
+      return !!decode.bit(this.guts.segment.raw, d, 1);
     } else {
       return false;
     }
@@ -399,10 +394,9 @@ export class Node_annotation__InstanceR {
 
   /* targetsEnum */
   getTargetsEnum(): boolean {
-    this.guts.checkTag(5, 12);
-    const b = this.guts.layout.dataSection + 14;
-    if (b < this.guts.layout.pointersSection) {
-      return !!decode.bit(this.guts.segment.raw, b, 2);
+    const d = this.guts.layout.dataSection + 14;
+    if (d < this.guts.layout.pointersSection) {
+      return !!decode.bit(this.guts.segment.raw, d, 2);
     } else {
       return false;
     }
@@ -410,10 +404,9 @@ export class Node_annotation__InstanceR {
 
   /* targetsEnumerant */
   getTargetsEnumerant(): boolean {
-    this.guts.checkTag(5, 12);
-    const b = this.guts.layout.dataSection + 14;
-    if (b < this.guts.layout.pointersSection) {
-      return !!decode.bit(this.guts.segment.raw, b, 3);
+    const d = this.guts.layout.dataSection + 14;
+    if (d < this.guts.layout.pointersSection) {
+      return !!decode.bit(this.guts.segment.raw, d, 3);
     } else {
       return false;
     }
@@ -421,10 +414,9 @@ export class Node_annotation__InstanceR {
 
   /* targetsStruct */
   getTargetsStruct(): boolean {
-    this.guts.checkTag(5, 12);
-    const b = this.guts.layout.dataSection + 14;
-    if (b < this.guts.layout.pointersSection) {
-      return !!decode.bit(this.guts.segment.raw, b, 4);
+    const d = this.guts.layout.dataSection + 14;
+    if (d < this.guts.layout.pointersSection) {
+      return !!decode.bit(this.guts.segment.raw, d, 4);
     } else {
       return false;
     }
@@ -432,10 +424,9 @@ export class Node_annotation__InstanceR {
 
   /* targetsField */
   getTargetsField(): boolean {
-    this.guts.checkTag(5, 12);
-    const b = this.guts.layout.dataSection + 14;
-    if (b < this.guts.layout.pointersSection) {
-      return !!decode.bit(this.guts.segment.raw, b, 5);
+    const d = this.guts.layout.dataSection + 14;
+    if (d < this.guts.layout.pointersSection) {
+      return !!decode.bit(this.guts.segment.raw, d, 5);
     } else {
       return false;
     }
@@ -443,10 +434,9 @@ export class Node_annotation__InstanceR {
 
   /* targetsUnion */
   getTargetsUnion(): boolean {
-    this.guts.checkTag(5, 12);
-    const b = this.guts.layout.dataSection + 14;
-    if (b < this.guts.layout.pointersSection) {
-      return !!decode.bit(this.guts.segment.raw, b, 6);
+    const d = this.guts.layout.dataSection + 14;
+    if (d < this.guts.layout.pointersSection) {
+      return !!decode.bit(this.guts.segment.raw, d, 6);
     } else {
       return false;
     }
@@ -454,10 +444,9 @@ export class Node_annotation__InstanceR {
 
   /* targetsGroup */
   getTargetsGroup(): boolean {
-    this.guts.checkTag(5, 12);
-    const b = this.guts.layout.dataSection + 14;
-    if (b < this.guts.layout.pointersSection) {
-      return !!decode.bit(this.guts.segment.raw, b, 7);
+    const d = this.guts.layout.dataSection + 14;
+    if (d < this.guts.layout.pointersSection) {
+      return !!decode.bit(this.guts.segment.raw, d, 7);
     } else {
       return false;
     }
@@ -465,10 +454,9 @@ export class Node_annotation__InstanceR {
 
   /* targetsInterface */
   getTargetsInterface(): boolean {
-    this.guts.checkTag(5, 12);
-    const b = this.guts.layout.dataSection + 15;
-    if (b < this.guts.layout.pointersSection) {
-      return !!decode.bit(this.guts.segment.raw, b, 0);
+    const d = this.guts.layout.dataSection + 15;
+    if (d < this.guts.layout.pointersSection) {
+      return !!decode.bit(this.guts.segment.raw, d, 0);
     } else {
       return false;
     }
@@ -476,10 +464,9 @@ export class Node_annotation__InstanceR {
 
   /* targetsMethod */
   getTargetsMethod(): boolean {
-    this.guts.checkTag(5, 12);
-    const b = this.guts.layout.dataSection + 15;
-    if (b < this.guts.layout.pointersSection) {
-      return !!decode.bit(this.guts.segment.raw, b, 1);
+    const d = this.guts.layout.dataSection + 15;
+    if (d < this.guts.layout.pointersSection) {
+      return !!decode.bit(this.guts.segment.raw, d, 1);
     } else {
       return false;
     }
@@ -487,26 +474,28 @@ export class Node_annotation__InstanceR {
 
   /* targetsParam */
   getTargetsParam(): boolean {
-    this.guts.checkTag(5, 12);
-    const b = this.guts.layout.dataSection + 15;
-    if (b < this.guts.layout.pointersSection) {
-      return !!decode.bit(this.guts.segment.raw, b, 2);
+    const d = this.guts.layout.dataSection + 15;
+    if (d < this.guts.layout.pointersSection) {
+      return !!decode.bit(this.guts.segment.raw, d, 2);
     } else {
       return false;
     }
   }
 
   /* targetsAnnotation */
-  getTargetsFile(): boolean {
-    this.guts.checkTag(5, 12);
-    const b = this.guts.layout.dataSection + 15;
-    if (b < this.guts.layout.pointersSection) {
-      return !!decode.bit(this.guts.segment.raw, b, 3);
+  getTargetsAnnotation(): boolean {
+    const d = this.guts.layout.dataSection + 15;
+    if (d < this.guts.layout.pointersSection) {
+      return !!decode.bit(this.guts.segment.raw, d, 3);
     } else {
       return false;
     }
   }
 }
+
+/******************/
+/* Node.Parameter */
+/******************/
 
 export class Node_Parameter__CtorR implements StructCtorR<Node_Parameter__InstanceR> {
   intern(guts: StructGutsR): Node_Parameter__InstanceR {
@@ -527,11 +516,11 @@ export class Node_Parameter__CtorR implements StructCtorR<Node_Parameter__Instan
   }
 
   compiledBytes(): Bytes {
-    return {data: 0, pointers: 8};
+    return { data: 0, pointers: 8 };
   }
 
   empty(): Node_Parameter__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new Node_Parameter__InstanceR(guts);
   }
 }
@@ -549,6 +538,10 @@ export class Node_Parameter__InstanceR {
     return ref === null ? null : Text.get(this.guts.level, this.guts.arena, ref);
   }
 }
+
+/*******************/
+/* Node.NestedNode */
+/*******************/
 
 export class Node_NestedNode__CtorR implements StructCtorR<Node_NestedNode__InstanceR> {
   intern(guts: StructGutsR): Node_NestedNode__InstanceR {
@@ -569,11 +562,11 @@ export class Node_NestedNode__CtorR implements StructCtorR<Node_NestedNode__Inst
   }
 
   compiledBytes(): Bytes {
-    return {data: 8, pointers: 8};
+    return { data: 8, pointers: 8 };
   }
 
   empty(): Node_NestedNode__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new Node_NestedNode__InstanceR(guts);
   }
 }
@@ -593,17 +586,21 @@ export class Node_NestedNode__InstanceR {
 
   /* id */
   getId(): UInt64 {
-    const b = this.guts.layout.dataSection;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 0;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
     }
   }
 }
+
+/*******************/
+/* Node.SourceInfo */
+/*******************/
 
 export class Node_SourceInfo__CtorR implements StructCtorR<Node_SourceInfo__InstanceR> {
   +Member: Node_SourceInfo_Member__CtorR;
@@ -630,11 +627,11 @@ export class Node_SourceInfo__CtorR implements StructCtorR<Node_SourceInfo__Inst
   }
 
   compiledBytes(): Bytes {
-    return {data: 8, pointers: 16};
+    return { data: 8, pointers: 16 };
   }
 
   empty(): Node_SourceInfo__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new Node_SourceInfo__InstanceR(guts);
   }
 }
@@ -648,11 +645,11 @@ export class Node_SourceInfo__InstanceR {
 
   /* id */
   getId(): UInt64 {
-    const b = this.guts.layout.dataSection;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 0;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
@@ -668,9 +665,13 @@ export class Node_SourceInfo__InstanceR {
   /* members */
   getMembers(): null | StructListR<Node_SourceInfo_Member__InstanceR> {
     const ref = this.guts.pointersWord(8);
-    return ref === null ? null : structs(Node.SourceInfo.Member).get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : structs(new Node_SourceInfo_Member__CtorR()).get(this.guts.level, this.guts.arena, ref);
   }
 }
+
+/**************************/
+/* Node.SourceInfo.Member */
+/**************************/
 
 export class Node_SourceInfo_Member__CtorR implements StructCtorR<Node_SourceInfo_Member__InstanceR> {
   intern(guts: StructGutsR): Node_SourceInfo_Member__InstanceR {
@@ -691,11 +692,11 @@ export class Node_SourceInfo_Member__CtorR implements StructCtorR<Node_SourceInf
   }
 
   compiledBytes(): Bytes {
-    return {data: 0, pointers: 8};
+    return { data: 0, pointers: 8 };
   }
 
   empty(): Node_SourceInfo_Member__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new Node_SourceInfo_Member__InstanceR(guts);
   }
 }
@@ -713,6 +714,10 @@ export class Node_SourceInfo_Member__InstanceR {
     return ref === null ? null : Text.get(this.guts.level, this.guts.arena, ref);
   }
 }
+
+/*********/
+/* Field */
+/*********/
 
 const Field__Tags = {
   slot: 0,
@@ -769,15 +774,16 @@ export class Field__CtorR implements StructCtorR<Field__InstanceR> {
   }
 
   compiledBytes(): Bytes {
-    return {data: 24, pointers: 32};
+    return { data: 24, pointers: 32 };
   }
 
   empty(): Field__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new Field__InstanceR(guts);
   }
 
-  /* noDiscriminant */
+  /* Constants */
+
   getNoDiscriminant(): u16 {
     return 65535;
   }
@@ -802,25 +808,25 @@ export class Field__InstanceR {
 
   /* codeOrder */
   getCodeOrder(): u16 {
-    const b = this.guts.layout.dataSection;
-    if (b + 2 <= this.guts.layout.pointersSection) {
-      return decode.uint16(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 0;
+    if (d + 2 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint16(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 
   /* annotations */
   getAnnotations(): null | StructListR<Annotation__InstanceR> {
     const ref = this.guts.pointersWord(8);
-    return ref === null ? null : structs(Annotation).get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : structs(new Annotation__CtorR()).get(this.guts.level, this.guts.arena, ref);
   }
 
   /* discriminantValue */
   getDiscriminantValue(): u16 {
-    const b = this.guts.layout.dataSection + 2;
-    if (b + 2 <= this.guts.layout.pointersSection) {
-      return (65535 ^ decode.uint16(this.guts.segment.raw, b)) >>> 0;
+    const d = this.guts.layout.dataSection + 2;
+    if (d + 2 <= this.guts.layout.pointersSection) {
+      return (65535 ^ decode.uint16(this.guts.segment.raw, d)) >>> 0;
     } else {
       return 65535 >>> 0;
     }
@@ -828,11 +834,13 @@ export class Field__InstanceR {
 
   /* slot */
   getSlot(): Field_slot__InstanceR {
+    this.guts.checkTag(0, 8);
     return new Field_slot__InstanceR(this.guts);
   }
 
   /* group */
   getGroup(): Field_group__InstanceR {
+    this.guts.checkTag(1, 8);
     return new Field_group__InstanceR(this.guts);
   }
 
@@ -851,35 +859,31 @@ export class Field_slot__InstanceR {
 
   /* offset */
   getOffset(): u32 {
-    this.guts.checkTag(0, 8);
-    const b = this.guts.layout.dataSection + 4;
-    if (b + 4 <= this.guts.layout.pointersSection) {
-      return decode.int32(this.guts.segment.raw, b) >>> 0;
+    const d = this.guts.layout.dataSection + 4;
+    if (d + 4 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint32(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 
   /* type */
   getType(): null | Type__InstanceR {
-    this.guts.checkTag(0, 8);
     const ref = this.guts.pointersWord(16);
-    return ref === null ? null : Type.get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : new Type__CtorR().get(this.guts.level, this.guts.arena, ref);
   }
 
   /* defaultValue */
   getDefaultValue(): null | Value__InstanceR {
-    this.guts.checkTag(0, 8);
     const ref = this.guts.pointersWord(24);
-    return ref === null ? null : Value.get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : new Value__CtorR().get(this.guts.level, this.guts.arena, ref);
   }
 
   /* hadExplicitDefault */
   getHadExplicitDefault(): boolean {
-    this.guts.checkTag(0, 8);
-    const b = this.guts.layout.dataSection + 16;
-    if (b < this.guts.layout.pointersSection) {
-      return !!decode.bit(this.guts.segment.raw, b, 0);
+    const d = this.guts.layout.dataSection + 16;
+    if (d < this.guts.layout.pointersSection) {
+      return !!decode.bit(this.guts.segment.raw, d, 0);
     } else {
       return false;
     }
@@ -895,12 +899,11 @@ export class Field_group__InstanceR {
 
   /* typeId */
   getTypeId(): UInt64 {
-    this.guts.checkTag(1, 8);
-    const b = this.guts.layout.dataSection + 16;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 16;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
@@ -927,14 +930,18 @@ export class Field_ordinal__InstanceR {
   /* explicit */
   getExplicit(): u16 {
     this.guts.checkTag(1, 10);
-    const b = this.guts.layout.dataSection + 12;
-    if (b + 2 <= this.guts.layout.pointersSection) {
-      return decode.uint16(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 12;
+    if (d + 2 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint16(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 }
+
+/*************/
+/* Enumerant */
+/*************/
 
 export class Enumerant__CtorR implements StructCtorR<Enumerant__InstanceR> {
   intern(guts: StructGutsR): Enumerant__InstanceR {
@@ -955,11 +962,11 @@ export class Enumerant__CtorR implements StructCtorR<Enumerant__InstanceR> {
   }
 
   compiledBytes(): Bytes {
-    return {data: 8, pointers: 16};
+    return { data: 8, pointers: 16 };
   }
 
   empty(): Enumerant__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new Enumerant__InstanceR(guts);
   }
 }
@@ -979,20 +986,24 @@ export class Enumerant__InstanceR {
 
   /* codeOrder */
   getCodeOrder(): u16 {
-    const b = this.guts.layout.dataSection;
-    if (b + 2 <= this.guts.layout.pointersSection) {
-      return decode.uint16(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 0;
+    if (d + 2 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint16(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 
   /* annotations */
   getAnnotations(): null | StructListR<Annotation__InstanceR> {
     const ref = this.guts.pointersWord(8);
-    return ref === null ? null : structs(Annotation).get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : structs(new Annotation__CtorR()).get(this.guts.level, this.guts.arena, ref);
   }
 }
+
+/**************/
+/* Superclass */
+/**************/
 
 export class Superclass__CtorR implements StructCtorR<Superclass__InstanceR> {
   intern(guts: StructGutsR): Superclass__InstanceR {
@@ -1013,11 +1024,11 @@ export class Superclass__CtorR implements StructCtorR<Superclass__InstanceR> {
   }
 
   compiledBytes(): Bytes {
-    return {data: 8, pointers: 8};
+    return { data: 8, pointers: 8 };
   }
 
   empty(): Superclass__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new Superclass__InstanceR(guts);
   }
 }
@@ -1031,11 +1042,11 @@ export class Superclass__InstanceR {
 
   /* id */
   getId(): UInt64 {
-    const b = this.guts.layout.dataSection;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 0;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
@@ -1045,9 +1056,13 @@ export class Superclass__InstanceR {
   /* brand */
   getBrand(): null | Brand__InstanceR {
     const ref = this.guts.pointersWord(0);
-    return ref === null ? null : Brand.get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : new Brand__CtorR().get(this.guts.level, this.guts.arena, ref);
   }
 }
+
+/**********/
+/* Method */
+/**********/
 
 export class Method__CtorR implements StructCtorR<Method__InstanceR> {
   intern(guts: StructGutsR): Method__InstanceR {
@@ -1068,11 +1083,11 @@ export class Method__CtorR implements StructCtorR<Method__InstanceR> {
   }
 
   compiledBytes(): Bytes {
-    return {data: 24, pointers: 40};
+    return { data: 24, pointers: 40 };
   }
 
   empty(): Method__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new Method__InstanceR(guts);
   }
 }
@@ -1092,64 +1107,68 @@ export class Method__InstanceR {
 
   /* codeOrder */
   getCodeOrder(): u16 {
-    const b = this.guts.layout.dataSection;
-    if (b + 2 <= this.guts.layout.pointersSection) {
-      return decode.uint16(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 0;
+    if (d + 2 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint16(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
-  }
-
-  /* implicitParameters */
-  getImplicitParameters(): null | StructListR<Node_Parameter__InstanceR> {
-    const ref = this.guts.pointersWord(32);
-    return ref === null ? null : structs(Node.Parameter).get(this.guts.level, this.guts.arena, ref);
   }
 
   /* paramStructType */
   getParamStructType(): UInt64 {
-    const b = this.guts.layout.dataSection + 8;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 8;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
     }
-  }
-
-  /* paramBrand */
-  getParamBrand(): null | Brand__InstanceR {
-    const ref = this.guts.pointersWord(16);
-    return ref === null ? null : Brand.get(this.guts.level, this.guts.arena, ref);
   }
 
   /* resultStructType */
   getResultStructType(): UInt64 {
-    const b = this.guts.layout.dataSection + 16;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 16;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
     }
-  }
-
-  /* resultBrand */
-  getResultBrand(): null | Brand__InstanceR {
-    const ref = this.guts.pointersWord(24);
-    return ref === null ? null : Brand.get(this.guts.level, this.guts.arena, ref);
   }
 
   /* annotations */
   getAnnotations(): null | StructListR<Annotation__InstanceR> {
     const ref = this.guts.pointersWord(8);
-    return ref === null ? null : structs(Annotation).get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : structs(new Annotation__CtorR()).get(this.guts.level, this.guts.arena, ref);
+  }
+
+  /* paramBrand */
+  getParamBrand(): null | Brand__InstanceR {
+    const ref = this.guts.pointersWord(16);
+    return ref === null ? null : new Brand__CtorR().get(this.guts.level, this.guts.arena, ref);
+  }
+
+  /* resultBrand */
+  getResultBrand(): null | Brand__InstanceR {
+    const ref = this.guts.pointersWord(24);
+    return ref === null ? null : new Brand__CtorR().get(this.guts.level, this.guts.arena, ref);
+  }
+
+  /* implicitParameters */
+  getImplicitParameters(): null | StructListR<Node_Parameter__InstanceR> {
+    const ref = this.guts.pointersWord(32);
+    return ref === null ? null : structs(new Node_Parameter__CtorR()).get(this.guts.level, this.guts.arena, ref);
   }
 }
+
+/********/
+/* Type */
+/********/
 
 const Type__Tags = {
   void: 0,
@@ -1270,11 +1289,11 @@ export class Type__CtorR implements StructCtorR<Type__InstanceR> {
   }
 
   compiledBytes(): Bytes {
-    return {data: 24, pointers: 8};
+    return { data: 24, pointers: 8 };
   }
 
   empty(): Type__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new Type__InstanceR(guts);
   }
 }
@@ -1362,59 +1381,63 @@ export class Type__InstanceR {
 
   /* list */
   getList(): Type_list__InstanceR {
+    this.guts.checkTag(14, 0);
     return new Type_list__InstanceR(this.guts);
   }
 
   /* enum */
   getEnum(): Type_enum__InstanceR {
+    this.guts.checkTag(15, 0);
     return new Type_enum__InstanceR(this.guts);
   }
 
   /* struct */
   getStruct(): Type_struct__InstanceR {
+    this.guts.checkTag(16, 0);
     return new Type_struct__InstanceR(this.guts);
   }
 
   /* interface */
   getInterface(): Type_interface__InstanceR {
+    this.guts.checkTag(17, 0);
     return new Type_interface__InstanceR(this.guts);
   }
 
   /* anyPointer */
   getAnyPointer(): Type_anyPointer__InstanceR {
+    this.guts.checkTag(18, 0);
     return new Type_anyPointer__InstanceR(this.guts);
   }
 }
 
 export class Type_list__InstanceR {
   +guts: StructGutsR;
-  
+
   constructor(guts: StructGutsR) {
     this.guts = guts;
   }
 
+  /* elementType */
   getElementType(): null | Type__InstanceR {
-    this.guts.checkTag(14, 0);
     const ref = this.guts.pointersWord(0);
-    return ref === null ? null : Type.get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : new Type__CtorR().get(this.guts.level, this.guts.arena, ref);
   }
 }
 
 export class Type_enum__InstanceR {
   +guts: StructGutsR;
-  
+
   constructor(guts: StructGutsR) {
     this.guts = guts;
   }
 
   /* typeId */
   getTypeId(): UInt64 {
-    this.guts.checkTag(15, 0);
-    const b = this.guts.layout.dataSection + 8;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 8;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
@@ -1424,25 +1447,24 @@ export class Type_enum__InstanceR {
   /* brand */
   getBrand(): null | Brand__InstanceR {
     const ref = this.guts.pointersWord(0);
-    return ref === null ? null : Brand.get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : new Brand__CtorR().get(this.guts.level, this.guts.arena, ref);
   }
 }
 
 export class Type_struct__InstanceR {
   +guts: StructGutsR;
-  
+
   constructor(guts: StructGutsR) {
     this.guts = guts;
   }
 
   /* typeId */
   getTypeId(): UInt64 {
-    this.guts.checkTag(16, 0);
-    const b = this.guts.layout.dataSection + 8;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 8;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
@@ -1452,25 +1474,24 @@ export class Type_struct__InstanceR {
   /* brand */
   getBrand(): null | Brand__InstanceR {
     const ref = this.guts.pointersWord(0);
-    return ref === null ? null : Brand.get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : new Brand__CtorR().get(this.guts.level, this.guts.arena, ref);
   }
 }
 
 export class Type_interface__InstanceR {
   +guts: StructGutsR;
-  
+
   constructor(guts: StructGutsR) {
     this.guts = guts;
   }
 
   /* typeId */
   getTypeId(): UInt64 {
-    this.guts.checkTag(17, 0);
-    const b = this.guts.layout.dataSection + 8;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 8;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
@@ -1480,13 +1501,13 @@ export class Type_interface__InstanceR {
   /* brand */
   getBrand(): null | Brand__InstanceR {
     const ref = this.guts.pointersWord(0);
-    return ref === null ? null : Brand.get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : new Brand__CtorR().get(this.guts.level, this.guts.arena, ref);
   }
 }
 
 export class Type_anyPointer__InstanceR {
   +guts: StructGutsR;
-  
+
   constructor(guts: StructGutsR) {
     this.guts = guts;
   }
@@ -1497,21 +1518,24 @@ export class Type_anyPointer__InstanceR {
 
   /* unconstrained */
   getUnconstrained(): Type_anyPointer_unconstrained__InstanceR {
+    this.guts.checkTag(0, 8);
     return new Type_anyPointer_unconstrained__InstanceR(this.guts);
   }
 
   /* parameter */
   getParameter(): Type_anyPointer_parameter__InstanceR {
+    this.guts.checkTag(1, 8);
     return new Type_anyPointer_parameter__InstanceR(this.guts);
   }
 
   /* implicitMethodParameter */
   getImplicitMethodParameter(): Type_anyPointer_implicitMethodParameter__InstanceR {
+    this.guts.checkTag(2, 8);
     return new Type_anyPointer_implicitMethodParameter__InstanceR(this.guts);
   }
 }
 
-class Type_anyPointer_unconstrained__InstanceR {
+export class Type_anyPointer_unconstrained__InstanceR {
   +guts: StructGutsR;
 
   constructor(guts: StructGutsR) {
@@ -1524,35 +1548,26 @@ class Type_anyPointer_unconstrained__InstanceR {
 
   /* anyKind */
   getAnyKind(): void {
-    this.guts.checkTag(18, 0);
-    this.guts.checkTag(0, 8);
     this.guts.checkTag(0, 10);
   }
 
   /* struct */
   getStruct(): void {
-    this.guts.checkTag(18, 0);
-    this.guts.checkTag(0, 8);
     this.guts.checkTag(1, 10);
   }
 
   /* list */
   getList(): void {
-    this.guts.checkTag(18, 0);
-    this.guts.checkTag(0, 8);
     this.guts.checkTag(2, 10);
   }
 
   /* capability */
   getCapability(): void {
-//TODO: Unwind this BS. 1 Check tag per get.
-    this.guts.checkTag(18, 0);
-    this.guts.checkTag(0, 8);
     this.guts.checkTag(3, 10);
   }
 }
 
-class Type_anyPointer_parameter__InstanceR {
+export class Type_anyPointer_parameter__InstanceR {
   +guts: StructGutsR;
 
   constructor(guts: StructGutsR) {
@@ -1561,13 +1576,11 @@ class Type_anyPointer_parameter__InstanceR {
 
   /* scopeId */
   getScopeId(): UInt64 {
-    this.guts.checkTag(18, 0);
-    this.guts.checkTag(1, 8);
-    const b = this.guts.layout.dataSection + 16;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 16;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
@@ -1576,35 +1589,36 @@ class Type_anyPointer_parameter__InstanceR {
 
   /* parameterIndex */
   getParameterIndex(): u16 {
-    this.guts.checkTag(18, 0);
-    this.guts.checkTag(1, 8);
-    const b = this.guts.layout.dataSection + 10;
-    if (b + 2 <= this.guts.layout.pointersSection) {
-      return decode.uint16(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 10;
+    if (d + 2 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint16(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 }
 
-class Type_anyPointer_implicitMethodParameter__InstanceR {
+export class Type_anyPointer_implicitMethodParameter__InstanceR {
   +guts: StructGutsR;
 
   constructor(guts: StructGutsR) {
     this.guts = guts;
   }
 
+  /* parameterIndex */
   getParameterIndex(): u16 {
-    this.guts.checkTag(18, 0);
-    this.guts.checkTag(2, 8);
-    const b = this.guts.layout.dataSection + 10;
-    if (b + 2 <= this.guts.layout.pointersSection) {
-      return decode.uint16(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 10;
+    if (d + 2 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint16(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 }
+
+/*********/
+/* Brand */
+/*********/
 
 export class Brand__CtorR implements StructCtorR<Brand__InstanceR> {
   +Scope: Brand_Scope__CtorR;
@@ -1633,11 +1647,11 @@ export class Brand__CtorR implements StructCtorR<Brand__InstanceR> {
   }
 
   compiledBytes(): Bytes {
-    return {data: 0, pointers: 8};
+    return { data: 0, pointers: 8 };
   }
 
   empty(): Brand__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new Brand__InstanceR(guts);
   }
 }
@@ -1652,9 +1666,13 @@ export class Brand__InstanceR {
   /* scopes */
   getScopes(): null | StructListR<Brand_Scope__InstanceR> {
     const ref = this.guts.pointersWord(0);
-    return ref === null ? null : structs(Brand.Scope).get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : structs(new Brand_Scope__CtorR()).get(this.guts.level, this.guts.arena, ref);
   }
 }
+
+/***************/
+/* Brand.Scope */
+/***************/
 
 const Brand_Scope__Tags = {
   bind: 0,
@@ -1689,11 +1707,11 @@ export class Brand_Scope__CtorR implements StructCtorR<Brand_Scope__InstanceR> {
   }
 
   compiledBytes(): Bytes {
-    return {data: 16, pointers: 8};
+    return { data: 16, pointers: 8 };
   }
 
   empty(): Brand_Scope__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new Brand_Scope__InstanceR(guts);
   }
 }
@@ -1711,11 +1729,11 @@ export class Brand_Scope__InstanceR {
 
   /* scopeId */
   getScopeId(): UInt64 {
-    const b = this.guts.layout.dataSection;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 0;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
@@ -1726,7 +1744,7 @@ export class Brand_Scope__InstanceR {
   getBind(): null | StructListR<Brand_Binding__InstanceR> {
     this.guts.checkTag(0, 8);
     const ref = this.guts.pointersWord(0);
-    return ref === null ? null : structs(Brand.Binding).get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : structs(new Brand_Binding__CtorR()).get(this.guts.level, this.guts.arena, ref);
   }
 
   /* inherit */
@@ -1735,16 +1753,20 @@ export class Brand_Scope__InstanceR {
   }
 }
 
+/*****************/
+/* Brand.Binding */
+/*****************/
+
 const Brand_Binding__Tags = {
   unbound: 0,
   type: 1,
 };
 
 export class Brand_Binding__CtorR implements StructCtorR<Brand_Binding__InstanceR> {
-  +tags: {|
+  +tags: {
     +unbound: 0,
     +type: 1,
-  |};
+  };
 
   constructor() {
     this.tags = Brand_Binding__Tags;
@@ -1768,11 +1790,11 @@ export class Brand_Binding__CtorR implements StructCtorR<Brand_Binding__Instance
   }
 
   compiledBytes(): Bytes {
-    return {data: 8, pointers: 8};
+    return { data: 8, pointers: 8 };
   }
 
   empty(): Brand_Binding__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new Brand_Binding__InstanceR(guts);
   }
 }
@@ -1797,9 +1819,13 @@ export class Brand_Binding__InstanceR {
   getType(): null | Type__InstanceR {
     this.guts.checkTag(1, 0);
     const ref = this.guts.pointersWord(0);
-    return ref === null ? null : Type.get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : new Type__CtorR().get(this.guts.level, this.guts.arena, ref);
   }
 }
+
+/*********/
+/* Value */
+/*********/
 
 const Value__Tags = {
   void: 0,
@@ -1845,7 +1871,6 @@ export class Value__CtorR implements StructCtorR<Value__InstanceR> {
     +interface: 17,
     +anyPointer: 18,
   };
-  //TODO: The + variance is redundant for literal types, no?
 
   constructor() {
     this.tags = Value__Tags;
@@ -1869,11 +1894,11 @@ export class Value__CtorR implements StructCtorR<Value__InstanceR> {
   }
 
   compiledBytes(): Bytes {
-    return {data: 16, pointers: 8};
+    return { data: 16, pointers: 8 };
   }
 
   empty(): Value__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new Value__InstanceR(guts);
   }
 }
@@ -1897,9 +1922,9 @@ export class Value__InstanceR {
   /* bool */
   getBool(): boolean {
     this.guts.checkTag(1, 0);
-    const b = this.guts.layout.dataSection + 2;
-    if (b < this.guts.layout.pointersSection) {
-      return !!decode.bit(this.guts.segment.raw, b, 0);
+    const d = this.guts.layout.dataSection + 2;
+    if (d < this.guts.layout.pointersSection) {
+      return !!decode.bit(this.guts.segment.raw, d, 0);
     } else {
       return false;
     }
@@ -1908,44 +1933,44 @@ export class Value__InstanceR {
   /* int8 */
   getInt8(): i8 {
     this.guts.checkTag(2, 0);
-    const b = this.guts.layout.dataSection + 2;
-    if (b + 1 <= this.guts.layout.pointersSection) {
-      return decode.int8(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 2;
+    if (d + 1 <= this.guts.layout.pointersSection) {
+      return 0 ^ decode.int8(this.guts.segment.raw, d);
     } else {
-      return 0 | 0;
+      return 0;
     }
   }
 
   /* int16 */
   getInt16(): i16 {
     this.guts.checkTag(3, 0);
-    const b = this.guts.layout.dataSection + 2;
-    if (b + 2 <= this.guts.layout.pointersSection) {
-      return decode.int16(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 2;
+    if (d + 2 <= this.guts.layout.pointersSection) {
+      return 0 ^ decode.int16(this.guts.segment.raw, d);
     } else {
-      return 0 | 0;
+      return 0;
     }
   }
 
   /* int32 */
   getInt32(): i32 {
     this.guts.checkTag(4, 0);
-    const b = this.guts.layout.dataSection + 4;
-    if (b + 4 <= this.guts.layout.pointersSection) {
-      return decode.int32(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 4;
+    if (d + 4 <= this.guts.layout.pointersSection) {
+      return 0 ^ decode.int32(this.guts.segment.raw, d);
     } else {
-      return 0 | 0;
+      return 0;
     }
   }
 
   /* int64 */
   getInt64(): Int64 {
     this.guts.checkTag(5, 0);
-    const b = this.guts.layout.dataSection + 8;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 8;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectI64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectI64(0, 0);
@@ -1955,44 +1980,44 @@ export class Value__InstanceR {
   /* uint8 */
   getUint8(): u8 {
     this.guts.checkTag(6, 0);
-    const b = this.guts.layout.dataSection + 2;
-    if (b + 1 <= this.guts.layout.pointersSection) {
-      return decode.uint8(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 2;
+    if (d + 1 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint8(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 
   /* uint16 */
   getUint16(): u16 {
     this.guts.checkTag(7, 0);
-    const b = this.guts.layout.dataSection + 2;
-    if (b + 2 <= this.guts.layout.pointersSection) {
-      return decode.uint16(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 2;
+    if (d + 2 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint16(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 
   /* uint32 */
   getUint32(): u32 {
     this.guts.checkTag(8, 0);
-    const b = this.guts.layout.dataSection + 4;
-    if (b + 4 <= this.guts.layout.pointersSection) {
-      return decode.int32(this.guts.segment.raw, b) >>> 0;
+    const d = this.guts.layout.dataSection + 4;
+    if (d + 4 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint32(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 
   /* uint64 */
   getUint64(): UInt64 {
     this.guts.checkTag(9, 0);
-    const b = this.guts.layout.dataSection + 8;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 8;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
@@ -2002,27 +2027,27 @@ export class Value__InstanceR {
   /* float32 */
   getFloat32(): f32 {
     this.guts.checkTag(10, 0);
-    const b = this.guts.layout.dataSection + 4;
-    if (b + 4 <= this.guts.layout.pointersSection) {
-      const bytes = decode.int32(this.guts.segment.raw, b);
-      return decode.float32(bytes);
+    const d = this.guts.layout.dataSection + 4;
+    if (d + 4 <= this.guts.layout.pointersSection) {
+      const bytes = decode.int32(this.guts.segment.raw, d);
+      return decode.float32(0 ^ bytes);
     } else {
-      return 0.0;
+      return 0;
     }
   }
 
   /* float64 */
   getFloat64(): f64 {
     this.guts.checkTag(11, 0);
-    const b = this.guts.layout.dataSection + 8;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 8;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       const bytes = injectI64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        decode.int32(this.guts.segment.raw, d+4) ^ 0,
+        decode.int32(this.guts.segment.raw, d) ^ 0,
       );
       return decode.float64(bytes);
     } else {
-      return 0.0;
+      return 0;
     }
   }
 
@@ -2050,11 +2075,11 @@ export class Value__InstanceR {
   /* enum */
   getEnum(): u16 {
     this.guts.checkTag(15, 0);
-    const b = this.guts.layout.dataSection + 2;
-    if (b + 2 <= this.guts.layout.pointersSection) {
-      return decode.uint16(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 2;
+    if (d + 2 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint16(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 
@@ -2078,6 +2103,10 @@ export class Value__InstanceR {
   }
 }
 
+/**************/
+/* Annotation */
+/**************/
+
 export class Annotation__CtorR implements StructCtorR<Annotation__InstanceR> {
   intern(guts: StructGutsR): Annotation__InstanceR {
     return new Annotation__InstanceR(guts);
@@ -2097,47 +2126,75 @@ export class Annotation__CtorR implements StructCtorR<Annotation__InstanceR> {
   }
 
   compiledBytes(): Bytes {
-    return {data: 8, pointers: 16};
+    return { data: 8, pointers: 16 };
   }
 
   empty(): Annotation__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new Annotation__InstanceR(guts);
   }
 }
 
 export class Annotation__InstanceR {
   +guts: StructGutsR;
-  
+
   constructor(guts: StructGutsR) {
     this.guts = guts;
   }
 
   /* id */
   getId(): UInt64 {
-    const b = this.guts.layout.dataSection;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 0;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
     }
   }
 
-  /* brand */
-  getBrand(): null | Brand__InstanceR {
-    const ref = this.guts.pointersWord(8);
-    return ref === null ? null : Brand.get(this.guts.level, this.guts.arena, ref);
-  }
-
   /* value */
   getValue(): null | Value__InstanceR {
     const ref = this.guts.pointersWord(0);
-    return ref === null ? null : Value.get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : new Value__CtorR().get(this.guts.level, this.guts.arena, ref);
+  }
+
+  /* brand */
+  getBrand(): null | Brand__InstanceR {
+    const ref = this.guts.pointersWord(8);
+    return ref === null ? null : new Brand__CtorR().get(this.guts.level, this.guts.arena, ref);
   }
 }
+
+/***************/
+/* ElementSize */
+/***************/
+
+const ElementSize__Enum: {
+  +empty: 0,
+  +bit: 1,
+  +byte: 2,
+  +twoBytes: 3,
+  +fourBytes: 4,
+  +eightBytes: 5,
+  +pointer: 6,
+  +inlineComposite: 7,
+} = {
+  empty: 0,
+  bit: 1,
+  byte: 2,
+  twoBytes: 3,
+  fourBytes: 4,
+  eightBytes: 5,
+  pointer: 6,
+  inlineComposite: 7,
+};
+
+/****************/
+/* CapnpVersion */
+/****************/
 
 export class CapnpVersion__CtorR implements StructCtorR<CapnpVersion__InstanceR> {
   intern(guts: StructGutsR): CapnpVersion__InstanceR {
@@ -2158,11 +2215,11 @@ export class CapnpVersion__CtorR implements StructCtorR<CapnpVersion__InstanceR>
   }
 
   compiledBytes(): Bytes {
-    return {data: 8, pointers: 0};
+    return { data: 8, pointers: 0 };
   }
 
   empty(): CapnpVersion__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new CapnpVersion__InstanceR(guts);
   }
 }
@@ -2176,34 +2233,38 @@ export class CapnpVersion__InstanceR {
 
   /* major */
   getMajor(): u16 {
-    const b = this.guts.layout.dataSection;
-    if (b + 2 <= this.guts.layout.pointersSection) {
-      return decode.uint16(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 0;
+    if (d + 2 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint16(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 
   /* minor */
   getMinor(): u8 {
-    const b = this.guts.layout.dataSection + 2;
-    if (b + 1 <= this.guts.layout.pointersSection) {
-      return decode.uint8(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 2;
+    if (d + 1 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint8(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 
   /* micro */
   getMicro(): u8 {
-    const b = this.guts.layout.dataSection + 3;
-    if (b + 1 <= this.guts.layout.pointersSection) {
-      return decode.uint8(this.guts.segment.raw, b);
+    const d = this.guts.layout.dataSection + 3;
+    if (d + 1 <= this.guts.layout.pointersSection) {
+      return (0 ^ decode.uint8(this.guts.segment.raw, d)) >>> 0;
     } else {
-      return 0>>>0;
+      return 0 >>> 0;
     }
   }
 }
+
+/************************/
+/* CodeGeneratorRequest */
+/************************/
 
 export class CodeGeneratorRequest__CtorR implements StructCtorR<CodeGeneratorRequest__InstanceR> {
   +RequestedFile: CodeGeneratorRequest_RequestedFile__CtorR;
@@ -2230,11 +2291,11 @@ export class CodeGeneratorRequest__CtorR implements StructCtorR<CodeGeneratorReq
   }
 
   compiledBytes(): Bytes {
-    return {data: 0, pointers: 32};
+    return { data: 0, pointers: 32 };
   }
 
   empty(): CodeGeneratorRequest__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new CodeGeneratorRequest__InstanceR(guts);
   }
 }
@@ -2246,30 +2307,34 @@ export class CodeGeneratorRequest__InstanceR {
     this.guts = guts;
   }
 
-  /* capnpVersion */
-  getCapnpVersion(): null | CapnpVersion__InstanceR {
-    const ref = this.guts.pointersWord(16);
-    return ref === null ? null : CapnpVersion.get(this.guts.level, this.guts.arena, ref);
-  }
-
   /* nodes */
   getNodes(): null | StructListR<Node__InstanceR> {
     const ref = this.guts.pointersWord(0);
-    return ref === null ? null : structs(Node).get(this.guts.level, this.guts.arena, ref);
-  }
-
-  /* sourceInfo */
-  getSourceInfo(): null | StructListR<Node_SourceInfo__InstanceR> {
-    const ref = this.guts.pointersWord(24);
-    return ref === null ? null : structs(Node.SourceInfo).get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : structs(new Node__CtorR()).get(this.guts.level, this.guts.arena, ref);
   }
 
   /* requestedFiles */
   getRequestedFiles(): null | StructListR<CodeGeneratorRequest_RequestedFile__InstanceR> {
     const ref = this.guts.pointersWord(8);
-    return ref === null ? null : structs(CodeGeneratorRequest.RequestedFile).get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : structs(new CodeGeneratorRequest_RequestedFile__CtorR()).get(this.guts.level, this.guts.arena, ref);
+  }
+
+  /* capnpVersion */
+  getCapnpVersion(): null | CapnpVersion__InstanceR {
+    const ref = this.guts.pointersWord(16);
+    return ref === null ? null : new CapnpVersion__CtorR().get(this.guts.level, this.guts.arena, ref);
+  }
+
+  /* sourceInfo */
+  getSourceInfo(): null | StructListR<Node_SourceInfo__InstanceR> {
+    const ref = this.guts.pointersWord(24);
+    return ref === null ? null : structs(new Node_SourceInfo__CtorR()).get(this.guts.level, this.guts.arena, ref);
   }
 }
+
+/**************************************/
+/* CodeGeneratorRequest.RequestedFile */
+/**************************************/
 
 export class CodeGeneratorRequest_RequestedFile__CtorR implements StructCtorR<CodeGeneratorRequest_RequestedFile__InstanceR> {
   +Import: CodeGeneratorRequest_RequestedFile_Import__CtorR;
@@ -2296,29 +2361,29 @@ export class CodeGeneratorRequest_RequestedFile__CtorR implements StructCtorR<Co
   }
 
   compiledBytes(): Bytes {
-    return {data: 8, pointers: 16};
+    return { data: 8, pointers: 16 };
   }
 
   empty(): CodeGeneratorRequest_RequestedFile__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new CodeGeneratorRequest_RequestedFile__InstanceR(guts);
   }
 }
 
 export class CodeGeneratorRequest_RequestedFile__InstanceR {
   +guts: StructGutsR;
-  
+
   constructor(guts: StructGutsR) {
     this.guts = guts;
   }
 
   /* id */
   getId(): UInt64 {
-    const b = this.guts.layout.dataSection;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 0;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
@@ -2334,9 +2399,13 @@ export class CodeGeneratorRequest_RequestedFile__InstanceR {
   /* imports */
   getImports(): null | StructListR<CodeGeneratorRequest_RequestedFile_Import__InstanceR> {
     const ref = this.guts.pointersWord(8);
-    return ref === null ? null : structs(CodeGeneratorRequest.RequestedFile.Import).get(this.guts.level, this.guts.arena, ref);
+    return ref === null ? null : structs(new CodeGeneratorRequest_RequestedFile_Import__CtorR()).get(this.guts.level, this.guts.arena, ref);
   }
 }
+
+/*********************************************/
+/* CodeGeneratorRequest.RequestedFile.Import */
+/*********************************************/
 
 export class CodeGeneratorRequest_RequestedFile_Import__CtorR implements StructCtorR<CodeGeneratorRequest_RequestedFile_Import__InstanceR> {
   intern(guts: StructGutsR): CodeGeneratorRequest_RequestedFile_Import__InstanceR {
@@ -2357,11 +2426,11 @@ export class CodeGeneratorRequest_RequestedFile_Import__CtorR implements StructC
   }
 
   compiledBytes(): Bytes {
-    return {data: 8, pointers: 8};
+    return { data: 8, pointers: 8 };
   }
 
   empty(): CodeGeneratorRequest_RequestedFile_Import__InstanceR {
-    const guts = RefedStruct.empty(blob);
+    const guts = RefedStruct.empty(empty);
     return new CodeGeneratorRequest_RequestedFile_Import__InstanceR(guts);
   }
 }
@@ -2375,11 +2444,11 @@ export class CodeGeneratorRequest_RequestedFile_Import__InstanceR {
 
   /* id */
   getId(): UInt64 {
-    const b = this.guts.layout.dataSection;
-    if (b + 8 <= this.guts.layout.pointersSection) {
+    const d = this.guts.layout.dataSection + 0;
+    if (d + 8 <= this.guts.layout.pointersSection) {
       return injectU64(
-        decode.int32(this.guts.segment.raw, b+4),
-        decode.int32(this.guts.segment.raw, b),
+        0 ^ decode.int32(this.guts.segment.raw, d+4),
+        0 ^ decode.int32(this.guts.segment.raw, d),
       );
     } else {
       return injectU64(0, 0);
@@ -2393,33 +2462,15 @@ export class CodeGeneratorRequest_RequestedFile_Import__InstanceR {
   }
 }
 
-export const Node: Node__CtorR = new Node__CtorR();
-export const Field: Field__CtorR = new Field__CtorR();
-export const Enumerant: Enumerant__CtorR = new Enumerant__CtorR();
-export const Superclass: Superclass__CtorR = new Superclass__CtorR();
-export const Method: Method__CtorR = new Method__CtorR();
-export const Type: Type__CtorR = new Type__CtorR();
-export const Brand: Brand__CtorR = new Brand__CtorR();
-export const Value: Value__CtorR = new Value__CtorR();
-export const Annotation: Annotation__CtorR = new Annotation__CtorR();
-export const ElementSize: {
-  empty: 0,
-  bit: 1,
-  byte: 2,
-  twoBytes: 3,
-  fourBytes: 4,
-  eightBytes: 5,
-  pointer: 6,
-  inlineComposite: 7,
-} = {
-  empty: 0,
-  bit: 1,
-  byte: 2,
-  twoBytes: 3,
-  fourBytes: 4,
-  eightBytes: 5,
-  pointer: 6,
-  inlineComposite: 7,
-};
-export const CapnpVersion: CapnpVersion__CtorR = new CapnpVersion__CtorR();
-export const CodeGeneratorRequest: CodeGeneratorRequest__CtorR = new CodeGeneratorRequest__CtorR();
+export const Node = new Node__CtorR();
+export const Field = new Field__CtorR();
+export const Enumerant = new Enumerant__CtorR();
+export const Superclass = new Superclass__CtorR();
+export const Method = new Method__CtorR();
+export const Type = new Type__CtorR();
+export const Brand = new Brand__CtorR();
+export const Value = new Value__CtorR();
+export const Annotation = new Annotation__CtorR();
+export const ElementSize = ElementSize__Enum;
+export const CapnpVersion = new CapnpVersion__CtorR();
+export const CodeGeneratorRequest = new CodeGeneratorRequest__CtorR();
