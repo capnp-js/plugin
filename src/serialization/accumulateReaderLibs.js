@@ -253,7 +253,9 @@ class LibsVisitor extends Visitor<Acc> {
       //TODO: Eslint rule for `//fall through` switch statements.
       break;
     case Type.tags.interface:
-      throw new Error("TODO");
+      acc.type["reader-core"]["CapGutsR"] = this.mangle("CapGutsR");
+      acc.value["reader-core"]["CapValue"] = this.mangle("CapValue");
+      break;
     case Type.tags.anyPointer:
       {
         const anyPointerGroup = Type.groups.anyPointer;
@@ -278,15 +280,21 @@ class LibsVisitor extends Visitor<Acc> {
               acc.value["reader-core"]["ListValue"] = this.mangle("ListValue");
               break;
             case unconstrainedGroup.tags.capability:
-              throw new Error("TODO");
+              acc.type["reader-core"]["CapGutsR"] = this.mangle("CapGutsR");
+              acc.value["reader-core"]["CapValue"] = this.mangle("CapValue");
+              break;
             default:
               throw new Error("Unrecognized unconstrained-AnyPointer tag.");
             }
           }
         case anyPointerGroup.tags.parameter:
-          break; //TODO: Can a parameter name collide with anything? My hunch is no given the underscores. If collisions can occure, then consider `__r` instead of `_r`.
+          break; //TODO: Can a parameter name collide with anything? My hunch is no given the underscores. If collisions can occur, then consider `__r` instead of `_r`.
         case anyPointerGroup.tags.implicitMethodParameter:
-          throw new Error("TODO");
+          //TODO: I substitute AnyValue for now. Implement in parallel with RPC
+          //      requirements.
+          acc.type["reader-core"]["AnyGutsR"] = this.mangle("AnyGutsR");
+          acc.value["reader-core"]["AnyValue"] = this.mangle("AnyValue");
+          break;
         default:
           throw new Error("Unrecognized any pointer tag.");
         }
@@ -346,7 +354,8 @@ class LibsVisitor extends Visitor<Acc> {
       //TODO: Eslint rule for `//fall through` switch statements.
       break;
     case Type.tags.interface:
-      throw new Error("TODO");
+      acc.value["reader-core"]["CapValue"] = this.mangle("CapValue");
+      break;
     case Type.tags.anyPointer:
       {
         const anyPointerGroup = Type.groups.anyPointer;
@@ -367,15 +376,19 @@ class LibsVisitor extends Visitor<Acc> {
               acc.value["reader-core"]["ListValue"] = this.mangle("ListValue");
               break;
             case unconstrainedGroup.tags.capability:
-              throw new Error("TODO");
+              acc.value["reader-core"]["CapValue"] = this.mangle("CapValue");
+              break;
             default:
               throw new Error("Unrecognized unconstrained-AnyPointer tag.");
             }
           }
         case anyPointerGroup.tags.parameter:
-          break; //TODO: Can a parameter name collide with anything? My hunch is no given the underscores. If collisions can occure, then consider `__r` instead of `_r`.
+          break; //TODO: Can a parameter name collide with anything? My hunch is no given the underscores. If collisions can occur, then consider `__r` instead of `_r`.
         case anyPointerGroup.tags.implicitMethodParameter:
-          throw new Error("TODO");
+          //TODO: I substitute AnyValue for now. An RPC implementation will
+          //      probably provide requirements for interface values.
+          acc.value["reader-core"]["AnyValue"] = this.mangle("AnyValue");
+          break;
         default:
           throw new Error("Unrecognized any pointer tag.");
         }
@@ -441,21 +454,21 @@ class LibsVisitor extends Visitor<Acc> {
       acc.value["reader-core"]["Float64List"] = this.mangle("Float64List");
       break;
     case Type.tags.text:
-      acc.type["reader-core"]["ListListR"] = this.mangle("ListListR");
+      acc.type["reader-core"]["PointerListR"] = this.mangle("PointerListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.value["reader-core"]["Text"] = this.mangle("Text");
-      acc.value["reader-core"]["lists"] = "lists";
+      acc.value["reader-core"]["pointers"] = "pointers";
       break;
     case Type.tags.data:
-      acc.type["reader-core"]["ListListR"] = this.mangle("ListListR");
+      acc.type["reader-core"]["PointerListR"] = this.mangle("PointerListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.value["reader-core"]["Data"] = this.mangle("Data");
-      acc.value["reader-core"]["lists"] = "lists";
+      acc.value["reader-core"]["pointers"] = "pointers";
       break;
     case Type.tags.list:
-      acc.type["reader-core"]["ListListR"] = this.mangle("ListListR");
+      acc.type["reader-core"]["PointerListR"] = this.mangle("PointerListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
-      acc.value["reader-core"]["lists"] = "lists";
+      acc.value["reader-core"]["pointers"] = "pointers";
       this.addList(elementType.getList().getElementType(), acc);
       break;
     case Type.tags.enum:
@@ -554,21 +567,21 @@ class LibsVisitor extends Visitor<Acc> {
       acc.value["reader-core"]["Float64List"] = this.mangle("Float64List");
       break;
     case Type.tags.text:
-      acc.type["reader-core"]["ListListR"] = this.mangle("ListListR");
+      acc.type["reader-core"]["PointerListR"] = this.mangle("PointerListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.value["reader-core"]["Text"] = this.mangle("Text");
-      acc.value["reader-core"]["lists"] = "lists";
+      acc.value["reader-core"]["pointers"] = "pointers";
       break;
     case Type.tags.data:
-      acc.type["reader-core"]["ListListR"] = this.mangle("ListListR");
+      acc.type["reader-core"]["PointerListR"] = this.mangle("PointerListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.value["reader-core"]["Data"] = this.mangle("Data");
-      acc.value["reader-core"]["lists"] = "lists";
+      acc.value["reader-core"]["pointers"] = "pointers";
       break;
     case Type.tags.list:
-      acc.type["reader-core"]["ListListR"] = this.mangle("ListListR");
+      acc.type["reader-core"]["PointerListR"] = this.mangle("PointerListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
-      acc.value["reader-core"]["lists"] = "lists";
+      acc.value["reader-core"]["pointers"] = "pointers";
       this.addList(elementType.getList().getElementType(), acc);
       break;
     case Type.tags.enum:

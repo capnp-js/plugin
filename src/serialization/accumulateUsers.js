@@ -108,7 +108,9 @@ class UsersVisitor extends Visitor<Acc> {
       break;
 
     case Type.tags.interface:
-      throw new Error("TODO?");
+      //TODO: Eventually I might associate capabilities to particular interfaces
+      //      similar to how Orphan<> works.
+      break;
 
     case Type.tags.anyPointer:
       break;

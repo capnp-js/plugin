@@ -222,7 +222,7 @@ class MainType {
     this.parameters = parameters;
   }
 
-  pointer(type: null | Type__InstanceR): null | MainTypeT {
+  pointer(hostId: UInt64, type: null | Type__InstanceR): null | MainTypeT {
     if (type === null) {
       type = Type.empty();
     }
@@ -245,21 +245,20 @@ class MainType {
 
     case Type.tags.text: return { guts: "NonboolListGutsR", reader: "TextR", builder: "Text" };
     case Type.tags.data: return { guts: "NonboolListGutsR", reader: "DataR", builder: "Data" };
-    case Type.tags.list: return this.list(type.getList().getElementType());
+    case Type.tags.list: return this.list(hostId, type.getList().getElementType());
     case Type.tags.struct:
       {
         const struct = type.getStruct();
-        return this.struct(struct.getTypeId(), struct.getBrand());
+        return this.struct(hostId, struct.getTypeId(), struct.getBrand());
       }
-    case Type.tags.interface:
-      throw new Error("TODO");
-    case Type.tags.anyPointer: return this.anyPointer(type.getAnyPointer());
+    case Type.tags.interface: return { guts: "CapGutsR", reader: "CapValueR", builder: "CapValue" };
+    case Type.tags.anyPointer: return this.anyPointer(hostId, type.getAnyPointer());
     default:
       throw new Error("Unrecognized type tag.");
     }
   }
 
-  list(elementType: null | Type__InstanceR): MainTypeT {
+  list(hostId: UInt64, elementType: null | Type__InstanceR): MainTypeT {
     if (elementType === null) {
       elementType = Type.empty();
     }
@@ -280,22 +279,22 @@ class MainType {
     case Type.tags.text:
       return {
         guts: "NonboolListGutsR",
-        reader: "ListListR<NonboolListGutsR, TextR>",
-        builder: "ListListB<NonboolListGutsR, TextR, Text>",
+        reader: "PointerListR<NonboolListGutsR, TextR>",
+        builder: "PointerListB<NonboolListGutsR, TextR, Text>",
       };
     case Type.tags.data:
       return {
         guts: "NonboolListGutsR",
-        reader: "ListListR<NonboolListGutsR, DataR>",
-        builder: "ListListB<NonboolListGutsR, DataR, Data>",
+        reader: "PointerListR<NonboolListGutsR, DataR>",
+        builder: "PointerListB<NonboolListGutsR, DataR, Data>",
       };
     case Type.tags.list:
       {
-        const t = this.list(elementType.getList().getElementType());
+        const t = this.list(hostId, elementType.getList().getElementType());
         return {
           guts: "NonboolListGutsR",
-          reader: `ListListR<NonboolListGutsR, ${t.reader}>`,
-          builder: `ListListB<NonboolListGutsR, ${t.reader}, ${t.builder}>`,
+          reader: `PointerListR<NonboolListGutsR, ${t.reader}>`,
+          builder: `PointerListB<NonboolListGutsR, ${t.reader}, ${t.builder}>`,
         };
       }
     case Type.tags.enum:
@@ -307,7 +306,7 @@ class MainType {
     case Type.tags.struct:
       {
         const struct = elementType.getStruct();
-        const t = this.struct(struct.getTypeId(), struct.getBrand());
+        const t = this.struct(hostId, struct.getTypeId(), struct.getBrand());
         return {
           guts: "NonboolListGutsR",
           reader: `StructListR<${t.reader}>`,
@@ -315,14 +314,18 @@ class MainType {
         };
       }
     case Type.tags.interface:
-      throw new Error("TODO");
+      return {
+        guts: "NonboolListGutsR",
+        reader: "CapListR",
+        builder: "CapList",
+      };
     case Type.tags.anyPointer:
       {
-        const t = this.anyPointer(elementType.getAnyPointer());
+        const t = this.anyPointer(hostId, elementType.getAnyPointer());
         return {
           guts: "NonboolListGutsR",
-          reader: `ListListR<NonboolListGutsR, ${t.reader}>`,
-          builder: `ListListB<NonboolListGutsR, ${t.reader}, ${t.builder}>`,
+          reader: `PointerListR<NonboolListGutsR, ${t.reader}>`,
+          builder: `PointerListB<NonboolListGutsR, ${t.reader}, ${t.builder}>`,
         };
       }
     default:
@@ -330,12 +333,12 @@ class MainType {
     }
   }
 
-  struct(id: UInt64, brand: null | Brand__InstanceR): MainTypeT {
+  struct(hostId: UInt64, id: UInt64, brand: null | Brand__InstanceR): MainTypeT {
     const mangledName = this.identifiers[toHex(id)];
 
     const parameters = this.parameters[toHex(id)];
     if (parameters.main.length > 0) {
-      const bindings = this.resolve(parameters.main, brand);
+      const bindings = this.resolve(hostId, parameters.main, brand);
 
       const readerSpecialPs = flatMap(Array.from(parameters.main), name => {
         const binding = bindings[name];
@@ -362,18 +365,19 @@ class MainType {
   }
 
   structContext(
+    hostId: UInt64,
     id: UInt64,
     brand: null | Brand__InstanceR,
     cb: (guts: "StructGutsR", mangledName: string, pts: Array<MainTypeT>) => void,
   ): void {
     const mangledName = this.identifiers[toHex(id)];
     const parameters = this.parameters[toHex(id)];
-    const bindings = this.resolve(parameters.main, brand);
+    const bindings = this.resolve(hostId, parameters.main, brand);
     const pts = Array.from(parameters.main).map(name => bindings[name]);
     cb("StructGutsR", mangledName, pts);
   }
 
-  anyPointer(anyPointer: Type_anyPointer__InstanceR): MainTypeT {
+  anyPointer(hostId: UInt64, anyPointer: Type_anyPointer__InstanceR): MainTypeT {
     const anyPointerG = Type.groups.anyPointer;
     switch (anyPointer.tag()) {
     case anyPointerG.tags.unconstrained:
@@ -399,8 +403,14 @@ class MainType {
             reader: "ListValueR",
             builder: "ListValue",
           };
-        case unconstrainedG.tags.capability: throw new Error("TODO"); //There exists a CapValue, but it's half-baked.
-        default: throw new Error("Unrecognized unconstrained AnyPointer type.");
+        case unconstrainedG.tags.capability:
+          return {
+            guts: "CapGutsR",
+            reader: "CapValueR",
+            builder: "CapValue",
+          };
+        default:
+          throw new Error("Unrecognized unconstrained AnyPointer type.");
         }
       }
     case anyPointerG.tags.parameter:
@@ -415,13 +425,21 @@ class MainType {
         };
       }
     case anyPointerG.tags.implicitMethodParameter:
-      throw new Error("TODO");
+      {
+        const parameter = anyPointer.getImplicitMethodParameter();
+        const name = paramName(this.index, hostId, parameter.getParameterIndex());
+        return {
+          guts: `${name}_guts`,
+          reader: `${name}_r`,
+          builder: `${name}_b`,
+        };
+      }
     default:
       throw new Error("Unrecognized AnyPointer type tag");
     }
   }
 
-  resolve(parameters: $ReadOnlyArray<string>, brand: null | Brand__InstanceR): { [name: string]: MainTypeT } {
+  resolve(hostId: UInt64, parameters: $ReadOnlyArray<string>, brand: null | Brand__InstanceR): { [name: string]: MainTypeT } {
     if (brand === null) {
       brand = Brand.empty();
     }
@@ -457,7 +475,7 @@ class MainType {
                   case Brand.Binding.tags.type:
                     if (unresolveds.has(name)) {
                       unresolveds.delete(name);
-                      bindings[name] = nonnull(this.pointer(binding.getType()));
+                      bindings[name] = nonnull(this.pointer(hostId, binding.getType()));
                     }
                     break;
                   default:
@@ -517,7 +535,7 @@ class CtorValue {
     this.parameters = parameters;
   }
 
-  pointer(type: null | Type__InstanceR): null | string {
+  pointer(hostId: UInt64, type: null | Type__InstanceR): null | string {
     if (type === null) {
       type = Type.empty();
     }
@@ -539,23 +557,22 @@ class CtorValue {
 
     case Type.tags.text: return "Text";
     case Type.tags.data: return "Data";
-    case Type.tags.list: return this.list(type.getList().getElementType());
+    case Type.tags.list: return this.list(hostId, type.getList().getElementType());
     case Type.tags.enum:
       return null;
     case Type.tags.struct:
       {
         const struct = type.getStruct();
-        return this.struct(struct.getTypeId(), struct.getBrand());
+        return this.struct(hostId, struct.getTypeId(), struct.getBrand());
       }
-    case Type.tags.interface:
-      throw new Error("TODO");
-    case Type.tags.anyPointer: return this.anyPointer(type.getAnyPointer());
+    case Type.tags.interface: return "CapValue";
+    case Type.tags.anyPointer: return this.anyPointer(hostId, type.getAnyPointer());
     default:
       throw new Error("Unrecognized type tag.");
     }
   }
 
-  list(elementType: null | Type__InstanceR): string {
+  list(hostId: UInt64, elementType: null | Type__InstanceR): string {
     if (elementType === null) {
       elementType = Type.empty();
     }
@@ -573,31 +590,30 @@ class CtorValue {
     case Type.tags.uint64: return "UInt64List";
     case Type.tags.float32: return "Float32List";
     case Type.tags.float64: return "Float64List";
-    case Type.tags.text: return "lists(Text)";
-    case Type.tags.data: return "lists(Data)";
+    case Type.tags.text: return "pointers(Text)";
+    case Type.tags.data: return "pointers(Data)";
     case Type.tags.list:
-      return `lists(${this.list(elementType.getList().getElementType())})`;
+      return `pointers(${this.list(hostId, elementType.getList().getElementType())})`;
     case Type.tags.enum: return "UInt16List";
     case Type.tags.struct:
       {
         const struct = elementType.getStruct();
-        return `structs(${this.struct(struct.getTypeId(), struct.getBrand())})`;
+        return `structs(${this.struct(hostId, struct.getTypeId(), struct.getBrand())})`;
       }
-    case Type.tags.interface:
-      throw new Error("TODO");
+    case Type.tags.interface: return "pointers(CapValue)";
     case Type.tags.anyPointer:
-      return `lists(${this.anyPointer(elementType.getAnyPointer())})`;
+      return `pointers(${this.anyPointer(hostId, elementType.getAnyPointer())})`;
     default:
       throw new Error("Unrecognized type tag.");
     }
   }
 
-  struct(id: UInt64, brand: null | Brand__InstanceR): string {
+  struct(hostId: UInt64, id: UInt64, brand: null | Brand__InstanceR): string {
     const mangledName = this.identifiers[toHex(id)];
 
     const parameters = this.parameters[toHex(id)];
     if (parameters.main.length > 0) {
-      const bindings = this.resolve(parameters.main, brand);
+      const bindings = this.resolve(hostId, parameters.main, brand);
       //TODO: Is parameters.ctor the correct set for consts? Do I need fix accumulateParameters? I think that ctor and instance converge at leafs, so this should be fine, no? Test me.
       const objectParams = Array.from(parameters.main).map(name => `${name}: ${bindings[name]}`);
       return `new ${mangledName}__CtorB({ ${objectParams.join(", ")} })`;
@@ -606,7 +622,7 @@ class CtorValue {
     }
   }
 
-  anyPointer(anyPointer: Type_anyPointer__InstanceR): string {
+  anyPointer(hostId: UInt64, anyPointer: Type_anyPointer__InstanceR): string {
     const anyPointerG = Type.groups.anyPointer;
     switch (anyPointer.tag()) {
     case anyPointerG.tags.unconstrained:
@@ -617,7 +633,7 @@ class CtorValue {
         case unconstrainedG.tags.anyKind: return "AnyValue";
         case unconstrainedG.tags.struct: return "StructValue";
         case unconstrainedG.tags.list: return "ListValue";
-        case unconstrainedG.tags.capability: throw new Error("TODO"); //There exists a CapValue, but it's half-baked.
+        case unconstrainedG.tags.capability: return "CapValue";
         default: throw new Error("Unrecognized unconstrained AnyPointer type.");
         }
       }
@@ -629,13 +645,17 @@ class CtorValue {
         return `this.params.${name}`;
       }
     case anyPointerG.tags.implicitMethodParameter:
-      throw new Error("TODO");
+      {
+        const parameter = anyPointer.getImplicitMethodParameter();
+        const name = paramName(this.index, hostId, parameter.getParameterIndex());
+        return `this.params.${name}`;
+      }
     default:
       throw new Error("Unrecognized AnyPointer type tag");
     }
   }
 
-  resolve(parameters: $ReadOnlyArray<string>, brand: null | Brand__InstanceR): { [name: string]: string } {
+  resolve(hostId: UInt64, parameters: $ReadOnlyArray<string>, brand: null | Brand__InstanceR): { [name: string]: string } {
     if (brand === null) {
       brand = Brand.empty();
     }
@@ -666,7 +686,7 @@ class CtorValue {
                 case Brand.Binding.tags.type:
                   if (unresolveds.has(name)) {
                     unresolveds.delete(name);
-                    bindings[name] = nonnull(this.pointer(binding.getType()));
+                    bindings[name] = nonnull(this.pointer(hostId, binding.getType()));
                   }
                   break;
                 default:
@@ -965,6 +985,7 @@ class BuildersVisitor extends Visitor<Printer> {
   }
 
   structField(
+    hostId: UInt64,
     field: Field__InstanceR,
     defs: null | { [name: string]: MetaWord },
     discrOffset: u33,
@@ -1309,13 +1330,13 @@ class BuildersVisitor extends Visitor<Printer> {
         case Type.tags.struct:
         case Type.tags.interface:
         case Type.tags.anyPointer:
-          const it = nonnull(this.type.pointer(type));
+          const it = nonnull(this.type.pointer(hostId, type));
           if (slot.getHadExplicitDefault()) {
             p.block(`${getField}(): ${it.builder}`, p => {
               checkTag(discrValue, discrOffset, p);
 
               p.line(`const ref = this.guts.pointersWord(${slot.getOffset() << 3});`);
-              const ctor = nonnull(this.ctorValue.pointer(type));
+              const ctor = nonnull(this.ctorValue.pointer(hostId, type));
               const def = nonnull(defs)[name.toString()];
               p.if("isNull(ref)", p => {
                 p.line(`pointerCopy(blob, { segment: blob.segments[${def.segmentId}], position: ${def.position} }, this.guts.level, this.guts.arena, ref);`);
@@ -1327,7 +1348,7 @@ class BuildersVisitor extends Visitor<Printer> {
               checkTag(discrValue, discrOffset, p);
 
               p.line(`const ref = this.guts.pointersWord(${slot.getOffset() << 3});`);
-              const ctor = nonnull(this.ctorValue.pointer(type));
+              const ctor = nonnull(this.ctorValue.pointer(hostId, type));
               p.line(`return ${ctor}.get(this.guts.level, this.guts.arena, ref);`);
             });
           }
@@ -1342,7 +1363,7 @@ class BuildersVisitor extends Visitor<Printer> {
               checkTag(discrValue, discrOffset, p);
 
               p.line(`const ref = this.guts.pointersWord(${slot.getOffset() << 3});`);
-              const ctor = nonnull(this.ctorValue.pointer(type));
+              const ctor = nonnull(this.ctorValue.pointer(hostId, type));
               const def = nonnull(defs)[name.toString()];
 
               p.if("isNull(ref)", p => {
@@ -1355,7 +1376,7 @@ class BuildersVisitor extends Visitor<Printer> {
               checkTag(discrValue, discrOffset, p);
 
               p.line(`const ref = this.guts.pointersWord(${slot.getOffset() << 3});`);
-              const ctor = nonnull(this.ctorValue.pointer(type));
+              const ctor = nonnull(this.ctorValue.pointer(hostId, type));
               p.line(`return ${ctor}.disown(this.guts.level, this.guts.arena, ref);`);
             });
           }
@@ -1483,7 +1504,7 @@ class BuildersVisitor extends Visitor<Printer> {
                 p.line(`+${localName}: {`);
                 p.indent(p => {
                   enumerants.forEach((enumerant, value) => {
-                    p.line(`+${nonnull(enumerant.getName()).toString()}: ${value}`);
+                    p.line(`+${nonnull(enumerant.getName()).toString()}: ${value},`);
                   });
                 });
                 p.line("};");
@@ -1661,7 +1682,7 @@ class BuildersVisitor extends Visitor<Printer> {
                   p.line(`+${localName}: {`);
                   p.indent(p => {
                     enumerants.forEach((enumerant, value) => {
-                      p.line(`+${nonnull(enumerant.getName()).toString()}: ${value}`);
+                      p.line(`+${nonnull(enumerant.getName()).toString()}: ${value},`);
                     });
                   });
                   p.line("};");
@@ -1852,7 +1873,7 @@ class BuildersVisitor extends Visitor<Printer> {
           fields.forEach(field => {
             p.interrupt();
 
-            this.structField(field, defs, 2 * struct.getDiscriminantOffset(), union, p);
+            this.structField(node.getId(), field, defs, 2 * struct.getDiscriminantOffset(), union, p);
           });
         }
       });
@@ -1925,7 +1946,7 @@ class BuildersVisitor extends Visitor<Printer> {
           fields.forEach(field => {
             p.interrupt();
 
-            this.structField(field, defs, 2 * struct.getDiscriminantOffset(), union, p);
+            this.structField(node.getId(), field, defs, 2 * struct.getDiscriminantOffset(), union, p);
           });
         }
       });
@@ -2036,7 +2057,7 @@ class BuildersVisitor extends Visitor<Printer> {
                 p.line(`+${localName}: {`);
                 p.indent(p => {
                   enumerants.forEach((enumerant, value) => {
-                    p.line(`+${nonnull(enumerant.getName()).toString()}: ${value}`);
+                    p.line(`+${nonnull(enumerant.getName()).toString()}: ${value},`);
                   });
                 });
                 p.line("};");
@@ -2186,7 +2207,7 @@ class BuildersVisitor extends Visitor<Printer> {
                   p.line(`+${localName}: {`);
                   p.indent(p => {
                     enumerants.forEach((enumerant, value) => {
-                      p.line(`+${nonnull(enumerant.getName()).toString()}: ${value}`);
+                      p.line(`+${nonnull(enumerant.getName()).toString()}: ${value},`);
                     });
                   });
                   p.line("};");
@@ -2233,8 +2254,8 @@ class BuildersVisitor extends Visitor<Printer> {
                 } else {
                   //TODO: Now that instance and ctor have collapsed to main, I should be able to call this.type like regular.
                   //      Can I clobber the structContext method?
-                  paramCtor = this.ctorValue.struct(paramId, method.getParamBrand());
-                  this.type.structContext(paramId, method.getParamBrand(), (guts, mangledName, pts) => {
+                  paramCtor = this.ctorValue.struct(paramId, paramId, method.getParamBrand());
+                  this.type.structContext(paramId, paramId, method.getParamBrand(), (guts, mangledName, pts) => {
                     if (pts.length > 0) {
                       const specialPs = flatMap(pts, pt => [pt.guts, pt.reader, pt.builder]);
                       p.line(`+Param: ${mangledName}__CtorB<${specialPs.join(", ")}>,`);
@@ -2263,8 +2284,8 @@ class BuildersVisitor extends Visitor<Printer> {
                   }
                   p.line(`+Result: ${specialization},`);
                 } else {
-                  resultCtor = this.ctorValue.struct(resultId, method.getResultBrand());
-                  this.type.structContext(resultId, method.getParamBrand(), (guts, mangledName, pts) => {
+                  resultCtor = this.ctorValue.struct(resultId, resultId, method.getResultBrand());
+                  this.type.structContext(resultId, resultId, method.getParamBrand(), (guts, mangledName, pts) => {
                     if (pts.length > 0) {
                       const specialPs = flatMap(pts, pt => [pt.guts, pt.reader, pt.builder]);
                       p.line(`+Result: ${mangledName}__CtorB<${specialPs.join(", ")}>,`);

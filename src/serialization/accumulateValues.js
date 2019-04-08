@@ -10,6 +10,7 @@ import { toHex } from "@capnp-js/uint64";
 import { AnyValue } from "@capnp-js/reader-core";
 import { Unlimited } from "@capnp-js/base-arena";
 import { Builder } from "@capnp-js/builder-arena";
+import { create, getSubarray } from "@capnp-js/bytes";
 
 import { array as injectArray } from "@capnp-js/trans-inject";
 import { startEncodeSync as startStream } from "@capnp-js/trans-stream";
@@ -176,8 +177,8 @@ class ValuesVisitor extends Visitor<Acc> {
 /* I reuse the same buffers for everything. Before calling `header` or
    `segment`, I must complete iterating prior call results. Otherwise data will
    get clobbered. */
-const start = startStream(new Uint8Array(2048));
-const pack = packing(new Uint8Array(2048));
+const start = startStream(create(2048));
+const pack = packing(create(2048));
 const align = alignment(3);
 
 export default function accumulateValues(index: Index, fileId: UInt64): null | Values {
@@ -190,7 +191,7 @@ export default function accumulateValues(index: Index, fileId: UInt64): null | V
   if (internalAcc.blob === null) {
     return null;
   } else {
-    const raws = internalAcc.blob.segments.map(s => s.raw.subarray(0, s.end));
+    const raws = internalAcc.blob.segments.map(s => getSubarray(0, s.end, s.raw));
     const b64 = base64(align(pack(concat(start(raws), injectArray(raws)))));
     if (b64 instanceof Error) {
       throw b64;

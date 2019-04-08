@@ -210,7 +210,7 @@ class LibsVisitor extends Visitor<Acc> {
     case Type.tags.text:
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["reader-core"]["Text"] = this.mangle("TextR");
-      acc.type["builder-core"]["Orphan"] = this.mangle("Orphan"); //TODO: mangle with capnp_, not capnpJs_
+      acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
       acc.value["builder-core"]["Text"] = this.mangle("Text");
       break;
     case Type.tags.data:
@@ -231,7 +231,11 @@ class LibsVisitor extends Visitor<Acc> {
       //TODO: Eslint rule for `//fall through` switch statements.
       break;
     case Type.tags.interface:
-      throw new Error("TODO");
+      acc.type["reader-core"]["CapValue"] = this.mangle("CapValueR");
+      acc.type["reader-core"]["CapGutsR"] = this.mangle("CapGutsR");
+      acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
+      acc.value["builder-core"]["CapValue"] = this.mangle("CapValue");
+      break;
     case Type.tags.anyPointer:
       {
         const anyPointerGroup = Type.groups.anyPointer;
@@ -262,7 +266,11 @@ class LibsVisitor extends Visitor<Acc> {
               acc.value["builder-core"]["ListValue"] = this.mangle("ListValue");
               break;
             case unconstrainedGroup.tags.capability:
-              throw new Error("TODO");
+              acc.type["reader-core"]["CapValue"] = this.mangle("CapValueR");
+              acc.type["reader-core"]["CapGutsR"] = this.mangle("CapGutsR");
+              acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
+              acc.value["builder-core"]["CapValue"] = this.mangle("CapValue");
+              break;
             default:
               throw new Error("Unrecognized unconstrained-AnyPointer tag.");
             }
@@ -361,29 +369,29 @@ class LibsVisitor extends Visitor<Acc> {
       acc.value["builder-core"]["Float64List"] = this.mangle("Float64List");
       break;
     case Type.tags.text:
-      acc.type["reader-core"]["ListListR"] = this.mangle("ListListR");
+      acc.type["reader-core"]["PointerListR"] = this.mangle("PointerListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["reader-core"]["Text"] = this.mangle("TextR");
-      acc.type["builder-core"]["ListListB"] = this.mangle("ListListB");
+      acc.type["builder-core"]["PointerListB"] = this.mangle("PointerListB");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
       acc.value["builder-core"]["Text"] = this.mangle("Text");
-      acc.value["builder-core"]["lists"] = "lists";
+      acc.value["builder-core"]["pointers"] = "pointers";
       break;
     case Type.tags.data:
-      acc.type["reader-core"]["ListListR"] = this.mangle("ListListR");
+      acc.type["reader-core"]["PointerListR"] = this.mangle("PointerListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
       acc.type["reader-core"]["Data"] = this.mangle("DataR");
-      acc.type["builder-core"]["ListListB"] = this.mangle("ListListB");
+      acc.type["builder-core"]["PointerListB"] = this.mangle("PointerListB");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
       acc.value["builder-core"]["Data"] = this.mangle("Data");
-      acc.value["builder-core"]["lists"] = "lists";
+      acc.value["builder-core"]["pointers"] = "pointers";
       break;
     case Type.tags.list:
-      acc.type["reader-core"]["ListListR"] = this.mangle("ListListR");
+      acc.type["reader-core"]["PointerListR"] = this.mangle("PointerListR");
       acc.type["reader-core"]["NonboolListGutsR"] = this.mangle("NonboolListGutsR");
-      acc.type["builder-core"]["ListListB"] = this.mangle("ListListB");
+      acc.type["builder-core"]["PointerListB"] = this.mangle("PointerListB");
       acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
-      acc.value["builder-core"]["lists"] = "lists";
+      acc.value["builder-core"]["pointers"] = "pointers";
       this.addList(elementType.getList().getElementType(), acc);
       break;
     case Type.tags.enum:
@@ -400,7 +408,11 @@ class LibsVisitor extends Visitor<Acc> {
       acc.value["builder-core"]["structs"] = "structs";
       break;
     case Type.tags.interface:
-      throw new Error("TODO");
+      acc.type["reader-core"]["CapGutsR"] = this.mangle("CapGutsR");
+      acc.type["reader-core"]["CapValue"] = this.mangle("CapValueR");
+      acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
+      acc.value["builder-core"]["CapValue"] = this.mangle("CapValue");
+      break;
     case Type.tags.anyPointer:
       {
         const anyPointerGroup = Type.groups.anyPointer;
@@ -424,7 +436,11 @@ class LibsVisitor extends Visitor<Acc> {
               acc.value["builder-core"]["ListValue"] = this.mangle("ListValue");
               break;
             case unconstrainedGroup.tags.capability:
-              throw new Error("TODO");
+              acc.type["reader-core"]["CapGutsR"] = this.mangle("CapGutsR");
+              acc.type["reader-core"]["CapValue"] = this.mangle("CapValueR");
+              acc.type["builder-core"]["Orphan"] = this.mangle("Orphan");
+              acc.value["builder-core"]["CapValue"] = this.mangle("CapValue");
+              break;
             default:
               throw new Error("Unrecognized unconstrained-AnyPointer tag.");
             }
