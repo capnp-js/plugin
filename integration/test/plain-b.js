@@ -7,7 +7,7 @@ import { Builder } from "@capnp-js/builder-arena";
 import { nonnull } from "@capnp-js/nullary";
 import { inject as injectI64 } from "@capnp-js/int64";
 import { inject as injectU64 } from "@capnp-js/uint64";
-import { Leaves, MaybeLeaves, Lists, Nesteds } from "../plain.capnp-b";
+import { Leaves, MaybeLeaves } from "../plain.capnp-b";
 
 describe("Leaves", function () {
   const arena = Builder.fresh(2000, new Limited(1<<26, 64));
@@ -234,7 +234,7 @@ describe("Leaves", function () {
       assert.ok(orphan.isDetached());
       leaves.adoptData(orphan);
       assert.ok(!orphan.isDetached());
-      assert.throws(() => leaves.adopt(orphan));
+      assert.throws(() => leaves.adoptData(orphan));
       leaves.disownData();
     });
   });
@@ -300,18 +300,8 @@ describe("Leaves", function () {
       assert.ok(orphan.isDetached());
       leaves.adoptText(orphan);
       assert.ok(!orphan.isDetached());
-      assert.throws(() => leaves.adopt(orphan));
+      assert.throws(() => leaves.adoptText(orphan));
       leaves.disownText();
     });
   });
-});
-
-describe("Lists", function () {
-  const arena = Builder.fresh(2000, new Limited(1<<26, 64));
-  const lists = arena.initRoot(Lists);
-});
-
-describe("Nesteds", function () {
-  const arena = Builder.fresh(2000, new Limited(1<<26, 64));
-  const nesteds = arena.initRoot(Nesteds);
 });

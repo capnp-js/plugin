@@ -1,4 +1,4 @@
 /* @flow */
 
-import { Leaves, Lists, Nesteds } from "../plain.capnp-r";
+import { Leaves } from "../plain.capnp-r";
 
