@@ -1425,7 +1425,7 @@ class BuildersVisitor extends Visitor<Printer> {
 
         if (discrValue !== Field.getNoDiscriminant()) {
           const initField = `init${capitalize(name.toString())}`;
-          p.block(`${initField}(): void`, p => {
+          p.block(`${initField}(): ${specialization}`, p => {
             initTag(discrValue, discrOffset, p);
 
             if (parameters.length > 0) {
